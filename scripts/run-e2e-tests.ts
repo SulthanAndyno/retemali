@@ -72,7 +72,7 @@ function record(
 
 async function runTests() {
   console.log("==========================================================");
-  console.log("🚀 STARTING RETEMALI BACKEND E2E TEST SUITE (POSTMAN-STYLE)");
+  console.log("🚀 STARTING RETEMALI BACKEND COMPREHENSIVE E2E TEST SUITE");
   console.log("==========================================================\n");
 
   // 1. Health
@@ -80,7 +80,7 @@ async function runTests() {
   const health = await request("GET", "/health");
   record("GET /health", health.status, 200, health.data);
 
-  // 2. Auth
+  // 2. Auth & Profiles
   console.log("\n--- 1. AUTH & PROFILE MODULE ---");
   const regEmail = `testuser.${Date.now()}@retemali.id`;
   const register = await request("POST", "/api/auth/register", {
@@ -91,6 +91,7 @@ async function runTests() {
     rtRw: "RT05/RW14",
   });
   record("POST /api/auth/register (Member Baru)", register.status, 201, register.data);
+  const newMemberToken = register.data?.data?.token;
   const newMemberCode = register.data?.data?.user?.memberCode;
 
   const loginAdmin = await request("POST", "/api/auth/login", {
@@ -105,7 +106,7 @@ async function runTests() {
     password: "Password123",
   });
   record("POST /api/auth/login (Volunteer)", loginVol.status, 200, loginVol.data);
-  const volunteerToken = loginVol.data?.data?.token;
+  let volunteerToken = loginVol.data?.data?.token;
 
   const loginMem = await request("POST", "/api/auth/login", {
     email: "rifky@retemali.id",
@@ -125,6 +126,36 @@ async function runTests() {
   );
   record("PATCH /api/auth/me (Update Target Baca)", updateProfile.status, 200, updateProfile.data);
 
+  // 2b. Role Switch Feature
+  console.log("\n--- 1b. VOLUNTEER ROLE SWITCH FEATURE ---");
+  const switchRoleToMember = await request(
+    "POST",
+    "/api/auth/role-switch",
+    { role: "MEMBER" },
+    volunteerToken,
+  );
+  record("POST /api/auth/role-switch (Volunteer -> MEMBER mode)", switchRoleToMember.status, 200, switchRoleToMember.data);
+  const switchedMemberToken = switchRoleToMember.data?.data?.token;
+
+  // Test that in MEMBER mode, volunteer cannot access volunteer-only endpoint
+  const testDeniedAccess = await request(
+    "GET",
+    "/api/volunteers/applications",
+    undefined,
+    switchedMemberToken,
+  );
+  record("GET /api/volunteers/applications in MEMBER mode (Forbidden 403)", testDeniedAccess.status, 403, testDeniedAccess.data);
+
+  // Switch back to VOLUNTEER mode
+  const switchBackToVolunteer = await request(
+    "POST",
+    "/api/auth/role-switch",
+    { role: "VOLUNTEER" },
+    switchedMemberToken,
+  );
+  record("POST /api/auth/role-switch (Switch back -> VOLUNTEER mode)", switchBackToVolunteer.status, 200, switchBackToVolunteer.data);
+  volunteerToken = switchBackToVolunteer.data?.data?.token;
+
   // 3. Dashboard
   console.log("\n--- 2. DASHBOARD AGGREGATIONS ---");
   const dashPublic = await request("GET", "/api/dashboard/public");
@@ -139,7 +170,7 @@ async function runTests() {
   const dashAdmin = await request("GET", "/api/dashboard/admin", undefined, adminToken);
   record("GET /api/dashboard/admin (Konsol Administrator)", dashAdmin.status, 200, dashAdmin.data);
 
-  // 4. Books
+  // 4. Books & Catalog
   console.log("\n--- 3. BOOKS & CATALOG MODULE ---");
   const books = await request("GET", "/api/books?page=1&limit=5&category=PSIKOLOGI");
   record("GET /api/books (Katalog & Filter)", books.status, 200, books.data);
@@ -202,7 +233,7 @@ async function runTests() {
     "POST",
     "/api/circulation/reservations",
     { bookId: targetBookId, pickupCounter: "Loket Sirkulasi A-2" },
-    memberToken,
+    newMemberToken,
   );
   record("POST /api/circulation/reservations (Reservasi 48 Jam)", reserve.status, 201, reserve.data);
   const resCode = reserve.data?.data?.reservationCode;
@@ -211,7 +242,7 @@ async function runTests() {
     "GET",
     "/api/circulation/reservations/me",
     undefined,
-    memberToken,
+    newMemberToken,
   );
   record("GET /api/circulation/reservations/me", myRes.status, 200, myRes.data);
 
@@ -219,7 +250,7 @@ async function runTests() {
     "POST",
     "/api/circulation/quick-checkout",
     {
-      memberIdentifier: "RM-2024-089",
+      memberIdentifier: newMemberCode,
       bookIdentifier: "BK-PS-0899",
       reservationCode: resCode,
       durationDays: 14,
@@ -263,7 +294,7 @@ async function runTests() {
     "/api/circulation/quick-return",
     {
       bookIdentifier: "BK-PS-0899",
-      memberIdentifier: "RM-2024-089",
+      memberIdentifier: newMemberCode,
       returnCondition: "GOOD",
       notes: "Kondisi buku baik dan rapi",
     },
@@ -271,11 +302,21 @@ async function runTests() {
   );
   record("POST /api/circulation/quick-return (Pengembalian & Poin)", quickReturn.status, 200, quickReturn.data);
 
-  // 7. Community Events
+  // 7. Community Events Module (Including Reports, Auto-Close, and Quota Restrictions)
   console.log("\n--- 6. COMMUNITY EVENTS MODULE ---");
   const events = await request("GET", "/api/events?page=1&limit=5");
   record("GET /api/events (Daftar Agenda Kegiatan)", events.status, 200, events.data);
 
+  // Test Auto-Close on Past Event: festival-dongeng-nusantara-panggung-boneka is in the past
+  const pastEventReg = await request(
+    "POST",
+    "/api/events/festival-dongeng-nusantara-panggung-boneka/register",
+    undefined,
+    memberToken,
+  );
+  record("POST /api/events/:slug/register past event (Auto-Close Guard 400)", pastEventReg.status, 400, pastEventReg.data);
+
+  // Create a Future Event
   const createEvent = await request(
     "POST",
     "/api/events",
@@ -285,29 +326,69 @@ async function runTests() {
       description: "Pelatihan logika komputasi untuk warga remaja.",
       facilitatorName: "Kak Dimas",
       location: "Pendopo Rete Mali",
-      eventDate: "2026-05-20T00:00:00.000Z",
+      eventDate: "2026-12-20T00:00:00.000Z",
       startTime: "10:00",
       endTime: "12:00",
-      quota: 20,
-      feeType: "FREE",
+      quota: 10,
+      feeType: "INFAQ",
+      infaqAmount: 25000,
     },
     adminToken,
   );
   record("POST /api/events (Tambah Agenda Baru)", createEvent.status, 201, createEvent.data);
   const createdEventId = createEvent.data?.data?.id;
+  const createdEventSlug = createEvent.data?.data?.slug;
 
+  // Register to Future Event (with payment proof URL)
   const regEvent = await request(
     "POST",
-    "/api/events/festival-dongeng-nusantara-panggung-boneka/register",
-    undefined,
+    `/api/events/${createdEventSlug}/register`,
+    { paymentProofUrl: "https://retemali.id/uploads/proof-test.jpg" },
     memberToken,
   );
-  record("POST /api/events/:id/register (Daftar E-Tiket QR)", regEvent.status, 201, regEvent.data);
+  record("POST /api/events/:id/register (Daftar Event Masa Depan)", regEvent.status, 201, regEvent.data);
   const ticketCode = regEvent.data?.data?.ticketCode;
+  const registrationId = regEvent.data?.data?.id;
 
+  // Test Quota Limit Protection: create event with quota = 1
+  const limitedEvent = await request(
+    "POST",
+    "/api/events",
+    {
+      title: `Kelas Terbatas Kuota 1 ${Date.now()}`,
+      category: "KLUB_BUKU",
+      description: "Kelas privat satu peserta.",
+      facilitatorName: "Kak Budi",
+      location: "Ruang Baca 1",
+      eventDate: "2026-12-25T00:00:00.000Z",
+      startTime: "14:00",
+      endTime: "15:00",
+      quota: 1,
+      feeType: "FREE",
+    },
+    adminToken,
+  );
+  record("POST /api/events (Event Kuota 1)", limitedEvent.status, 201, limitedEvent.data);
+  const limitedSlug = limitedEvent.data?.data?.slug;
+
+  // 1st participant registers -> 201
+  const reg1 = await request("POST", `/api/events/${limitedSlug}/register`, undefined, memberToken);
+  record("POST /api/events/:slug/register (Peserta 1 Masuk Kuota)", reg1.status, 201, reg1.data);
+
+  // 2nd participant attempts to register -> 400 Full Quota
+  const reg2 = await request("POST", `/api/events/${limitedSlug}/register`, undefined, newMemberToken);
+  record("POST /api/events/:slug/register (Peserta 2 Kuota Penuh 400)", reg2.status, 400, reg2.data);
+
+  // Clean up limited event
+  if (limitedEvent.data?.data?.id) {
+    await request("DELETE", `/api/events/${limitedEvent.data?.data?.id}`, undefined, adminToken);
+  }
+
+  // Get My Tickets
   const myTickets = await request("GET", "/api/events/tickets/me", undefined, memberToken);
   record("GET /api/events/tickets/me (Daftar Tiket Saya)", myTickets.status, 200, myTickets.data);
 
+  // Volunteer checks in participant QR
   if (ticketCode) {
     const checkIn = await request(
       "POST",
@@ -316,6 +397,29 @@ async function runTests() {
       volunteerToken,
     );
     record("POST /api/events/check-in (Presensi QR Gerbang)", checkIn.status, 200, checkIn.data);
+  }
+
+  // Event Attendance Report (Admin & Volunteer)
+  const attendanceReport = await request("GET", "/api/events/attendance", undefined, adminToken);
+  record("GET /api/events/attendance (Laporan Kehadiran Event)", attendanceReport.status, 200, attendanceReport.data);
+
+  // Event Auto-Close Execution
+  const autoClose = await request("GET", "/api/events/auto-close", undefined, adminToken);
+  record("GET /api/events/auto-close (Auto-Close Timeline Trigger)", autoClose.status, 200, autoClose.data);
+
+  // Event Registrations List (Admin)
+  const listRegistrations = await request("GET", "/api/events/registrations", undefined, adminToken);
+  record("GET /api/events/registrations (Daftar Registrasi Peserta)", listRegistrations.status, 200, listRegistrations.data);
+
+  // Verify Registration Payment (Approve)
+  if (registrationId) {
+    const verifyReg = await request(
+      "PATCH",
+      `/api/events/registrations/${registrationId}/verify`,
+      { status: "VERIFIED", adminNotes: "Bukti transfer valid dan sesuai nominal infaq." },
+      adminToken,
+    );
+    record("PATCH /api/events/registrations/:id/verify (Verifikasi Pembayaran Tiket)", verifyReg.status, 200, verifyReg.data);
   }
 
   // 8. Volunteers & Shifts
@@ -329,7 +433,7 @@ async function runTests() {
       division: "Kelas Cerita",
       motivation: "Ingin mendongeng dan membimbing adik-adik membaca.",
     },
-    register.data?.data?.token,
+    newMemberToken,
   );
   record("POST /api/volunteers/apply (Daftar Calon Relawan)", applyVol.status, 201, applyVol.data);
   const appId = applyVol.data?.data?.id;
@@ -405,8 +509,8 @@ async function runTests() {
     record("DELETE /api/handover-notes/:id (Hapus Catatan)", delNote.status, 200, delNote.data);
   }
 
-  // 10. Donations
-  console.log("\n--- 9. DONATION & LOGISTICS MODULE ---");
+  // 10. Donations, Cash Report & Payment Settings
+  console.log("\n--- 9. DONATION, CASH REPORT & PAYMENT CHANNELS MODULE ---");
   const donSummary = await request("GET", "/api/donations/summary");
   record("GET /api/donations/summary (Capaian & Live Feed)", donSummary.status, 200, donSummary.data);
 
@@ -448,8 +552,52 @@ async function runTests() {
     record("PATCH /api/donations/books/:id/verify (Verifikasi Donasi Masuk)", verifyBookDon.status, 200, verifyBookDon.data);
   }
 
-  // 11. Audit Logs
-  console.log("\n--- 10. AUDIT LOGS MODULE ---");
+  // Cash Report (Cash Flow & Financial Audit)
+  const cashReport = await request("GET", "/api/donations/cash-report", undefined, adminToken);
+  record("GET /api/donations/cash-report (Laporan Kas Inflow/Outflow)", cashReport.status, 200, cashReport.data);
+
+  // Payment Channels & Accounts
+  const paymentAccounts = await request("GET", "/api/donations/payment-accounts");
+  record("GET /api/donations/payment-accounts (Daftar Kanal Pembayaran Aktif)", paymentAccounts.status, 200, paymentAccounts.data);
+
+  const paymentSetting = await request("GET", "/api/donations/payment-setting");
+  record("GET /api/donations/payment-setting (Pengaturan Payment Gateway)", paymentSetting.status, 200, paymentSetting.data);
+
+  // 11. Gallery Module (Google Maps-Style)
+  console.log("\n--- 10. GALLERY MODULE (GOOGLE MAPS STYLE) ---");
+  const placeInfo = await request("GET", "/api/gallery/place-info");
+  record("GET /api/gallery/place-info (Profil Tempat, Lokasi & Fasilitas)", placeInfo.status, 200, placeInfo.data);
+
+  const addPhoto = await request(
+    "POST",
+    "/api/gallery",
+    {
+      title: "Kegiatan Membaca Bersama Anak",
+      caption: "Antusiasme anak-anak membaca buku bergambar di pendopo.",
+      imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
+      category: "KEGIATAN",
+      isFeatured: true,
+    },
+    volunteerToken,
+  );
+  record("POST /api/gallery (Unggah Foto Galeri Google Maps)", addPhoto.status, 201, addPhoto.data);
+  const photoId = addPhoto.data?.data?.id;
+
+  const getGallery = await request("GET", "/api/gallery?category=KEGIATAN");
+  record("GET /api/gallery?category=KEGIATAN (Filter Kategori Galeri)", getGallery.status, 200, getGallery.data);
+
+  if (photoId) {
+    const delPhoto = await request("DELETE", `/api/gallery/${photoId}`, undefined, adminToken);
+    record("DELETE /api/gallery/:id (Hapus Foto Galeri)", delPhoto.status, 200, delPhoto.data);
+  }
+
+  // 12. Notifications Module
+  console.log("\n--- 11. NOTIFICATION FEED MODULE ---");
+  const notifications = await request("GET", "/api/notifications", undefined, memberToken);
+  record("GET /api/notifications (Feed Notifikasi & Pengingat)", notifications.status, 200, notifications.data);
+
+  // 13. Audit Logs Module
+  console.log("\n--- 12. AUDIT LOGS MODULE ---");
   const auditLogs = await request("GET", "/api/audit-logs", undefined, adminToken);
   record("GET /api/audit-logs (Live Feed Audit Admin)", auditLogs.status, 200, auditLogs.data);
 

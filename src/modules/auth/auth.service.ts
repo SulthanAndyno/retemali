@@ -224,7 +224,14 @@ export class AuthService {
       },
     };
 
+    const token = jwt.sign(
+      { userId: user.id, role: requestedRole },
+      process.env.JWT_SECRET as string,
+      { expiresIn: JWT_EXPIRES },
+    );
+
     return {
+      token,
       activeRole: requestedRole,
       accountRole: user.role,
       mode: requestedRole === user.role ? "ACCOUNT" : "SWITCHED",

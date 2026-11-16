@@ -19,6 +19,12 @@ export const createGalleryPhotoSchema = z.object({
       "Kategori galeri tidak valid. Pilih: SUASANA, KEGIATAN, FASILITAS, atau KOLEKSI",
   }),
 
+  imageUrl: z
+    .string()
+    .url("Format URL gambar tidak valid")
+    .trim()
+    .optional(),
+
   caption: z
     .string()
     .max(1000, "Keterangan/caption foto maksimal 1000 karakter")

@@ -59,11 +59,15 @@ export class GalleryService {
     file?: Express.Multer.File,
     actorId?: string,
   ): Promise<GalleryPhoto> {
-    if (!file) {
-      throw new AppError("Berkas foto wajib diunggah", 400);
+    let imagePath = data.imageUrl;
+    if (file) {
+      imagePath = `uploads/gallery/${file.filename}`;
     }
 
-    const imagePath = `uploads/gallery/${file.filename}`;
+    if (!imagePath) {
+      throw new AppError("Berkas foto atau imageUrl wajib disertakan", 400);
+    }
+
     return this.galleryRepository.create(data, imagePath, actorId);
   }
 
