@@ -270,6 +270,36 @@ export function generatePostmanCollection() {
               description: "Mengganti password akun.",
             },
           },
+          {
+            name: "Role Switch (Volunteer / Member)",
+            request: {
+              method: "POST",
+              header: [
+                { key: "Content-Type", value: "application/json" },
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              body: {
+                mode: "raw",
+                raw: JSON.stringify(
+                  {
+                    role: "MEMBER",
+                  },
+                  null,
+                  2,
+                ),
+                options: { raw: { language: "json" } },
+              },
+              url: {
+                raw: `${BASE_URL}/api/auth/role-switch`,
+                host: ["{{base_url}}"],
+                path: ["api", "auth", "role-switch"],
+              },
+              description: "Beralih peran aktif antara MEMBER dan VOLUNTEER.",
+            },
+          },
         ],
       },
       {
@@ -570,6 +600,24 @@ export function generatePostmanCollection() {
               description: "Menjalankan pemrosesan cron peringatan jatuh tempo.",
             },
           },
+          {
+            name: "Remind WhatsApp (Deep Link)",
+            request: {
+              method: "POST",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/circulation/loans/{{loan_id}}/remind-wa`,
+                host: ["{{base_url}}"],
+                path: ["api", "circulation", "loans", "{{loan_id}}", "remind-wa"],
+              },
+              description: "Membuat link WhatsApp langsung ke peminjam yang jatuh tempo.",
+            },
+          },
         ],
       },
       {
@@ -668,6 +716,127 @@ export function generatePostmanCollection() {
                 path: ["api", "events", "tickets", "me"],
               },
               description: "Melihat tiket kegiatan milik anggota.",
+            },
+          },
+          {
+            name: "Presensi Gerbang Check-In (Scan Tiket)",
+            request: {
+              method: "POST",
+              header: [
+                { key: "Content-Type", value: "application/json" },
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              body: {
+                mode: "raw",
+                raw: JSON.stringify(
+                  {
+                    ticketCode: "RETEMALI-EV-2026-0001",
+                  },
+                  null,
+                  2,
+                ),
+                options: { raw: { language: "json" } },
+              },
+              url: {
+                raw: `${BASE_URL}/api/events/check-in`,
+                host: ["{{base_url}}"],
+                path: ["api", "events", "check-in"],
+              },
+              description: "Presensi gerbang check-in peserta dengan QR tiket.",
+            },
+          },
+          {
+            name: "Laporan Kehadiran Event (Attendance Report)",
+            request: {
+              method: "GET",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/events/attendance`,
+                host: ["{{base_url}}"],
+                path: ["api", "events", "attendance"],
+              },
+              description: "Melihat laporan metrik kehadiran peserta kegiatan.",
+            },
+          },
+          {
+            name: "Auto Close Event Timeline Trigger",
+            request: {
+              method: "GET",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{admin_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/events/auto-close`,
+                host: ["{{base_url}}"],
+                path: ["api", "events", "auto-close"],
+              },
+              description: "Menjalankan trigger otomatis menutup kegiatan lampau.",
+            },
+          },
+          {
+            name: "List Registrasi Peserta Event",
+            request: {
+              method: "GET",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/events/registrations?page=1&limit=10`,
+                host: ["{{base_url}}"],
+                path: ["api", "events", "registrations"],
+              },
+              description: "Melihat daftar pendaftaran peserta kegiatan.",
+            },
+          },
+          {
+            name: "Verifikasi Pembayaran Tiket Infaq",
+            request: {
+              method: "PATCH",
+              header: [
+                { key: "Content-Type", value: "application/json" },
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              body: {
+                mode: "raw",
+                raw: JSON.stringify(
+                  {
+                    status: "VERIFIED",
+                    adminNotes: "Bukti transfer valid dan sesuai nominal infaq.",
+                  },
+                  null,
+                  2,
+                ),
+                options: { raw: { language: "json" } },
+              },
+              url: {
+                raw: `${BASE_URL}/api/events/registrations/{{registration_id}}/verify`,
+                host: ["{{base_url}}"],
+                path: [
+                  "api",
+                  "events",
+                  "registrations",
+                  "{{registration_id}}",
+                  "verify",
+                ],
+              },
+              description: "Memverifikasi atau menolak bukti pembayaran infaq tiket.",
             },
           },
         ],
@@ -955,6 +1124,50 @@ export function generatePostmanCollection() {
               description: "Melihat antrean verifikasi buku donasi masuk.",
             },
           },
+          {
+            name: "Get Cash Report (Laporan Arus Kas Masuk)",
+            request: {
+              method: "GET",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{admin_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/donations/cash-report`,
+                host: ["{{base_url}}"],
+                path: ["api", "donations", "cash-report"],
+              },
+              description: "Melihat laporan agregasi kas masuk (donasi, infaq event, denda sirkulasi).",
+            },
+          },
+          {
+            name: "Get Payment Accounts (Kanal Pembayaran)",
+            request: {
+              method: "GET",
+              header: [],
+              url: {
+                raw: `${BASE_URL}/api/donations/payment-accounts`,
+                host: ["{{base_url}}"],
+                path: ["api", "donations", "payment-accounts"],
+              },
+              description: "Mengambil daftar rekening bank & QRIS aktif.",
+            },
+          },
+          {
+            name: "Get Payment Setting (Global Gateway)",
+            request: {
+              method: "GET",
+              header: [],
+              url: {
+                raw: `${BASE_URL}/api/donations/payment-setting`,
+                host: ["{{base_url}}"],
+                path: ["api", "donations", "payment-setting"],
+              },
+              description: "Mengambil pengaturan global rekening dan QRIS.",
+            },
+          },
         ],
       },
       {
@@ -1048,6 +1261,112 @@ export function generatePostmanCollection() {
                 path: ["api", "audit-logs"],
               },
               description: "Melihat log aktivitas sistem.",
+            },
+          },
+        ],
+      },
+      {
+        name: "11. Gallery Module (Google Maps Style)",
+        item: [
+          {
+            name: "Get Place Info (Google Maps Profile)",
+            request: {
+              method: "GET",
+              header: [],
+              url: {
+                raw: `${BASE_URL}/api/gallery/place-info`,
+                host: ["{{base_url}}"],
+                path: ["api", "gallery", "place-info"],
+              },
+              description: "Profil tempat: Koordinat GPS, jam operasional, rating, fasilitas.",
+            },
+          },
+          {
+            name: "Get All Gallery Photos",
+            request: {
+              method: "GET",
+              header: [],
+              url: {
+                raw: `${BASE_URL}/api/gallery?page=1&limit=12&category=KEGIATAN`,
+                host: ["{{base_url}}"],
+                path: ["api", "gallery"],
+              },
+              description: "Melihat galeri foto dengan filter kategori (SUASANA, KEGIATAN, FASILITAS, KOLEKSI).",
+            },
+          },
+          {
+            name: "Upload Gallery Photo",
+            request: {
+              method: "POST",
+              header: [
+                { key: "Content-Type", value: "application/json" },
+                {
+                  key: "Authorization",
+                  value: "Bearer {{volunteer_token}}",
+                },
+              ],
+              body: {
+                mode: "raw",
+                raw: JSON.stringify(
+                  {
+                    title: "Kegiatan Membaca Bersama Anak",
+                    caption: "Antusiasme anak-anak membaca buku cerita bergambar.",
+                    category: "KEGIATAN",
+                    imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
+                    isFeatured: true,
+                  },
+                  null,
+                  2,
+                ),
+                options: { raw: { language: "json" } },
+              },
+              url: {
+                raw: `${BASE_URL}/api/gallery`,
+                host: ["{{base_url}}"],
+                path: ["api", "gallery"],
+              },
+              description: "Mengunggah foto galeri baru (file multipart atau imageUrl).",
+            },
+          },
+          {
+            name: "Delete Gallery Photo",
+            request: {
+              method: "DELETE",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{admin_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/gallery/{{photo_id}}`,
+                host: ["{{base_url}}"],
+                path: ["api", "gallery", "{{photo_id}}"],
+              },
+              description: "Menghapus foto galeri.",
+            },
+          },
+        ],
+      },
+      {
+        name: "12. Notification Feed",
+        item: [
+          {
+            name: "Get Notification Feed",
+            request: {
+              method: "GET",
+              header: [
+                {
+                  key: "Authorization",
+                  value: "Bearer {{member_token}}",
+                },
+              ],
+              url: {
+                raw: `${BASE_URL}/api/notifications`,
+                host: ["{{base_url}}"],
+                path: ["api", "notifications"],
+              },
+              description: "Feed terpadu notifikasi kegiatan baru, closing event, pengingat pengembalian H-2, dll.",
             },
           },
         ],
