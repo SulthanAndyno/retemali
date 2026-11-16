@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { paginatedResponse, successResponse } from "../../utils/response";
 import { DonationService } from "./donation.service";
 import {
+  cashReportQuerySchema,
   createBookDonationSchema,
   createFinancialDonationSchema,
   donationQuerySchema,
@@ -160,6 +161,61 @@ export class DonationController {
         res,
         message: "Batch donasi buku fisik berhasil diverifikasi oleh relawan",
         data: batch,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCashReport = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { from, to } = cashReportQuerySchema.parse(req.query);
+      const report = await this.donationService.getCashReport(from, to);
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil rekap laporan kas terpadu",
+        data: report,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPaymentAccounts = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const accounts = await this.donationService.getPaymentAccounts();
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil daftar kanal rekening donasi",
+        data: accounts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPaymentSetting = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const setting = await this.donationService.getPaymentSetting();
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil data pengaturan rekening pembayaran",
+        data: setting,
       });
     } catch (error) {
       next(error);

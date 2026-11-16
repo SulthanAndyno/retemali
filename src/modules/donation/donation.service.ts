@@ -79,4 +79,16 @@ export class DonationService {
   ) {
     return this.donationRepository.verifyBookDonation(id, curatedById, data);
   }
+
+  async getCashReport(from?: Date, to?: Date) {
+    return this.donationRepository.getCashReport(from, to);
+  }
+
+  async getPaymentAccounts() {
+    return this.donationRepository.getPaymentAccounts();
+  }
+
+  async getPaymentSetting() {
+    return this.donationRepository.getPaymentSetting();
+  }
 }

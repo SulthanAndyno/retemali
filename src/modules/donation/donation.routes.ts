@@ -15,6 +15,32 @@ const donationService = new DonationService(donationRepository);
 const donationController = new DonationController(donationService);
 
 /**
+ * @route   GET /api/donations/cash-report
+ * @desc    Mengambil rekap laporan kas terpadu (donasi, infaq event, denda)
+ * @access  Private (Admin)
+ */
+router.get(
+  "/cash-report",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.getCashReport,
+);
+
+/**
+ * @route   GET /api/donations/payment-accounts
+ * @desc    Mengambil daftar kanal rekening pembayaran aktif
+ * @access  Public
+ */
+router.get("/payment-accounts", donationController.getPaymentAccounts);
+
+/**
+ * @route   GET /api/donations/payment-setting
+ * @desc    Mengambil pengaturan rekening pembayaran default
+ * @access  Public
+ */
+router.get("/payment-setting", donationController.getPaymentSetting);
+
+/**
  * @route   GET /api/donations/summary
  * @desc    Mengambil capaian kampanye kuartal & Live Feed Jejak Kebaikan Donatur
  * @access  Public

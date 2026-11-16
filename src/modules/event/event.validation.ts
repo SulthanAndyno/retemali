@@ -123,8 +123,44 @@ export const submitEventReportSchema = z.object({
     .trim(),
 });
 
+export const attendanceReportQuerySchema = z.object({
+  from: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  to: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  eventId: z.string().optional(),
+});
+
+export const eventRegistrationsQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).optional().default("1"),
+  limit: z.string().regex(/^\d+$/).optional().default("20"),
+  eventId: z.string().optional(),
+  status: z.enum(["REGISTERED", "CHECKED_IN", "CANCELLED"]).optional(),
+  paymentStatus: z.enum(["PENDING", "VERIFIED", "FAILED"]).optional(),
+});
+
+export const verifyRegistrationPaymentSchema = z.object({
+  status: z.enum(["VERIFIED", "FAILED"], {
+    error: "Status verifikasi harus VERIFIED atau FAILED",
+  }),
+  paymentNote: z.string().max(255).optional(),
+});
+
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventSchema>;
 export type EventQueryInput = z.infer<typeof eventQuerySchema>;
 export type CheckInTicketInput = z.infer<typeof checkInTicketSchema>;
 export type SubmitEventReportInput = z.infer<typeof submitEventReportSchema>;
+export type AttendanceReportQueryInput = z.infer<
+  typeof attendanceReportQuerySchema
+>;
+export type EventRegistrationsQueryInput = z.infer<
+  typeof eventRegistrationsQuerySchema
+>;
+export type VerifyRegistrationPaymentInput = z.infer<
+  typeof verifyRegistrationPaymentSchema
+>;

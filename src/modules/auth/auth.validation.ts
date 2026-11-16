@@ -120,7 +120,14 @@ export const updateProfileSchema = z.object({
     .optional(),
 });
 
+export const roleSwitchSchema = z.object({
+  role: z.enum(["MEMBER", "VOLUNTEER"], {
+    error: "Peran tujuan tidak valid. Pilihan: MEMBER atau VOLUNTEER",
+  }),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type RoleSwitchInput = z.infer<typeof roleSwitchSchema>;

@@ -266,4 +266,185 @@ export class DonationRepository {
       });
     });
   }
+
+  /**
+   * Mengambil Rekap Laporan Kas Terpadu (Cash Report)
+   */
+  async getCashReport(from?: Date, to?: Date) {
+    const dateFilter =
+      from || to
+        ? {
+            createdAt: {
+              ...(from && { gte: from }),
+              ...(to && { lte: to }),
+            },
+          }
+        : {};
+
+    const [financialDonations, paidEventRegistrations, loanFines] =
+      await Promise.all([
+        this.prisma.financialDonation.findMany({
+          where: {
+            paymentStatus: "VERIFIED",
+            ...dateFilter,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        this.prisma.eventRegistration.findMany({
+          where: {
+            paymentStatus: "VERIFIED",
+            ...dateFilter,
+          },
+          include: {
+            event: {
+              select: { title: true, infaqAmount: true, feeType: true },
+            },
+            user: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        this.prisma.bookLoan.findMany({
+          where: {
+            fineAmount: { gt: 0 },
+            status: "RETURNED",
+            ...(from || to
+              ? {
+                  returnedAt: {
+                    ...(from && { gte: from }),
+                    ...(to && { lte: to }),
+                  },
+                }
+              : {}),
+          },
+          include: {
+            book: { select: { title: true } },
+            user: { select: { name: true } },
+          },
+          orderBy: { returnedAt: "desc" },
+        }),
+      ]);
+
+    // Hitung total per sumber
+    let totalDonations = 0;
+    const methodTotals: Record<string, number> = {};
+
+    const transactions: Array<{
+      id: string;
+      source: "DONATION" | "EVENT_INFAQ" | "CIRCULATION_FINE";
+      title: string;
+      payerOrDonor: string;
+      amount: number;
+      paymentMethod: string;
+      referenceCode: string;
+      date: Date;
+    }> = [];
+
+    for (const d of financialDonations) {
+      const amt = Number(d.amount);
+      totalDonations += amt;
+      methodTotals[d.paymentMethod] = (methodTotals[d.paymentMethod] || 0) + amt;
+
+      transactions.push({
+        id: d.id,
+        source: "DONATION",
+        title: d.purposeLabel || "Donasi Pustaka & Operasional",
+        payerOrDonor: d.isAnonymous ? "Hamba Allah" : d.donorName,
+        amount: amt,
+        paymentMethod: d.paymentMethod,
+        referenceCode: d.receiptCode,
+        date: d.createdAt,
+      });
+    }
+
+    let totalEventInfaq = 0;
+    for (const reg of paidEventRegistrations) {
+      const amt = Number(reg.event.infaqAmount || 0);
+      totalEventInfaq += amt;
+      methodTotals["BANK_TRANSFER"] = (methodTotals["BANK_TRANSFER"] || 0) + amt;
+
+      transactions.push({
+        id: reg.id,
+        source: "EVENT_INFAQ",
+        title: `Infaq Tiket Kegiatan: ${reg.event.title}`,
+        payerOrDonor: reg.user.name,
+        amount: amt,
+        paymentMethod: "BANK_TRANSFER",
+        referenceCode: reg.ticketCode,
+        date: reg.createdAt,
+      });
+    }
+
+    let totalFines = 0;
+    for (const loan of loanFines) {
+      const amt = Number(loan.fineAmount || 0);
+      totalFines += amt;
+      methodTotals["CASH"] = (methodTotals["CASH"] || 0) + amt;
+
+      transactions.push({
+        id: loan.id,
+        source: "CIRCULATION_FINE",
+        title: `Denda Keterlambatan: ${loan.book.title}`,
+        payerOrDonor: loan.user.name,
+        amount: amt,
+        paymentMethod: "CASH",
+        referenceCode: loan.loanCode,
+        date: loan.returnedAt || loan.updatedAt,
+      });
+    }
+
+    // Urutkan transaksi gabungan berdasarkan tanggal terbaru
+    transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    const totalIncome = totalDonations + totalEventInfaq + totalFines;
+
+    return {
+      period: {
+        from: from ? from.toISOString() : null,
+        to: to ? to.toISOString() : null,
+      },
+      summary: {
+        totalIncome,
+        totalDonations,
+        totalEventInfaq,
+        totalFines,
+        totalTransactions: transactions.length,
+      },
+      byPaymentMethod: methodTotals,
+      transactions,
+    };
+  }
+
+  /**
+   * Mengambil daftar kanal pembayaran / rekening donasi aktif
+   */
+  async getPaymentAccounts() {
+    return this.prisma.paymentAccount.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
+  /**
+   * Mengambil pengaturan rekening donasi default
+   */
+  async getPaymentSetting() {
+    let setting = await this.prisma.paymentSetting.findUnique({
+      where: { id: "default" },
+    });
+
+    if (!setting) {
+      setting = await this.prisma.paymentSetting.create({
+        data: {
+          id: "default",
+          bankMandiri: "1234567890",
+          bankMandiriName: "Yayasan Taman Baca Rete Mali",
+          bankBca: "0987654321",
+          bankBcaName: "Yayasan Taman Baca Rete Mali",
+          qrisNmid: "ID1024389271649",
+        },
+      });
+    }
+
+    return setting;
+  }
 }

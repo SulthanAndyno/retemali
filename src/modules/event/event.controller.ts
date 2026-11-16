@@ -2,11 +2,14 @@ import { NextFunction, Response } from "express";
 import { paginatedResponse, successResponse } from "../../utils/response";
 import { EventService } from "./event.service";
 import {
+  attendanceReportQuerySchema,
   checkInTicketSchema,
   createEventSchema,
   eventQuerySchema,
+  eventRegistrationsQuerySchema,
   submitEventReportSchema,
   updateEventSchema,
+  verifyRegistrationPaymentSchema,
 } from "./event.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
 
@@ -63,7 +66,11 @@ export class EventController {
   ): Promise<void> => {
     try {
       const data = createEventSchema.parse(req.body);
-      const event = await this.eventService.createEvent(data, req.file);
+      const event = await this.eventService.createEvent(
+        data,
+        req.file,
+        req.userId,
+      );
 
       successResponse({
         res,
@@ -83,7 +90,11 @@ export class EventController {
   ): Promise<void> => {
     try {
       const data = createEventSchema.parse(req.body);
-      const event = await this.eventService.proposeEvent(data, req.file);
+      const event = await this.eventService.proposeEvent(
+        data,
+        req.file,
+        req.userId,
+      );
 
       successResponse({
         res,
@@ -123,7 +134,7 @@ export class EventController {
   ): Promise<void> => {
     try {
       const id = req.params["id"] as string;
-      await this.eventService.deleteEvent(id);
+      await this.eventService.deleteEvent(id, req.userId);
 
       successResponse({
         res,
@@ -144,6 +155,7 @@ export class EventController {
       const ticket = await this.eventService.registerParticipant(
         eventId,
         req.userId as string,
+        req.file,
       );
 
       successResponse({
@@ -235,6 +247,90 @@ export class EventController {
         res,
         message: "Laporan paska-acara berhasil disetujui",
         data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAttendanceReport = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const query = attendanceReportQuerySchema.parse(req.query);
+      const report = await this.eventService.getAttendanceReport(query);
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil rekap laporan presensi kegiatan",
+        data: report,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRegistrations = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const query = eventRegistrationsQuerySchema.parse(req.query);
+      const { data, meta } = await this.eventService.getRegistrations(query);
+
+      paginatedResponse({
+        res,
+        message: "Berhasil mengambil daftar pendaftaran kegiatan",
+        data,
+        meta,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyRegistrationPayment = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const registrationId = req.params["registrationId"] as string;
+      const { status, paymentNote } = verifyRegistrationPaymentSchema.parse(
+        req.body,
+      );
+      const result = await this.eventService.verifyRegistrationPayment(
+        registrationId,
+        status,
+        paymentNote,
+        req.userId,
+      );
+
+      successResponse({
+        res,
+        message: `Bukti pembayaran kegiatan berhasil ${status === "VERIFIED" ? "disetujui" : "ditolak"}`,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAutoCloseEvaluations = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const evaluations = await this.eventService.getAutoCloseEvaluations();
+
+      successResponse({
+        res,
+        message: "Berhasil mengevaluasi status timeline dan kuota kegiatan",
+        data: evaluations,
       });
     } catch (error) {
       next(error);

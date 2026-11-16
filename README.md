@@ -13,25 +13,111 @@ Proyek ini dirancang menggunakan arsitektur modular (*Controller - Service - Rep
 - **Database & ORM**: PostgreSQL 16+ & Prisma ORM 7
 - **Authentication**: JWT (JSON Web Token) & Argon2 Password Hashing
 - **Validation**: Zod Schemas
-- **File Uploads**: Multer (Cover Buku, Avatar, E-Ticket, Bukti Donasi)
+- **File Uploads**: Multer (Cover Buku, Avatar, E-Ticket, Bukti Donasi, Galeri Foto)
 - **Code Generators**: Nanoid (Kode Buku `BK-XX-XXXX`, Member `#RM-YYYY-XXXX`, Invoice `INV-RM-YYYY-XXXX`, E-Ticket `RETEMALI-EV-XXXXXX`)
 
 ---
 
-## 📂 Struktur Modul Bisnis
+## 📂 Struktur Modul Bisnis & Endpoint API
 
-Backend ini mencakup 10 modul bisnis utama dengan total **48 Endpoints**:
+Backend ini mencakup **12 modul bisnis utama** dengan total **55+ Endpoints REST API**:
 
-1. **Authentication & Profile (`/api/auth`)**: Registrasi kartu anggota `#RM-YYYY-XXXX`, Login, Profile `/me`, Update profil, Change password.
-2. **Katalog Buku & Pencarian (`/api/books`)**: CRUD buku, status ketersediaan, nomor barcode/rak, filter kategori & pencarian judul/penulis.
-3. **Daftar Bacaan / Bookmark (`/api/bookmarks`)**: Toggle simpan buku favorit bagi pengunjung.
-4. **Sirkulasi Peminjaman (`/api/circulation`)**: Reservasi 48 jam, checkout cepat scan barcode, perpanjangan +7 hari, pengembalian, status hilang, reminder WhatsApp, cron job H-2.
-5. **Agenda & Event Komunitas (`/api/events`)**: Agenda literasi, registrasi peserta, penerbitan E-Ticket QR Code, validasi check-in kehadiran, laporan kegiatan.
-6. **Program Relawan (`/api/volunteers`)**: Pendaftaran relawan, kurasi aplikasi, shift presensi clock-in/out, rekap jam kontribusi.
-7. **Catatan Operasional / Handover (`/api/handover-notes`)**: Buku catatan operasional antar shift relawan dengan penanda darurat & perlengkapan.
-8. **Donasi Keuangan & Buku (`/api/donations`)**: Donasi QRIS Statis yayasan (NMID: `ID1024389271649`), penerbitan invoice digital, donasi buku fisik & kurasi relawan, webhook payment gateway.
-9. **Dashboard Real-time (`/api/dashboard`)**: Agregasi data statistik untuk Publik, Pengunjung, Desk Relawan, dan Admin Utama.
-10. **Audit Log System (`/api/audit-logs`)**: Rekam jejak seluruh aktivitas penting sistem secara real-time.
+### 1. Authentication & Profile (`/api/auth`)
+- `POST /api/auth/register`: Registrasi kartu anggota baru `#RM-YYYY-XXXX`.
+- `POST /api/auth/login`: Login pengguna (Member, Relawan, Admin) dan menerbitkan JWT token.
+- `GET /api/auth/me`: Mengambil profil pengguna yang sedang login.
+- `PATCH /api/auth/me`: Update profil anggota (+ upload foto avatar).
+- `PATCH /api/auth/change-password`: Ganti password akun.
+- `POST /api/auth/role-switch`: Switch mode peran aktif bagi relawan (`MEMBER` ↔ `VOLUNTEER`).
+
+### 2. Katalog Buku & Koleksi (`/api/books`)
+- `GET /api/books`: Daftar katalog buku dengan filter kategori, stok, rating, dan pencarian judul/penulis.
+- `GET /api/books/:id`: Detail informasi buku & ketersediaan stok fisik.
+- `POST /api/books`: Tambah buku baru (+ upload cover) & auto-generate barcode `BK-XX-XXXX`.
+- `PATCH /api/books/:id`: Update data dan lokasi rak buku.
+- `DELETE /api/books/:id`: Hapus buku dari katalog.
+
+### 3. Daftar Bacaan / Bookmark (`/api/bookmarks`)
+- `GET /api/bookmarks`: Daftar buku yang disimpan/dibookmark oleh anggota.
+- `POST /api/bookmarks`: Toggle simpan/hapus buku ke daftar bacaan favorit.
+- `DELETE /api/bookmarks/:bookId`: Hapus buku dari daftar simpanan bacaan.
+
+### 4. Sirkulasi Peminjaman & Otomasi 48 Jam (`/api/circulation`)
+- `POST /api/circulation/reservations`: Reservasi buku online (tahan 48 jam sebelum auto-cancel).
+- `GET /api/circulation/reservations/me`: Daftar reservasi aktif milik anggota.
+- `PATCH /api/circulation/reservations/:id/cancel`: Pembatalan reservasi buku.
+- `POST /api/circulation/quick-checkout`: Sirkulasi cepat (Peminjaman Baru) scan barcode anggota & buku + hook AuditLog.
+- `POST /api/circulation/quick-return`: Sirkulasi cepat (Pengembalian Buku) scan barcode buku + hook AuditLog.
+- `GET /api/circulation/loans`: Seluruh transaksi peminjaman (filter status: BORROWED, RETURNED, OVERDUE, LOST).
+- `GET /api/circulation/loans/me`: Riwayat dan pinjaman aktif anggota sendiri.
+- `PATCH /api/circulation/loans/:id/extend`: Perpanjang masa pinjam buku (+7 hari, maks 1x) + hook AuditLog.
+- `PATCH /api/circulation/loans/:id/mark-lost`: Menandai buku sebagai hilang (LOST) dan sanksi.
+- `POST /api/circulation/loans/:id/remind-wa`: Generate link WhatsApp langsung (`https://wa.me/...`) & catat reminder.
+- `POST /api/circulation/cron/due-reminders`: Endpoint Cron Job H-2 jatuh tempo & auto-cancel reservasi lewat 48 jam.
+
+### 5. Agenda Komunitas & Tiket QR Code (`/api/events`)
+- `GET /api/events`: Daftar agenda kegiatan komunitas (filter kategori, biaya, status).
+- `GET /api/events/auto-close`: Evaluasi status timeline & kuota (kegiatan otomatis ditutup jika waktu lewat).
+- `GET /api/events/attendance`: **Laporan Presensi Kegiatan (Attendance Report)** per event & rekap hadir.
+- `GET /api/events/registrations`: Daftar pendaftar kegiatan khusus verifikasi tiket infaq/berbayar.
+- `PATCH /api/events/registrations/:registrationId/verify`: Approve/Reject bukti bayar event berbayar (kuota kembali jika ditolak).
+- `GET /api/events/tickets/me`: Daftar E-Tiket kegiatan milik anggota sendiri.
+- `POST /api/events/check-in`: Presensi scan QR E-Tiket peserta di lokasi kegiatan.
+- `POST /api/events/propose`: Usulkan kegiatan baru oleh warga (Status: DRAFT).
+- `GET /api/events/:id`: Detail kegiatan komunitas.
+- `POST /api/events`: Buat kegiatan baru (+ upload banner) + hook otomatis AuditLog.
+- `PATCH /api/events/:id`: Update info kegiatan.
+- `DELETE /api/events/:id`: Hapus kegiatan komunitas + hook AuditLog.
+- `POST /api/events/:id/register`: Daftar kegiatan, generate E-Tiket QR `RETEMALI-EV-XXX` (+ upload bukti transfer jika berbayar).
+- `POST /api/events/:id/report`: Submit laporan paska-acara oleh relawan pelaksana.
+- `PATCH /api/events/:id/approve-report`: Persetujuan laporan kegiatan oleh Admin.
+
+### 6. Program Relawan & Jam Kerja (`/api/volunteers`)
+- `POST /api/volunteers/apply`: Formulir pendaftaran relawan baru (+ upload CV/dokumen).
+- `GET /api/volunteers/applications`: Daftar antrean kurasi aplikasi relawan (khusus Admin).
+- `PATCH /api/volunteers/applications/:id/review`: Setujui/Tolak pendaftar relawan (Approve/Reject).
+- `POST /api/volunteers/shifts/clock-in`: Presensi kehadiran shift relawan (Clock-In).
+- `POST /api/volunteers/shifts/clock-out`: Selesai shift jaga (Clock-Out) & auto-kalkulasi durasi jam kontribusi.
+- `GET /api/volunteers/shifts/me`: Riwayat shift dan rekap jam kontribusi sendiri.
+- `GET /api/volunteers/shifts`: Monitoring seluruh shift relawan (khusus Admin).
+- `PATCH /api/volunteers/shifts/:id/approve`: Persetujuan shift relawan oleh Admin.
+
+### 7. Catatan Operasional / Handover Shift (`/api/handover-notes`)
+- `GET /api/handover-notes`: Daftar catatan operasional pergantian shift (filter tag: URGENT, FACILITY, EVENT, GENERAL).
+- `POST /api/handover-notes`: Buat catatan kendala & logistik piket untuk shift berikutnya.
+- `DELETE /api/handover-notes/:id`: Hapus catatan piket.
+
+### 8. Donasi Keuangan & Buku Fisik (`/api/donations`)
+- `GET /api/donations/cash-report`: **Rekap Laporan Kas Terpadu (Cash Report)** dari donasi, infaq event, dan denda pinjaman.
+- `GET /api/donations/payment-accounts`: Daftar rekening bank & QRIS aktif.
+- `GET /api/donations/payment-setting`: Pengaturan rekening pembayaran default yayasan.
+- `GET /api/donations/summary`: Capaian target donasi kuartal & live feed ticker donatur.
+- `POST /api/donations/financial`: Transaksi donasi keuangan (QRIS Statis NMID `ID1024389271649` / Transfer Bank).
+- `POST /api/donations/webhook`: Callback webhook payment gateway verifikasi otomatis.
+- `GET /api/donations/financial/:receiptCode`: Unduh digital receipt/invoice resmi `INV-RM-YYYY-XXXX`.
+- `POST /api/donations/books`: Formulir donasi buku fisik (Drop-off / Kurir ekspedisi).
+- `GET /api/donations/books`: Antrean kurasi donasi buku masuk di meja operasional.
+- `PATCH /api/donations/books/:id/verify`: Verifikasi & terima batch buku oleh relawan.
+
+### 9. Galeri Foto ala Google Maps (`/api/gallery`)
+- `GET /api/gallery`: Daftar foto galeri dengan filter kategori (`SUASANA`, `KEGIATAN`, `FASILITAS`, `KOLEKSI`).
+- `GET /api/gallery/place-info`: Kartu profil tempat ala Google Maps (alamat lengkap, koordinat GPS, jam operasional, fasilitas, dan statistik foto).
+- `GET /api/gallery/:id`: Detail satu foto galeri.
+- `POST /api/gallery`: Unggah foto baru ke galeri (+ upload gambar) oleh Relawan/Admin.
+- `PATCH /api/gallery/:id`: Update keterangan foto atau kategori.
+- `DELETE /api/gallery/:id`: Hapus foto galeri secara permanen.
+
+### 10. Notifikasi Aktivitas (`/api/notifications`)
+- `GET /api/notifications`: Feed notifikasi aktivitas sistem (audit log terbaru, event baru diumumkan, penutupan event, dan reminder buku H-2).
+
+### 11. Multi-Dashboard Real-time (`/api/dashboard`)
+- `GET /api/dashboard/public`: Metrik ringkasan publik (koleksi buku, anggota aktif, kegiatan pekan ini).
+- `GET /api/dashboard/member`: Portal Anggota (Kartu Digital, pinjaman aktif, reservasi 48 jam, tiket event saya).
+- `GET /api/dashboard/volunteer`: Meja Operasional Relawan (shift jaga aktif, metrik hari ini, antrean kurasi donasi).
+- `GET /api/dashboard/admin`: Konsol Administrator Utama (4 KPI utama, peringatan terlambat, approval relawan, audit live feed).
+
+### 12. Audit Log System (`/api/audit-logs`)
+- `GET /api/audit-logs`: Rekam jejak seluruh aktivitas penting sistem secara permanen (filter per kategori: `DONATION`, `VOLUNTEER`, `CIRCULATION`, `EVENT`, `GALLERY`).
 
 ---
 
@@ -92,8 +178,11 @@ Server akan aktif di `http://localhost:5000` (API endpoint di `http://localhost:
 
 ## 🧪 Testing
 
-Jalankan pengujian otomatis E2E (End-to-End) untuk memastikan seluruh 48 endpoint berjalan 100% normal:
+Jalankan pengujian otomatis:
 ```bash
+# Compile TypeScript check
+npm run build
+
+# Jalankan testing E2E (End-to-End)
 npm run test:e2e
 ```
-

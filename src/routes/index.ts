@@ -9,6 +9,8 @@ import handoverNoteRoutes from "../modules/handover-note/handover-note.routes";
 import donationRoutes from "../modules/donation/donation.routes";
 import dashboardRoutes from "../modules/dashboard/dashboard.routes";
 import auditRoutes from "../modules/audit/audit.routes";
+import notificationRoutes from "../modules/notification/notification.routes";
+import galleryRoutes from "../modules/gallery/gallery.routes";
 
 const router: Router = Router();
 
@@ -22,9 +24,11 @@ router.use("/handover-notes", handoverNoteRoutes);
 router.use("/donations", donationRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/audit-logs", auditRoutes);
+router.use("/notifications", notificationRoutes);
+router.use("/gallery", galleryRoutes);
 
 console.log(
-  "Routes registered: auth, books, bookmarks, circulation, events, volunteers, handover-notes, donations, dashboard, audit-logs",
+  "Routes registered: auth, books, bookmarks, circulation, events, volunteers, handover-notes, donations, dashboard, audit-logs, notifications, gallery",
 );
 
 export default router;

@@ -5,6 +5,7 @@ import {
   changePasswordSchema,
   loginSchema,
   registerSchema,
+  roleSwitchSchema,
   updateProfileSchema,
 } from "./auth.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
@@ -123,6 +124,28 @@ export class AuthController {
       successResponse({
         res,
         message: "Password berhasil diubah",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  roleSwitch = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { role } = roleSwitchSchema.parse(req.body);
+      const result = await this.authService.switchRole(
+        req.userId as string,
+        role,
+      );
+
+      successResponse({
+        res,
+        message: result.note,
+        data: result,
       });
     } catch (error) {
       next(error);

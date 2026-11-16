@@ -8,8 +8,10 @@ import {
 } from "../../utils/pagination";
 import { EventRepository } from "./event.repository";
 import {
+  AttendanceReportQueryInput,
   CreateEventInput,
   EventQueryInput,
+  EventRegistrationsQueryInput,
   EventStatus,
   UpdateEventInput,
 } from "./event.validation";
@@ -60,19 +62,22 @@ export class EventService {
   async createEvent(
     data: CreateEventInput,
     file?: Express.Multer.File,
+    actorId?: string,
   ): Promise<CommunityEvent> {
     const bannerPath = file ? `uploads/events/${file.filename}` : undefined;
-    return this.eventRepository.create(data, bannerPath);
+    return this.eventRepository.create(data, bannerPath, actorId);
   }
 
   async proposeEvent(
     data: CreateEventInput,
     file?: Express.Multer.File,
+    actorId?: string,
   ): Promise<CommunityEvent> {
     const bannerPath = file ? `uploads/events/${file.filename}` : undefined;
     return this.eventRepository.create(
       { ...data, status: EventStatus.DRAFT },
       bannerPath,
+      actorId,
     );
   }
 
@@ -94,19 +99,27 @@ export class EventService {
     return this.eventRepository.update(existing.id, data, bannerPath);
   }
 
-  async deleteEvent(id: string): Promise<void> {
+  async deleteEvent(id: string, actorId?: string): Promise<void> {
     const existing = await this.getEventById(id);
     if (existing.bannerImage) {
       this.deleteBannerFile(existing.bannerImage);
     }
-    await this.eventRepository.delete(existing.id);
+    await this.eventRepository.delete(existing.id, actorId);
   }
 
   async registerParticipant(
     eventId: string,
     userId: string,
+    paymentProofFile?: Express.Multer.File,
   ): Promise<EventRegistration> {
-    return this.eventRepository.registerParticipant(eventId, userId);
+    const paymentProofUrl = paymentProofFile
+      ? `uploads/events/${paymentProofFile.filename}`
+      : undefined;
+    return this.eventRepository.registerParticipant(
+      eventId,
+      userId,
+      paymentProofUrl,
+    );
   }
 
   async getMyTickets(userId: string): Promise<EventRegistration[]> {
@@ -131,5 +144,43 @@ export class EventService {
   async approveEventReport(eventId: string): Promise<CommunityEvent> {
     const event = await this.getEventById(eventId);
     return this.eventRepository.approveReport(event.id);
+  }
+
+  async getAttendanceReport(query: AttendanceReportQueryInput) {
+    return this.eventRepository.getAttendanceReport(query);
+  }
+
+  async getRegistrations(query: EventRegistrationsQueryInput) {
+    const { skip, take, page, limit } = parsePagination(query);
+    const { data, total } = await this.eventRepository.getRegistrations({
+      eventId: query.eventId,
+      status: query.status,
+      paymentStatus: query.paymentStatus,
+      skip,
+      take,
+    });
+
+    return {
+      data,
+      meta: buildPaginationMeta(total, page, limit),
+    };
+  }
+
+  async verifyRegistrationPayment(
+    registrationId: string,
+    status: "VERIFIED" | "FAILED",
+    paymentNote?: string,
+    verifiedById?: string,
+  ) {
+    return this.eventRepository.verifyRegistrationPayment(
+      registrationId,
+      status,
+      paymentNote,
+      verifiedById,
+    );
+  }
+
+  async getAutoCloseEvaluations() {
+    return this.eventRepository.getAutoCloseEvaluations();
   }
 }

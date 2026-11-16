@@ -121,6 +121,17 @@ export const donationQuerySchema = z.object({
   status: z.string().optional(),
 });
 
+export const cashReportQuerySchema = z.object({
+  from: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  to: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+});
+
 export type CreateFinancialDonationInput = z.infer<
   typeof createFinancialDonationSchema
 >;
@@ -128,3 +139,4 @@ export type PaymentWebhookInput = z.infer<typeof paymentWebhookSchema>;
 export type CreateBookDonationInput = z.infer<typeof createBookDonationSchema>;
 export type VerifyBookDonationInput = z.infer<typeof verifyBookDonationSchema>;
 export type DonationQueryInput = z.infer<typeof donationQuerySchema>;
+export type CashReportQueryInput = z.infer<typeof cashReportQuerySchema>;
