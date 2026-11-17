@@ -264,7 +264,7 @@ export default function Header({
                     <>
                       <button
                         onClick={() => {
-                          router.push('/dashboard/admin');
+                          router.push('/admin');
                           setDrawerOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"

@@ -116,7 +116,7 @@ export default function PortalPage() {
               {user.role === 'ADMIN' && (
                 <>
                   <button
-                    onClick={() => router.push('/dashboard/admin')}
+                    onClick={() => router.push('/admin')}
                     className="w-full p-3 rounded-xl bg-indigo-50/60 hover:bg-indigo-100/80 text-left flex items-center justify-between transition-colors group"
                   >
                     <div className="flex items-center gap-3">
