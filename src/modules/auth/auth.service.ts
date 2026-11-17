@@ -187,4 +187,60 @@ export class AuthService {
 
     await this.authRepository.updatePassword(userId, hashedPassword);
   }
+
+  /**
+   * Mengganti mode peran aktif bagi relawan (MEMBER <-> VOLUNTEER).
+   */
+  async switchRole(userId: string, requestedRole: "MEMBER" | "VOLUNTEER") {
+    const user: User | null = await this.authRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("Pengguna tidak ditemukan", 404);
+    }
+
+    if (user.role !== "VOLUNTEER" && user.role !== "ADMIN") {
+      throw new AppError(
+        "Mode relawan hanya tersedia untuk akun dengan peran Relawan yang sudah disetujui",
+        403,
+      );
+    }
+
+    const capabilities = {
+      MEMBER: {
+        canBrowseCatalog: true,
+        canRegisterEvents: true,
+        canAccessVolunteerWorkspace: false,
+        canClockIn: false,
+        canScanTickets: false,
+        canCurateDonations: false,
+      },
+      VOLUNTEER: {
+        canBrowseCatalog: true,
+        canRegisterEvents: true,
+        canAccessVolunteerWorkspace: true,
+        canClockIn: true,
+        canScanTickets: true,
+        canCurateDonations: true,
+      },
+    };
+
+    const token = jwt.sign(
+      { userId: user.id, role: requestedRole },
+      process.env.JWT_SECRET as string,
+      { expiresIn: JWT_EXPIRES },
+    );
+
+    return {
+      token,
+      activeRole: requestedRole,
+      accountRole: user.role,
+      mode: requestedRole === user.role ? "ACCOUNT" : "SWITCHED",
+      capabilities: capabilities[requestedRole],
+      user: toSafeUser(user),
+      note:
+        requestedRole === "VOLUNTEER"
+          ? "Mode Relawan aktif untuk sesi ini."
+          : "Kembali ke mode Anggota. Akses relawan dinonaktifkan pada sesi ini.",
+    };
+  }
 }

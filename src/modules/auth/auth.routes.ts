@@ -55,4 +55,11 @@ router.patch(
  */
 router.patch("/change-password", authenticate, authController.changePassword);
 
+/**
+ * @route   POST /api/auth/role-switch
+ * @desc    Ganti mode peran aktif bagi relawan (MEMBER <-> VOLUNTEER)
+ * @access  Private (Volunteer / Admin)
+ */
+router.post("/role-switch", authenticate, authController.roleSwitch);
+
 export default router;

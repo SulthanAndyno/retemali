@@ -6,10 +6,10 @@ import {
   checkInTicketSchema,
   createEventSchema,
   eventQuerySchema,
-  eventRegistrationQuerySchema,
+  eventRegistrationsQuerySchema,
   submitEventReportSchema,
   updateEventSchema,
-  verifyEventPaymentSchema,
+  verifyRegistrationPaymentSchema,
 } from "./event.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
 
@@ -34,25 +34,6 @@ export class EventController {
         message: "Berhasil mengambil daftar agenda kegiatan komunitas",
         data,
         meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getAttendanceReport = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const query = attendanceReportQuerySchema.parse(req.query);
-      const report = await this.eventService.getAttendanceReport(query);
-
-      successResponse({
-        res,
-        message: "Berhasil mengambil laporan presensi kegiatan",
-        data: report,
       });
     } catch (error) {
       next(error);
@@ -85,7 +66,11 @@ export class EventController {
   ): Promise<void> => {
     try {
       const data = createEventSchema.parse(req.body);
-      const event = await this.eventService.createEvent(data, req.file);
+      const event = await this.eventService.createEvent(
+        data,
+        req.file,
+        req.userId,
+      );
 
       successResponse({
         res,
@@ -105,7 +90,11 @@ export class EventController {
   ): Promise<void> => {
     try {
       const data = createEventSchema.parse(req.body);
-      const event = await this.eventService.proposeEvent(data, req.file);
+      const event = await this.eventService.proposeEvent(
+        data,
+        req.file,
+        req.userId,
+      );
 
       successResponse({
         res,
@@ -145,7 +134,7 @@ export class EventController {
   ): Promise<void> => {
     try {
       const id = req.params["id"] as string;
-      await this.eventService.deleteEvent(id);
+      await this.eventService.deleteEvent(id, req.userId);
 
       successResponse({
         res,
@@ -172,57 +161,8 @@ export class EventController {
       successResponse({
         res,
         statusCode: 201,
-        message:
-          ticket.paymentStatus === "PENDING"
-            ? "Pendaftaran diterima. Bukti pembayaran menunggu verifikasi admin"
-            : "Berhasil mendaftar kegiatan. E-Tiket QR telah diterbitkan",
+        message: "Berhasil mendaftar kegiatan. E-Tiket QR telah diterbitkan",
         data: ticket,
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getRegistrations = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const query = eventRegistrationQuerySchema.parse(req.query);
-      const report = await this.eventService.getRegistrations(query);
-
-      successResponse({
-        res,
-        message: "Berhasil mengambil daftar pendaftar kegiatan",
-        data: report,
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  verifyRegistrationPayment = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const registrationId = req.params["registrationId"] as string;
-      const data = verifyEventPaymentSchema.parse(req.body);
-      const registration = await this.eventService.verifyRegistrationPayment(
-        registrationId,
-        req.userId as string,
-        data,
-      );
-
-      successResponse({
-        res,
-        message:
-          data.status === "VERIFIED"
-            ? "Pembayaran peserta berhasil diverifikasi"
-            : "Pembayaran peserta ditolak dan pendaftaran dibatalkan",
-        data: registration,
       });
     } catch (error) {
       next(error);
@@ -307,6 +247,90 @@ export class EventController {
         res,
         message: "Laporan paska-acara berhasil disetujui",
         data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAttendanceReport = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const query = attendanceReportQuerySchema.parse(req.query);
+      const report = await this.eventService.getAttendanceReport(query);
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil rekap laporan presensi kegiatan",
+        data: report,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRegistrations = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const query = eventRegistrationsQuerySchema.parse(req.query);
+      const { data, meta } = await this.eventService.getRegistrations(query);
+
+      paginatedResponse({
+        res,
+        message: "Berhasil mengambil daftar pendaftaran kegiatan",
+        data,
+        meta,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyRegistrationPayment = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const registrationId = req.params["registrationId"] as string;
+      const { status, paymentNote } = verifyRegistrationPaymentSchema.parse(
+        req.body,
+      );
+      const result = await this.eventService.verifyRegistrationPayment(
+        registrationId,
+        status,
+        paymentNote,
+        req.userId,
+      );
+
+      successResponse({
+        res,
+        message: `Bukti pembayaran kegiatan berhasil ${status === "VERIFIED" ? "disetujui" : "ditolak"}`,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAutoCloseEvaluations = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const evaluations = await this.eventService.getAutoCloseEvaluations();
+
+      successResponse({
+        res,
+        message: "Berhasil mengevaluasi status timeline dan kuota kegiatan",
+        data: evaluations,
       });
     } catch (error) {
       next(error);

@@ -116,15 +116,22 @@ enum PaymentMethod {
   SHOPEEPAY
 }
 
+enum PaymentAccountType {
+  QRIS
+  BANK_TRANSFER
+}
+
+enum GalleryCategory {
+  SUASANA
+  KEGIATAN
+  FASILITAS
+  KOLEKSI
+}
+
 enum PaymentStatus {
   PENDING
   VERIFIED
   FAILED
-}
-
-enum PaymentAccountType {
-  QRIS
-  BANK_TRANSFER
 }
 
 enum BookDonationDeliveryMethod {
@@ -164,6 +171,7 @@ model User {
   financialDonations   FinancialDonation[]
   bookDonations        PhysicalBookDonation[]
   auditLogs            AuditLog[]
+  galleryPhotos        GalleryPhoto[]
 }
 
 model Book {
@@ -273,19 +281,19 @@ model CommunityEvent {
 }
 
 model EventRegistration {
-  id              String        @id @default(cuid())
-  ticketCode      String        @unique
+  id              String         @id @default(cuid())
+  ticketCode      String         @unique
   eventId         String
   userId          String
   checkedInAt     DateTime?
   checkedInBy     String?
-  status          TicketStatus  @default(REGISTERED)
+  status          TicketStatus   @default(REGISTERED)
   paymentProofUrl String?
   paymentStatus   PaymentStatus?
   paymentNote     String?
   verifiedById    String?
   verifiedAt      DateTime?
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime       @default(now())
 
   event CommunityEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -434,4 +442,20 @@ model PaymentAccount {
   sortOrder     Int                @default(0)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
+}
+
+model GalleryPhoto {
+  id           String          @id @default(cuid())
+  title        String
+  category     GalleryCategory @default(SUASANA)
+  imageUrl     String
+  caption      String?         @db.Text
+  location     String          @default("Saung Baca Rete Mali, Jatirangga")
+  isFeatured   Boolean         @default(false)
+  sortOrder    Int             @default(0)
+  uploadedById String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 }

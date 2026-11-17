@@ -22,6 +22,49 @@ const eventController = new EventController(eventService);
 router.get("/", eventController.getAll);
 
 /**
+ * @route   GET /api/events/auto-close
+ * @desc    Evaluasi timeline kegiatan (apakah ditutup otomatis karena lewat jam/kuota)
+ * @access  Public
+ */
+router.get("/auto-close", eventController.getAutoCloseEvaluations);
+
+/**
+ * @route   GET /api/events/attendance
+ * @desc    Laporan presensi kegiatan (read-only) + rekap peserta hadir
+ * @access  Private (Volunteer / Admin)
+ */
+router.get(
+  "/attendance",
+  authenticate,
+  authorizeRoles("VOLUNTEER", "ADMIN"),
+  eventController.getAttendanceReport,
+);
+
+/**
+ * @route   GET /api/events/registrations
+ * @desc    Daftar pendaftar kegiatan (khusus verifikasi pembayaran & admin)
+ * @access  Private (Admin)
+ */
+router.get(
+  "/registrations",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  eventController.getRegistrations,
+);
+
+/**
+ * @route   PATCH /api/events/registrations/:registrationId/verify
+ * @desc    Approve / reject bukti pembayaran pendaftaran kegiatan berbayar
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/registrations/:registrationId/verify",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  eventController.verifyRegistrationPayment,
+);
+
+/**
  * @route   GET /api/events/tickets/me
  * @desc    Mengambil daftar E-Tiket kegiatan milik sendiri
  * @access  Private (Member)
@@ -50,42 +93,6 @@ router.post(
   authenticate,
   upload.single("bannerImage"),
   eventController.propose,
-);
-
-/**
- * @route   GET /api/events/attendance
- * @desc    Laporan presensi kegiatan (read-only) + daftar peserta terdaftar
- * @access  Private (Volunteer / Admin)
- */
-router.get(
-  "/attendance",
-  authenticate,
-  authorizeRoles("VOLUNTEER", "ADMIN"),
-  eventController.getAttendanceReport,
-);
-
-/**
- * @route   GET /api/events/registrations
- * @desc    Daftar pendaftar kegiatan (khusus verifikasi pembayaran kegiatan berbayar)
- * @access  Private (Admin)
- */
-router.get(
-  "/registrations",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  eventController.getRegistrations,
-);
-
-/**
- * @route   PATCH /api/events/registrations/:registrationId/verify
- * @desc    Approve / reject bukti pembayaran pendaftaran kegiatan berbayar
- * @access  Private (Admin)
- */
-router.patch(
-  "/registrations/:registrationId/verify",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  eventController.verifyRegistrationPayment,
 );
 
 /**
@@ -135,8 +142,7 @@ router.delete(
 
 /**
  * @route   POST /api/events/:id/register
- * @desc    Mendaftar kegiatan & menerbitkan E-Tiket QR (RETEMALI-EV-XXX).
- *          Kegiatan berbayar wajib melampirkan bukti pembayaran (paymentProof).
+ * @desc    Mendaftar kegiatan & menerbitkan E-Tiket QR (RETEMALI-EV-XXX) + upload bukti pembayaran jika berbayar
  * @access  Private (Member)
  */
 router.post(

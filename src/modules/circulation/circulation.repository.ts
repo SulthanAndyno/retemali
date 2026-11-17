@@ -229,6 +229,15 @@ export class CirculationRepository {
         });
       }
 
+      await tx.auditLog.create({
+        data: {
+          actorId: processedById,
+          title: "Peminjaman Buku (Quick Checkout)",
+          description: `Buku "${book.title}" (${book.bookCode}) dipinjam oleh ${member.name} (${member.memberCode}). Jatuh tempo: ${dueDate.toLocaleDateString("id-ID")}.`,
+          category: "CIRCULATION",
+        },
+      });
+
       return tx.bookLoan.create({
         data: {
           loanCode,
@@ -310,6 +319,15 @@ export class CirculationRepository {
         where: { id: activeLoan.userId },
         data: {
           points: { increment: addedPoints },
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: returnedById,
+          title: "Pengembalian Buku (Quick Return)",
+          description: `Buku "${activeLoan.book.title}" dikembalikan oleh ${activeLoan.user.name}. Kondisi: ${data.returnCondition}.`,
+          category: "CIRCULATION",
         },
       });
 
@@ -430,13 +448,26 @@ export class CirculationRepository {
 
     const newDueDate = new Date(loan.dueDate.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    return this.prisma.bookLoan.update({
-      where: { id },
-      data: {
-        dueDate: newDueDate,
-        extendedCount: { increment: 1 },
-      },
-      include: { book: true },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.bookLoan.update({
+        where: { id },
+        data: {
+          dueDate: newDueDate,
+          extendedCount: { increment: 1 },
+        },
+        include: { book: true },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: userId,
+          title: "Perpanjangan Masa Pinjam Buku",
+          description: `Buku "${loan.book.title}" (${loan.loanCode}) diperpanjang +7 hari hingga ${newDueDate.toLocaleDateString("id-ID")}.`,
+          category: "CIRCULATION",
+        },
+      });
+
+      return updated;
     });
   }
 
