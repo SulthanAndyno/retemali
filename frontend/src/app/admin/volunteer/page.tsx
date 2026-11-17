@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminVolunteersPage } from '@/features/admin/volunteers/pages/admin-volunteers-page';
+
 export const metadata = { title: 'Manajemen Volunteer — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Manajemen Volunteer" description="Pendaftaran dan persetujuan relawan." />;
+  return <AdminVolunteersPage />;
 }
