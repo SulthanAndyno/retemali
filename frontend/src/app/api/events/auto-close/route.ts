@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { jsonError, jsonOk, upstreamRequest } from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import { computeEventTimeline, computeQuotaState } from '@/features/events/lib/events';
 

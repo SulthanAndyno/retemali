@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { jsonError, jsonOk } from '@/lib/serverUpstream';
+import { jsonError, jsonOk } from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import { loadCashReport } from '@/lib/cashReportServer';
 

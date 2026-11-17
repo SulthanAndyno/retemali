@@ -4,7 +4,7 @@ import {
   jsonError,
   jsonOk,
   upstreamRequest,
-} from '@/lib/serverUpstream';
+} from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import {
   buildAttendanceReport,

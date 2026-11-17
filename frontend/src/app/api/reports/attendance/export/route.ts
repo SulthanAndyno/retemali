@@ -3,7 +3,7 @@ import {
   endOfDayIso,
   jsonError,
   upstreamRequest,
-} from '@/lib/serverUpstream';
+} from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import {
   buildAttendanceReport,
@@ -12,7 +12,7 @@ import {
   type ReportPeriod,
   type UpstreamAttendanceEvent,
 } from '@/lib/reports';
-import { buildXlsx, xlsxResponse, type XlsxCellValue } from '@/lib/xlsx';
+import { buildXlsx, xlsxResponse, type XlsxCellValue } from '@/shared/lib/xlsx';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

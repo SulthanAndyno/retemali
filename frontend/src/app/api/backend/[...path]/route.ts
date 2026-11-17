@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { upstreamUrl } from '@/lib/serverUpstream';
+import { upstreamUrl } from '@/shared/lib/server-upstream';
 import { getSessionToken } from '@/features/auth/lib/session';
 
 export const runtime = 'nodejs';

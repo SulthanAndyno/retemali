@@ -1,9 +1,9 @@
 import type { NextRequest } from 'next/server';
-import { jsonError } from '@/lib/serverUpstream';
+import { jsonError } from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import { loadCashReport } from '@/lib/cashReportServer';
 import { formatDateId, formatDateTimeId } from '@/lib/reports';
-import { buildXlsx, xlsxResponse, type XlsxCellValue } from '@/lib/xlsx';
+import { buildXlsx, xlsxResponse, type XlsxCellValue } from '@/shared/lib/xlsx';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

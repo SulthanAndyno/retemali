@@ -1,4 +1,4 @@
-import { upstreamRequest, endOfDayIso } from './serverUpstream';
+import { upstreamRequest, endOfDayIso } from '@/shared/lib/server-upstream';
 import {
   buildCashReport,
   type CashReport,

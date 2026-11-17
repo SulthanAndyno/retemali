@@ -1,5 +1,5 @@
 import 'server-only';
-import { upstreamRequest } from '@/lib/serverUpstream';
+import { upstreamRequest } from '@/shared/lib/server-upstream';
 import type { SafeUser } from '../types';
 
 export interface AuthEnvelope {
