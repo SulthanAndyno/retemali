@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError, jsonOk } from '@/lib/serverUpstream';
+import { jsonError, jsonOk } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import { loadCashReport } from '@/lib/cashReportServer';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +11,7 @@ export const runtime = 'nodejs';
  * Financial / cash report for the selected period (income side + breakdowns).
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

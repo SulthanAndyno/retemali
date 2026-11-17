@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -55,7 +56,7 @@ function toNumber(value: string | number | null | undefined): number {
  * Administrative log of book loans (who borrowed what, when it is due).
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

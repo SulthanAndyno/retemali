@@ -1,10 +1,10 @@
 import type { NextRequest } from 'next/server';
 import {
-  bearerToken,
   endOfDayIso,
   jsonError,
   upstreamRequest,
 } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import {
   buildAttendanceReport,
   formatDateId,
@@ -46,7 +46,7 @@ function stamp(): string {
  * Streams the same attendance report as a real .xlsx workbook.
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

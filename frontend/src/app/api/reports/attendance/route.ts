@@ -1,11 +1,11 @@
 import type { NextRequest } from 'next/server';
 import {
-  bearerToken,
   endOfDayIso,
   jsonError,
   jsonOk,
   upstreamRequest,
 } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import {
   buildAttendanceReport,
   type ReportPeriod,
@@ -42,7 +42,7 @@ function readReportQuery(request: NextRequest) {
  * Aggregated attendance report (per event + per participant) for the admin UI.
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

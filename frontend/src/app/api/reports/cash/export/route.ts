@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError } from '@/lib/serverUpstream';
+import { jsonError } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import { loadCashReport } from '@/lib/cashReportServer';
 import { formatDateId, formatDateTimeId } from '@/lib/reports';
 import { buildXlsx, xlsxResponse, type XlsxCellValue } from '@/lib/xlsx';
@@ -19,7 +20,7 @@ function stamp(): string {
  * Excel (.xlsx) export of the cash report.
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

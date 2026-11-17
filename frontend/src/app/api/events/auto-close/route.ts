@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import { computeEventTimeline, computeQuotaState } from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,7 @@ interface UpstreamEvent {
  * has to trust a stale `status` column.
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   const upstream = await upstreamRequest<{ data: UpstreamEvent[] }>('/events?limit=100', {
     token,
   });

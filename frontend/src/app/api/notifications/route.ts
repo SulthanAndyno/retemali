@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { resolveRequestToken } from '@/features/auth/lib/session';
 import { computeEventTimeline } from '@/lib/events';
 import { formatDateId } from '@/lib/reports';
 import type { ActivityNotification } from '@/lib/notifications';
@@ -47,7 +48,7 @@ function severityForCategory(category: string): ActivityNotification['severity']
  * events, and events that were auto-closed by the timeline.
  */
 export async function GET(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }

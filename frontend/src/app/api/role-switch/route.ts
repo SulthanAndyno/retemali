@@ -1,63 +1,38 @@
 import type { NextRequest } from 'next/server';
-import { bearerToken, jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
+import { getSessionToken, setSession } from '@/features/auth/lib/session';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 type SwitchableRole = 'MEMBER' | 'VOLUNTEER';
 
-const CAPABILITIES: Record<SwitchableRole, Record<string, boolean>> = {
-  MEMBER: {
-    canBrowseCatalog: true,
-    canRegisterEvents: true,
-    canAccessVolunteerWorkspace: false,
-    canClockIn: false,
-    canScanTickets: false,
-    canCurateDonations: false,
-  },
-  VOLUNTEER: {
-    canBrowseCatalog: true,
-    canRegisterEvents: true,
-    canAccessVolunteerWorkspace: true,
-    canClockIn: true,
-    canScanTickets: true,
-    canCurateDonations: true,
-  },
-};
-
 interface RoleSwitchBody {
   role?: string;
+}
+
+interface RoleSwitchEnvelope {
+  data?: {
+    token: string;
+    activeRole: SwitchableRole;
+    accountRole: string;
+    mode: 'ACCOUNT' | 'SWITCHED';
+    capabilities: Record<string, boolean>;
+    note: string;
+  };
 }
 
 /**
  * POST /api/role-switch
  *
- * Validates a volunteer-role switch. The switch itself lives in client state
- * (RoleContext), but the caller's role is read from the database through the
- * authenticated `/auth/me` endpoint — the client can no longer claim a role.
- * Only accounts that actually hold the VOLUNTEER role may switch; admins and
- * unapproved members are rejected with 403.
+ * Delegates to the backend so the active role is signed into a fresh JWT.
+ * The new token is stored in the httpOnly session cookie; the client never
+ * sees or claims a role by itself.
  */
 export async function POST(request: NextRequest) {
-  const token = bearerToken(request);
+  const token = await getSessionToken();
   if (!token) {
     return jsonError('Sesi tidak ditemukan. Silakan masuk kembali.', 401);
-  }
-
-  const session = await upstreamRequest<{ data?: { role?: string } }>('/auth/me', { token });
-  if (!session.ok || !session.data?.data) {
-    return jsonError(
-      session.error ?? 'Gagal memverifikasi sesi Anda. Silakan masuk kembali.',
-      session.status === 401 ? 401 : 502
-    );
-  }
-
-  const accountRole = (session.data.data.role ?? '').toUpperCase();
-  if (accountRole !== 'VOLUNTEER') {
-    return jsonError(
-      'Mode relawan hanya tersedia untuk akun dengan peran Relawan yang sudah disetujui admin.',
-      403
-    );
   }
 
   let body: RoleSwitchBody | null = null;
@@ -71,21 +46,32 @@ export async function POST(request: NextRequest) {
   if (requested !== 'MEMBER' && requested !== 'VOLUNTEER') {
     return jsonError(
       'Peran tujuan tidak valid. Pilihan yang tersedia: MEMBER atau VOLUNTEER.',
-      400
+      400,
     );
   }
 
-  const role: SwitchableRole = requested;
+  const result = await upstreamRequest<RoleSwitchEnvelope>('/auth/role-switch', {
+    method: 'POST',
+    token,
+    body: { role: requested },
+  });
+
+  const data = result.data?.data;
+  if (!result.ok || !data) {
+    return jsonError(
+      result.error ?? 'Gagal mengganti peran.',
+      result.status || 502,
+    );
+  }
+
+  await setSession(data.token, data.activeRole);
 
   return jsonOk({
-    activeRole: role,
-    accountRole,
-    mode: role === accountRole ? 'ACCOUNT' : 'SWITCHED',
-    persisted: false,
-    capabilities: CAPABILITIES[role],
-    note:
-      role === 'VOLUNTEER'
-        ? 'Mode Relawan aktif untuk sesi ini.'
-        : 'Kembali ke mode Anggota. Akses relawan dinonaktifkan pada sesi ini.',
+    activeRole: data.activeRole,
+    accountRole: data.accountRole,
+    mode: data.mode,
+    persisted: true,
+    capabilities: data.capabilities,
+    note: data.note,
   });
 }
