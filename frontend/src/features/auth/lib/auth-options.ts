@@ -6,8 +6,6 @@ export interface AccessModeOption {
   desc: string;
   badge?: string;
   badgeColor?: string;
-  demoEmail?: string;
-  demoPassword?: string;
 }
 
 export const ACCESS_MODES: readonly AccessModeOption[] = [
@@ -20,8 +18,6 @@ export const ACCESS_MODES: readonly AccessModeOption[] = [
     key: 'MEMBER',
     label: 'Member',
     desc: 'Akses peminjaman, kegiatan, QR absensi, dan profil.',
-    demoEmail: 'rifky@retemali.id',
-    demoPassword: 'Password123',
   },
   {
     key: 'VOLUNTEER',
@@ -29,8 +25,6 @@ export const ACCESS_MODES: readonly AccessModeOption[] = [
     desc: 'Dashboard relawan: jadwal, tugas, dan absensi.',
     badge: 'Perlu persetujuan admin',
     badgeColor: 'bg-amber-100 text-amber-700',
-    demoEmail: 'relawan@retemali.id',
-    demoPassword: 'Password123',
   },
   {
     key: 'ADMIN',
@@ -38,8 +32,6 @@ export const ACCESS_MODES: readonly AccessModeOption[] = [
     desc: 'Kendali operasional pustaka & manajemen.',
     badge: 'Terbatas',
     badgeColor: 'bg-red-100 text-red-600',
-    demoEmail: 'admin@retemali.id',
-    demoPassword: 'Password123',
   },
 ];
 

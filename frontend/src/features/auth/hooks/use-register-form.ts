@@ -12,8 +12,17 @@ const INITIAL_FORM: RegisterFormValues = {
   password: '',
   confirmPassword: '',
   phone: '',
-  rtRw: '',
+  agreedTerms: false,
 };
+
+export interface RegisterFieldErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  confirmPassword?: string;
+  agreedTerms?: string;
+}
 
 export interface UseRegisterFormResult {
   form: RegisterFormValues;
@@ -21,8 +30,12 @@ export interface UseRegisterFormResult {
   showConfirmPassword: boolean;
   loading: boolean;
   error: string;
+  errors: RegisterFieldErrors;
   successCode: string | null;
-  setField: (field: keyof RegisterFormValues, value: string) => void;
+  setField: <K extends keyof RegisterFormValues>(
+    field: K,
+    value: RegisterFormValues[K]
+  ) => void;
   togglePassword: () => void;
   toggleConfirmPassword: () => void;
   submit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
@@ -37,9 +50,13 @@ export function useRegisterForm(): UseRegisterFormResult {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<RegisterFieldErrors>({});
   const [successCode, setSuccessCode] = useState<string | null>(null);
 
-  const setField = (field: keyof RegisterFormValues, value: string) => {
+  const setField = <K extends keyof RegisterFormValues>(
+    field: K,
+    value: RegisterFormValues[K]
+  ) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -55,24 +72,36 @@ export function useRegisterForm(): UseRegisterFormResult {
     event.preventDefault();
     setError('');
 
-    if (form.password !== form.confirmPassword) {
-      setError('Password dan konfirmasi password tidak cocok.');
-      return;
+    const nextErrors: RegisterFieldErrors = {};
+    if (form.name.trim().length < 2) {
+      nextErrors.name = 'Nama lengkap minimal 2 karakter.';
+    }
+    if (!form.email.includes('@') || form.email.includes(' ')) {
+      nextErrors.email = 'Masukkan alamat email yang valid.';
+    }
+    if (form.phone.trim().length < 8) {
+      nextErrors.phone = 'Nomor WhatsApp/HP minimal 8 digit.';
     }
     if (form.password.length < 8) {
-      setError('Password minimal 8 karakter.');
-      return;
+      nextErrors.password = 'Kata sandi minimal 8 karakter.';
     }
+    if (form.confirmPassword !== form.password) {
+      nextErrors.confirmPassword = 'Konfirmasi kata sandi tidak sama.';
+    }
+    if (!form.agreedTerms) {
+      nextErrors.agreedTerms = 'Persetujuan ketentuan anggota wajib dicentang.';
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
 
     try {
       const user = await registerAccount({
-        name: form.name,
-        email: form.email,
+        name: form.name.trim(),
+        email: form.email.trim(),
         password: form.password,
-        phone: form.phone,
-        rtRw: form.rtRw,
+        phone: form.phone.trim(),
       });
       setSuccessCode(user.memberCode);
     } catch (err: unknown) {
@@ -94,6 +123,7 @@ export function useRegisterForm(): UseRegisterFormResult {
     showConfirmPassword,
     loading,
     error,
+    errors,
     successCode,
     setField,
     togglePassword,

@@ -298,7 +298,7 @@ export default function PortalPage() {
                 </button>
 
                 <button
-                  onClick={() => router.push('/register')}
+                  onClick={() => router.push('/login/daftar')}
                   className="w-full py-3 bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-colors"
                 >
                   <UserPlus size={16} />

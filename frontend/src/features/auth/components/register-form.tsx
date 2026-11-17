@@ -1,5 +1,15 @@
+import Link from 'next/link';
 import type { FormEvent } from 'react';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import {
+  CircleAlert,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  UserPlus,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import type { RegisterFieldErrors } from '../hooks/use-register-form';
 import type { RegisterFormValues } from '../types';
 
 interface RegisterFormProps {
@@ -8,10 +18,37 @@ interface RegisterFormProps {
   showConfirmPassword: boolean;
   loading: boolean;
   error: string;
-  onChange: (field: keyof RegisterFormValues, value: string) => void;
+  errors: RegisterFieldErrors;
+  onChange: <K extends keyof RegisterFormValues>(
+    field: K,
+    value: RegisterFormValues[K]
+  ) => void;
   onTogglePassword: () => void;
   onToggleConfirmPassword: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+}
+
+function PasswordToggle({
+  shown,
+  onToggle,
+}: {
+  shown: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={shown ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+      className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-surface hover:text-ink"
+    >
+      {shown ? (
+        <EyeOff className="h-4 w-4" aria-hidden />
+      ) : (
+        <Eye className="h-4 w-4" aria-hidden />
+      )}
+    </button>
+  );
 }
 
 export function RegisterForm({
@@ -20,147 +57,131 @@ export function RegisterForm({
   showConfirmPassword,
   loading,
   error,
+  errors,
   onChange,
   onTogglePassword,
   onToggleConfirmPassword,
   onSubmit,
 }: RegisterFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-          Data Diri
-        </h3>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Nama Lengkap <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={(event) => onChange('name', event.target.value)}
-            placeholder="Nama sesuai KTP"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-            required
-          />
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      {error ? (
+        <div
+          role="status"
+          className="flex items-start gap-2 rounded-field border border-danger/30 bg-red-50 px-3 py-2.5 text-xs text-danger"
+        >
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{error}</span>
         </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Nomor HP <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            value={form.phone}
-            onChange={(event) => onChange('phone', event.target.value)}
-            placeholder="08xxxxxxxxxx"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-            required
+      ) : null}
+
+      <Input
+        id="daftar-nama"
+        label="Nama Lengkap (Sesuai Identitas)"
+        autoComplete="name"
+        placeholder="Contoh: Siti Rahmawati"
+        value={form.name}
+        onChange={(event) => onChange('name', event.target.value)}
+        error={errors.name}
+      />
+      <Input
+        id="daftar-email"
+        label="Alamat Email Aktif"
+        type="email"
+        autoComplete="email"
+        placeholder="siti.rahmawati@contoh-email.test"
+        value={form.email}
+        onChange={(event) => onChange('email', event.target.value)}
+        error={errors.email}
+      />
+      <Input
+        id="daftar-telepon"
+        label="Nomor WhatsApp / HP"
+        type="tel"
+        autoComplete="tel"
+        placeholder="0812-3456-7890"
+        value={form.phone}
+        onChange={(event) => onChange('phone', event.target.value)}
+        error={errors.phone}
+      />
+      <Input
+        id="daftar-sandi"
+        label="Kata Sandi (Min. 8 Karakter)"
+        type={showPassword ? 'text' : 'password'}
+        autoComplete="new-password"
+        placeholder="••••••••"
+        value={form.password}
+        onChange={(event) => onChange('password', event.target.value)}
+        error={errors.password}
+        trailingNode={
+          <PasswordToggle
+            shown={showPassword}
+            onToggle={onTogglePassword}
           />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            RT/RW <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="rtRw"
-            value={form.rtRw}
-            onChange={(event) => onChange('rtRw', event.target.value)}
-            placeholder="Contoh: 05/14"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-            required
+        }
+      />
+      <Input
+        id="daftar-sandi-konfirmasi"
+        label="Konfirmasi Kata Sandi"
+        type={showConfirmPassword ? 'text' : 'password'}
+        autoComplete="new-password"
+        placeholder="••••••••"
+        value={form.confirmPassword}
+        onChange={(event) => onChange('confirmPassword', event.target.value)}
+        error={errors.confirmPassword}
+        trailingNode={
+          <PasswordToggle
+            shown={showConfirmPassword}
+            onToggle={onToggleConfirmPassword}
           />
-        </div>
+        }
+      />
+
+      <div>
+        <label
+          htmlFor="daftar-persetujuan"
+          className="flex items-start gap-2 text-sm text-ink"
+        >
+          <input
+            id="daftar-persetujuan"
+            type="checkbox"
+            checked={form.agreedTerms}
+            onChange={(event) => onChange('agreedTerms', event.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#1B5EB8]"
+          />
+          <span>
+            Saya menyetujui Ketentuan Anggota &amp; Kebijakan Privasi ReteMali
+          </span>
+        </label>
+        {errors.agreedTerms ? (
+          <p className="mt-1.5 text-xs font-medium text-danger">
+            {errors.agreedTerms}
+          </p>
+        ) : null}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-          Akun
-        </h3>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Email <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={(event) => onChange('email', event.target.value)}
-            placeholder="email@contoh.com"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-            required
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={form.password}
-              onChange={(event) => onChange('password', event.target.value)}
-              placeholder="Min. 8 karakter"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-              required
-            />
-            <button
-              type="button"
-              onClick={onTogglePassword}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Konfirmasi Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={(event) => onChange('confirmPassword', event.target.value)}
-              placeholder="Ulangi password"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-              required
-            />
-            <button
-              type="button"
-              onClick={onToggleConfirmPassword}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            >
-              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-
-      <button
+      <Button
         type="submit"
+        loading={loading}
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-md disabled:opacity-60"
+        className="w-full"
       >
-        {loading && <Loader2 size={18} className="animate-spin" />}
-        Daftar Sekarang
-      </button>
+        <UserPlus className="h-4 w-4" aria-hidden />
+        Daftar Sebagai Member ReteMali
+      </Button>
 
-      <p className="text-center text-sm text-gray-500">
-        Sudah punya akun?{' '}
-        <a href="/login" className="text-blue-600 font-semibold hover:underline">
+      <p className="text-center text-sm text-ink-soft">
+        Sudah memiliki akun terdaftar?{' '}
+        <Link
+          href="/login"
+          className="font-semibold text-primary-deep underline-offset-4 hover:underline"
+        >
           Masuk di sini
-        </a>
+        </Link>
+      </p>
+      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-ink-soft">
+        <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+        Perlindungan Data Aman • Taman Baca ReteMali
       </p>
     </form>
   );

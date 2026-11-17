@@ -33,5 +33,5 @@ export interface RegisterFormValues {
   password: string;
   confirmPassword: string;
   phone: string;
-  rtRw: string;
+  agreedTerms: boolean;
 }

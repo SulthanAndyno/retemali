@@ -1,38 +1,58 @@
-import { CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { Button, LinkButton } from '@/components/ui/button';
 
-interface RegisterSuccessCardProps {
+export function RegisterSuccessCard({
+  code,
+  onContinue,
+}: {
   code: string;
   onContinue: () => void;
-}
-
-export function RegisterSuccessCard({ code, onContinue }: RegisterSuccessCardProps) {
+}) {
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <CheckCircle size={36} className="text-green-500" />
+    <div className="space-y-4">
+      <div
+        role="status"
+        className="flex items-start gap-3 rounded-field border border-success/30 bg-green-50 p-4"
+      >
+        <CheckCircle2
+          className="mt-0.5 h-5 w-5 shrink-0 text-success"
+          aria-hidden
+        />
+        <div className="space-y-1 text-sm">
+          <p className="font-bold text-success">
+            Pendaftaran Berhasil Dikirim!
+          </p>
+          <p className="text-ink">
+            Nomor anggota Anda:{' '}
+            <span className="font-mono font-bold text-ink">{code}</span>
+          </p>
+          <p className="text-ink-soft">
+            Akun member masih menunggu verifikasi keanggotaan oleh admin —
+            fitur peminjaman dan reservasi aktif setelah verifikasi. Anda dapat
+            masuk kapan saja dengan email dan kata sandi yang didaftarkan.
+          </p>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Pendaftaran Berhasil! 🎉
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          Akun Anda telah dibuat. Gunakan kode member berikut untuk referensi Anda.
-        </p>
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <p className="text-xs text-gray-500 mb-1">Kode Member Anda</p>
-          <p className="text-2xl font-bold text-blue-600 tracking-widest">{code}</p>
-        </div>
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6">
-          Akun Anda memerlukan validasi admin sebelum dapat mengakses fitur
-          peminjaman buku. Harap tunggu konfirmasi.
-        </p>
-        <button
-          onClick={onContinue}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
-        >
-          Masuk ke Akun
-        </button>
       </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button variant="secondary" className="w-full" onClick={onContinue}>
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Masuk di sini
+        </Button>
+        <LinkButton href="/" className="w-full">
+          Jelajahi aplikasi publik
+        </LinkButton>
+      </div>
+      <p className="text-center text-xs text-ink-soft">
+        Simpan nomor anggota Anda. Butuh bantuan? Hubungi pengelola melalui
+        halaman kontak.
+      </p>
+      <Link
+        href="/login"
+        className="block text-center text-xs font-semibold text-primary-deep underline-offset-4 hover:underline"
+      >
+        Kembali ke halaman masuk
+      </Link>
     </div>
   );
 }

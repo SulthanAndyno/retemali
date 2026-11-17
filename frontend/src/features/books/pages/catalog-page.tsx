@@ -281,7 +281,7 @@ export function CatalogPage({
           terverifikasi.
         </p>
         <Link
-          href="/register"
+          href="/login/daftar"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-deep underline-offset-4 hover:underline"
         >
           <BookOpen className="h-4 w-4" aria-hidden />

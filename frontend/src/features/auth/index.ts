@@ -11,6 +11,7 @@ export { AuthProvider, useAuth } from '@/contexts/AuthContext';
 export { RoleProvider, useRole } from '@/contexts/RoleContext';
 export { LoginPage } from './pages/login-page';
 export { RegisterPage } from './pages/register-page';
+export { ForgotPasswordPage } from './pages/forgot-password-page';
 
 export type {
   ActiveRole,

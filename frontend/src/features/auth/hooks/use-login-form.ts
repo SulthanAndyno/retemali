@@ -4,20 +4,25 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ACCESS_MODES, getAccessModeLabel } from '../lib/auth-options';
+import { getAccessModeLabel } from '../lib/auth-options';
 import { dashboardForRole } from '../lib/route-guard';
 import type { AccessMode } from '../types';
 
+export interface LoginFieldErrors {
+  email?: string;
+  password?: string;
+}
+
 export interface UseLoginFormResult {
-  selectedRole: AccessMode | null;
+  selectedRole: AccessMode;
   roleLabel: string;
   email: string;
   password: string;
   showPassword: boolean;
   loading: boolean;
   error: string;
+  errors: LoginFieldErrors;
   selectRole: (role: AccessMode) => void;
-  closeForm: () => void;
   setEmail: (value: string) => void;
   setPassword: (value: string) => void;
   togglePassword: () => void;
@@ -29,30 +34,18 @@ export function useLoginForm(): UseLoginFormResult {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [selectedRole, setSelectedRole] = useState<AccessMode | null>(null);
+  const [selectedRole, setSelectedRole] = useState<AccessMode>('NON_MEMBER');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<LoginFieldErrors>({});
 
   const selectRole = (role: AccessMode) => {
-    if (role === 'NON_MEMBER') {
-      router.push('/');
-      return;
-    }
-
-    const nextRole = selectedRole === role ? null : role;
-    setSelectedRole(nextRole);
+    setSelectedRole(role);
     setError('');
-
-    const option = ACCESS_MODES.find((item) => item.key === nextRole);
-    if (option?.demoEmail) setEmail(option.demoEmail);
-    if (option?.demoPassword) setPassword(option.demoPassword);
-  };
-
-  const closeForm = () => {
-    setSelectedRole(null);
+    setErrors({});
   };
 
   const togglePassword = () => {
@@ -62,10 +55,15 @@ export function useLoginForm(): UseLoginFormResult {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!email || !password) {
-      setError('Email dan password wajib diisi.');
-      return;
+    const nextErrors: LoginFieldErrors = {};
+    if (!email.includes('@') || email.includes(' ')) {
+      nextErrors.email = 'Masukkan alamat email yang valid.';
     }
+    if (password.length < 8) {
+      nextErrors.password = 'Password minimal 8 karakter.';
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
     setError('');
@@ -83,7 +81,9 @@ export function useLoginForm(): UseLoginFormResult {
       router.replace(destination);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Login gagal. Periksa email & password.';
+        err instanceof Error
+          ? err.message
+          : 'Login gagal. Periksa email & password.';
       setError(message);
     } finally {
       setLoading(false);
@@ -102,8 +102,8 @@ export function useLoginForm(): UseLoginFormResult {
     showPassword,
     loading,
     error,
+    errors,
     selectRole,
-    closeForm,
     setEmail,
     setPassword,
     togglePassword,
