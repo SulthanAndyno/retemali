@@ -145,23 +145,16 @@ interface EventPaymentRow {
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
-
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('retemali_token');
-}
+const API_URL = '/api/backend';
 
 async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
-  const token = getToken();
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });
@@ -174,18 +167,6 @@ async function apiFetch<T>(
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-
-  // Auth guard
-  useEffect(() => {
-    const token = getToken();
-    if (!token) { router.replace('/login'); return; }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.role !== 'ADMIN') router.replace('/login');
-    } catch {
-      router.replace('/login');
-    }
-  }, [router]);
 
   // State
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -296,7 +277,6 @@ export default function AdminDashboardPage() {
 
     setSavingAccount(true);
     try {
-      const token = getToken();
       const body = new FormData();
       body.append('type', accountForm.type);
       body.append('providerName', accountForm.providerName.trim());
@@ -317,9 +297,6 @@ export default function AdminDashboardPage() {
         `${API_URL}/donations/payment-accounts${editingAccountId ? `/${editingAccountId}` : ''}`,
         {
           method: editingAccountId ? 'PATCH' : 'POST',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
           body,
         }
       );
@@ -345,15 +322,11 @@ export default function AdminDashboardPage() {
   const handleToggleAccount = async (account: PaymentAccount) => {
     setBusyAccountId(account.id);
     try {
-      const token = getToken();
       const body = new FormData();
       body.append('isActive', String(!account.isActive));
 
       const res = await fetch(`${API_URL}/donations/payment-accounts/${account.id}`, {
         method: 'PATCH',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body,
       });
 
@@ -381,12 +354,8 @@ export default function AdminDashboardPage() {
 
     setBusyAccountId(account.id);
     try {
-      const token = getToken();
       const res = await fetch(`${API_URL}/donations/payment-accounts/${account.id}`, {
         method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
       });
 
       if (!res.ok) {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   CalendarDays,
@@ -46,14 +45,7 @@ const TICKET_LABEL: Record<string, string> = {
   CANCELLED: 'Dibatalkan',
 };
 
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('retemali_token');
-}
-
 export default function AttendanceReportPage() {
-  const router = useRouter();
-
   const [report, setReport] = useState<AttendanceReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,23 +63,6 @@ export default function AttendanceReportPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Auth guard — same pattern as the admin console.
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1])) as { role?: string };
-      if (payload.role !== 'ADMIN' && payload.role !== 'VOLUNTEER') {
-        router.replace('/login');
-      }
-    } catch {
-      router.replace('/login');
-    }
-  }, [router]);
-
   const buildQuery = useCallback(
     (filters: { from: string; to: string; eventId: string }) => {
       const params = new URLSearchParams();
@@ -101,16 +76,12 @@ export default function AttendanceReportPage() {
 
   const loadReport = useCallback(
     async (filters: { from: string; to: string; eventId: string }) => {
-      const token = getToken();
-      if (!token) return;
-
       setLoading(true);
       setError(null);
 
       try {
         const query = buildQuery(filters);
         const response = await fetch(`/api/reports/attendance${query ? `?${query}` : ''}`, {
-          headers: { Authorization: `Bearer ${token}` },
           cache: 'no-store',
         });
         const payload = (await response.json().catch(() => null)) as
@@ -148,15 +119,12 @@ export default function AttendanceReportPage() {
   };
 
   const handleExport = async () => {
-    const token = getToken();
-    if (!token) return;
-
     setExporting(true);
     try {
       const query = buildQuery(appliedFilters);
       const response = await fetch(
         `/api/reports/attendance/export${query ? `?${query}` : ''}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { cache: 'no-store' }
       );
 
       if (!response.ok) {

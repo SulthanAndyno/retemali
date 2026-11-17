@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   BookOpen,
@@ -78,14 +77,7 @@ const STATUS_LABELS: Record<string, string> = {
   LOST: 'Hilang',
 };
 
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('retemali_token');
-}
-
 export default function BorrowingLogsPage() {
-  const router = useRouter();
-
   const [data, setData] = useState<BorrowingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,21 +87,6 @@ export default function BorrowingLogsPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1])) as { role?: string };
-      if (payload.role !== 'ADMIN' && payload.role !== 'VOLUNTEER') router.replace('/login');
-    } catch {
-      router.replace('/login');
-    }
-  }, [router]);
-
-  // Debounce the search box so typing does not fire a request per keystroke.
-  useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(1);
@@ -118,9 +95,6 @@ export default function BorrowingLogsPage() {
   }, [searchInput]);
 
   const loadLogs = useCallback(async () => {
-    const token = getToken();
-    if (!token) return;
-
     setLoading(true);
     setError(null);
 
@@ -129,7 +103,6 @@ export default function BorrowingLogsPage() {
       if (search) params.set('search', search);
 
       const response = await fetch(`/api/borrowings?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
       const payload = (await response.json().catch(() => null)) as

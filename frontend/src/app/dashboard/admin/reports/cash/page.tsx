@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -18,11 +17,6 @@ import Header from '@/components/layout/Header';
 import { formatDateId, formatNumber, formatRupiah, type CashReport } from '@/lib/reports';
 
 type Preset = 'THIS_MONTH' | 'LAST_3_MONTHS' | 'THIS_YEAR' | 'CUSTOM';
-
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('retemali_token');
-}
 
 function toInputDate(date: Date): string {
   const year = date.getFullYear();
@@ -76,8 +70,6 @@ const CATEGORY_STYLES: Record<string, { bar: string; icon: React.ReactNode }> = 
 };
 
 export default function CashReportPage() {
-  const router = useRouter();
-
   const initial = useMemo(() => resolvePreset('THIS_MONTH'), []);
   const [preset, setPreset] = useState<Preset>('THIS_MONTH');
   const [from, setFrom] = useState(initial.from);
@@ -95,20 +87,6 @@ export default function CashReportPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.replace('/login');
-      return;
-    }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1])) as { role?: string };
-      if (payload.role !== 'ADMIN') router.replace('/login');
-    } catch {
-      router.replace('/login');
-    }
-  }, [router]);
-
   const buildQuery = useCallback((filters: { from: string; to: string }) => {
     const params = new URLSearchParams();
     if (filters.from) params.set('from', filters.from);
@@ -118,16 +96,12 @@ export default function CashReportPage() {
 
   const loadReport = useCallback(
     async (filters: { from: string; to: string }) => {
-      const token = getToken();
-      if (!token) return;
-
       setLoading(true);
       setError(null);
 
       try {
         const query = buildQuery(filters);
         const response = await fetch(`/api/reports/cash${query ? `?${query}` : ''}`, {
-          headers: { Authorization: `Bearer ${token}` },
           cache: 'no-store',
         });
         const payload = (await response.json().catch(() => null)) as
@@ -164,14 +138,11 @@ export default function CashReportPage() {
   };
 
   const handleExport = async () => {
-    const token = getToken();
-    if (!token) return;
-
     setExporting(true);
     try {
       const query = buildQuery(applied);
       const response = await fetch(`/api/reports/cash/export${query ? `?${query}` : ''}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
       });
 
       if (!response.ok) {
