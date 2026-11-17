@@ -1,10 +1,12 @@
 import { get } from '@/lib/api';
 import { downloadFile, getJson } from '@/shared/lib/same-origin';
 import type { ApiEnvelope } from '@/shared/types/api';
-import { attendanceParams } from '../lib/report-query';
+import { attendanceParams, cashParams } from '../lib/report-query';
 import type {
   AttendanceFilters,
   AttendanceReport,
+  CashFilters,
+  CashReport,
   EventOption,
 } from '../types/report.types';
 
@@ -21,6 +23,14 @@ export function downloadAttendanceExport(filters: AttendanceFilters) {
     attendanceParams(filters),
     'laporan-presensi.xlsx'
   );
+}
+
+export function getCashReport(filters: CashFilters) {
+  return getJson<ApiEnvelope<CashReport>>('/api/reports/cash', cashParams(filters));
+}
+
+export function downloadCashExport(filters: CashFilters) {
+  return downloadFile('/api/reports/cash/export', cashParams(filters), 'laporan-kas.xlsx');
 }
 
 export async function getEventOptions(): Promise<EventOption[]> {
