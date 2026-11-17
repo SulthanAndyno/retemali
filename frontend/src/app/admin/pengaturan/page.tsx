@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminSettingsPage } from '@/features/admin/settings/pages/admin-settings-page';
+
 export const metadata = { title: 'Pengaturan Website — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Pengaturan Website" description="Kanal pembayaran dan profil komunitas." />;
+  return <AdminSettingsPage />;
 }
