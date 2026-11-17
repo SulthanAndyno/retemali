@@ -1,31 +1,24 @@
 import type { NextRequest } from 'next/server';
 import { jsonError, jsonOk } from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
-import { loadCashReport } from '@/lib/cashReportServer';
+import {
+  loadCashReport,
+  readCashFilters,
+} from '@/features/dashboard/reports/api/cash.server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-/**
- * GET /api/reports/cash
- * Financial / cash report for the selected period (income side + breakdowns).
- */
 export async function GET(request: NextRequest) {
   const token = await resolveRequestToken(request);
   if (!token) {
     return jsonError('Token autentikasi tidak ditemukan. Silakan masuk kembali.', 401);
   }
 
-  const { searchParams } = new URL(request.url);
-  const period = {
-    from: searchParams.get('from') || null,
-    to: searchParams.get('to') || null,
-  };
-
-  const result = await loadCashReport(token, period);
-  if (!result.ok || !result.report) {
-    return jsonError(result.error ?? 'Gagal memuat laporan kas.', result.status || 502);
+  const result = await loadCashReport(token, readCashFilters(request));
+  if (!result.ok) {
+    return jsonError(result.error, result.status);
   }
 
-  return jsonOk(result.report);
+  return jsonOk(result.data);
 }

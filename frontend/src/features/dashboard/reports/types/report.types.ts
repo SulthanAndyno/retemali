@@ -118,3 +118,75 @@ export interface UpstreamAttendancePayload {
   };
   events?: UpstreamAttendanceEvent[];
 }
+
+export interface CashFilters {
+  from: string;
+  to: string;
+}
+
+export type CashCategory =
+  | 'DONASI_FINANSIAL'
+  | 'INFAQ_KEGIATAN'
+  | 'DENDA_SIRKULASI';
+
+export interface CashEntry {
+  id: string;
+  date: string;
+  category: CashCategory;
+  categoryLabel: string;
+  label: string;
+  method: string;
+  reference: string;
+  amount: number;
+  status: string;
+}
+
+export interface CashReport {
+  generatedAt: string;
+  period: ReportPeriod;
+  summary: {
+    totalIncome: number;
+    totalExpense: number;
+    netCashFlow: number;
+    donationIncome: number;
+    eventInfaqIncome: number;
+    fineIncome: number;
+    transactionCount: number;
+  };
+  byCategory: Array<{
+    category: CashCategory;
+    label: string;
+    amount: number;
+    count: number;
+  }>;
+  byMethod: Array<{ method: string; amount: number; count: number }>;
+  byMonth: Array<{ month: string; label: string; income: number }>;
+  entries: CashEntry[];
+  dataSources: { donations: boolean; events: boolean; loans: boolean };
+  expenseTracking: { available: boolean; reason: string };
+}
+
+export interface UpstreamCashTransaction {
+  id: string;
+  source: 'DONATION' | 'EVENT_INFAQ' | 'CIRCULATION_FINE';
+  title: string;
+  payerOrDonor: string;
+  amount: string | number;
+  paymentMethod: string;
+  referenceCode: string;
+  date: string;
+}
+
+export interface UpstreamCashReport {
+  period?: ReportPeriod;
+  summary?: {
+    totalIncome?: string | number;
+    totalDonations?: string | number;
+    totalEventInfaq?: string | number;
+    totalFines?: string | number;
+    totalTransactions?: string | number;
+  };
+  byPaymentMethod?: Record<string, string | number>;
+  transactions?: UpstreamCashTransaction[];
+}
+
