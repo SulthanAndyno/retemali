@@ -26,14 +26,24 @@ export interface UseAdminRegistrationsResult {
   reload: () => Promise<void>;
 }
 
-export function useAdminRegistrations(): UseAdminRegistrationsResult {
+interface UseAdminRegistrationsOptions {
+  initialPage?: number;
+  initialPaymentStatus?: string;
+  initialEventId?: string;
+}
+
+export function useAdminRegistrations(
+  options: UseAdminRegistrationsOptions = {}
+): UseAdminRegistrationsResult {
   const [rows, setRows] = useState<AdminRegistrationRow[]>([]);
   const [meta, setMeta] = useState<UseAdminRegistrationsResult['meta']>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [paymentStatus, setPaymentStatusState] = useState('');
-  const [eventId, setEventIdState] = useState('');
+  const [page, setPage] = useState(options.initialPage ?? 1);
+  const [paymentStatus, setPaymentStatusState] = useState(
+    options.initialPaymentStatus ?? ''
+  );
+  const [eventId, setEventIdState] = useState(options.initialEventId ?? '');
   const [eventOptions, setEventOptions] = useState<AdminEventOption[]>([]);
   const requestIdRef = useRef(0);
 

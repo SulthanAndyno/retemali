@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Download } from 'lucide-react';
 import { useReportFilters } from '../hooks/use-report-filters';
 import { useAttendanceReport } from '../hooks/use-attendance-report';
@@ -15,12 +16,38 @@ import { AttendanceEventList } from '../components/attendance-event-list';
 import { ReportErrorCard } from '../components/report-error-card';
 import { ReportToast } from '../components/report-toast';
 
-export function AdminAttendanceReportPage() {
-  const filters = useReportFilters();
+interface AdminAttendanceReportPageProps {
+  initialFrom?: string;
+  initialTo?: string;
+  initialEventId?: string;
+}
+
+export function AdminAttendanceReportPage({
+  initialFrom = '',
+  initialTo = '',
+  initialEventId = '',
+}: AdminAttendanceReportPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const filters = useReportFilters({
+    from: initialFrom,
+    to: initialTo,
+    eventId: initialEventId,
+  });
   const { report, loading, error, reload } = useAttendanceReport(filters.applied);
   const { toast, showToast } = useReportToast();
   const exporter = useReportExport();
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.applied.from) params.set('dari', filters.applied.from);
+    if (filters.applied.to) params.set('sampai', filters.applied.to);
+    if (filters.applied.eventId) params.set('kegiatan', filters.applied.eventId);
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [filters.applied, pathname, router]);
 
   const handleExport = async () => {
     const result = await exporter.download(

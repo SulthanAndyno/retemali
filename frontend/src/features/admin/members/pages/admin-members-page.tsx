@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/ui/card';
@@ -13,10 +14,29 @@ import {
   type DummyMembershipStatus,
 } from '@/features/admin/fixtures/admin-dummy';
 
-export function AdminMembersPage() {
+interface AdminMembersPageProps {
+  initialSearch?: string;
+  initialStatus?: 'all' | DummyMembershipStatus;
+}
+
+export function AdminMembersPage({
+  initialSearch = '',
+  initialStatus = 'all',
+}: AdminMembersPageProps) {
   const { toast } = useToast();
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<'all' | DummyMembershipStatus>('all');
+  const router = useRouter();
+  const pathname = usePathname();
+  const [search, setSearch] = useState(initialSearch);
+  const [status, setStatus] = useState<'all' | DummyMembershipStatus>(initialStatus);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (status !== 'all') params.set('status', status);
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [search, status, pathname, router]);
 
   const rows = useMemo(
     () =>

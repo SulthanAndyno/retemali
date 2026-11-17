@@ -7,9 +7,9 @@ import { useToast } from '@/components/ui/toast';
 import { DummyNotice } from '@/features/admin/components/dummy-notice';
 import { DUMMY_PENDING_PAYMENTS } from '@/features/admin/fixtures/admin-dummy';
 import { formatDateTimeId, formatRupiah } from '@/shared/lib/format';
-import { useEventPaymentVerification } from '@/features/dashboard/admin/hooks/use-event-payment-verification';
-import { EventPaymentVerificationCard } from '@/features/dashboard/admin/components/event-payment-verification-card';
-import { PaymentProofModal } from '@/features/dashboard/admin/components/payment-proof-modal';
+import { useEventPaymentVerification } from '@/features/dashboard';
+import { EventPaymentVerificationCard } from '@/features/dashboard';
+import { PaymentProofModal } from '@/features/dashboard';
 
 export function AdminPaymentsPage() {
   const { toast } = useToast();

@@ -8,11 +8,11 @@ import {
   UserRound,
 } from 'lucide-react';
 import { StatCard } from '@/components/ui/card';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { DummyNotice } from '@/features/admin';
 import {
   DUMMY_MEMBERS,
   DUMMY_PENDING_PAYMENTS,
-} from '@/features/admin/fixtures/admin-dummy';
+} from '@/features/admin';
 
 interface AdminStatGridProps {
   booksTotal: number;

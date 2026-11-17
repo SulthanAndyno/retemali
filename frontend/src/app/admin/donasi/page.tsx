@@ -1,4 +1,4 @@
-import { AdminDonationsPage } from '@/features/admin/donations/pages/admin-donations-page';
+import { AdminDonationsPage } from '@/features/admin';
 
 export const metadata = { title: 'Manajemen Donasi — Rete Mali' };
 

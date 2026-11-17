@@ -32,23 +32,36 @@ function toError(error: unknown): BorrowingsError {
   return { message: 'Gagal memuat log peminjaman.', status: 0 };
 }
 
-export function useBorrowingsLog(): UseBorrowingsLogResult {
+interface UseBorrowingsLogOptions {
+  initialStatus?: BorrowingStatusFilter;
+  initialSearch?: string;
+  initialPage?: number;
+}
+
+export function useBorrowingsLog(
+  options: UseBorrowingsLogOptions = {}
+): UseBorrowingsLogResult {
   const [data, setData] = useState<BorrowingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<BorrowingsError | null>(null);
-  const [status, setStatus] = useState<BorrowingStatusFilter>('ALL');
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<BorrowingStatusFilter>(
+    options.initialStatus ?? 'ALL'
+  );
+  const [searchInput, setSearchInput] = useState(options.initialSearch ?? '');
+  const [search, setSearch] = useState(options.initialSearch ?? '');
+  const [page, setPage] = useState(options.initialPage ?? 1);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const nextSearch = searchInput.trim();
+    if (nextSearch === search) return;
+
     const timer = setTimeout(() => {
-      setSearch(searchInput.trim());
+      setSearch(nextSearch);
       setPage(1);
     }, 400);
     return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [searchInput, search]);
 
   const load = useCallback(async () => {
     const requestId = ++requestIdRef.current;

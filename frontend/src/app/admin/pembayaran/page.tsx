@@ -1,4 +1,4 @@
-import { AdminPaymentsPage } from '@/features/admin/payments/pages/admin-payments-page';
+import { AdminPaymentsPage } from '@/features/admin';
 
 export const metadata = { title: 'Verifikasi Pembayaran — Rete Mali' };
 

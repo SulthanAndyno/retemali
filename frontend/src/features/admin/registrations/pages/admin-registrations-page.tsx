@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/ui/card';
@@ -9,8 +11,34 @@ import { DummyNotice } from '@/features/admin/components/dummy-notice';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useAdminRegistrations } from '../hooks/use-admin-registrations';
 
-export function AdminRegistrationsPage() {
-  const list = useAdminRegistrations();
+interface AdminRegistrationsPageProps {
+  initialPage?: number;
+  initialPaymentStatus?: string;
+  initialEventId?: string;
+}
+
+export function AdminRegistrationsPage({
+  initialPage = 1,
+  initialPaymentStatus = '',
+  initialEventId = '',
+}: AdminRegistrationsPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const list = useAdminRegistrations({
+    initialPage,
+    initialPaymentStatus,
+    initialEventId,
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (list.eventId) params.set('kegiatan', list.eventId);
+    if (list.paymentStatus) params.set('bayar', list.paymentStatus);
+    if (list.page > 1) params.set('hal', String(list.page));
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [list.eventId, list.paymentStatus, list.page, pathname, router]);
 
   return (
     <div className="space-y-4">

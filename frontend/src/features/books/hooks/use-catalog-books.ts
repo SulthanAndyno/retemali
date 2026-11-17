@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/features/auth';
 import { getBooks, getMyBookmarks, getMyBorrowedBooks } from '../api/books.api';
@@ -34,9 +34,12 @@ function errorMessage(error: unknown): string {
 
 export function useCatalogBooks(
   initialSearch: string,
-  initialTab: CatalogTab
+  initialTab: CatalogTab,
+  initialSort: CatalogSort = 'newest',
+  initialPage = 1
 ): UseCatalogBooksResult {
   const { user } = useAuth();
+  const initialPageRef = useRef(initialPage);
 
   const [books, setBooks] = useState<CatalogBook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,8 +48,8 @@ export function useCatalogBooks(
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [activeTab, setActiveTabState] = useState<CatalogTab>(initialTab);
-  const [sortBy, setSortBy] = useState<CatalogSort>('newest');
-  const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<CatalogSort>(initialSort);
+  const [page, setPage] = useState(initialPage);
   const [totalBooks, setTotalBooks] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -122,8 +125,9 @@ export function useCatalogBooks(
   );
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchBooks(1, false);
+    const targetPage = initialPageRef.current;
+    initialPageRef.current = 1;
+    void fetchBooks(targetPage, false);
   }, [fetchBooks]);
 
   const setActiveTab = (tab: CatalogTab) => {

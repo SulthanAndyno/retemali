@@ -1,4 +1,4 @@
-import { AdminAccountPage } from '@/features/admin/account/pages/admin-account-page';
+import { AdminAccountPage } from '@/features/admin';
 
 export const metadata = { title: 'Pengaturan Akun — Rete Mali' };
 

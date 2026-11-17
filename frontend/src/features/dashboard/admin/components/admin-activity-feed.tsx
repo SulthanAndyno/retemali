@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, SectionTitle } from '@/components/ui/card';
 import EmptyState from '@/components/ui/EmptyState';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { DummyNotice } from '@/features/admin';
 import { formatDateTimeId } from '@/shared/lib/format';
 import type { AdminAuditLogSnapshot } from '../types/admin.types';
 

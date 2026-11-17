@@ -15,9 +15,17 @@ export interface UseCashPeriodResult {
   apply: () => void;
 }
 
-export function useCashPeriod(): UseCashPeriodResult {
-  const initial = resolvePreset('THIS_MONTH');
-  const [preset, setPreset] = useState<CashPreset>('THIS_MONTH');
+export function useCashPeriod(
+  initialRange: Partial<CashFilters> = {}
+): UseCashPeriodResult {
+  const hasInitialRange = Boolean(initialRange.from || initialRange.to);
+  const initial = hasInitialRange
+    ? { from: initialRange.from ?? '', to: initialRange.to ?? '' }
+    : resolvePreset('THIS_MONTH');
+
+  const [preset, setPreset] = useState<CashPreset>(
+    hasInitialRange ? 'CUSTOM' : 'THIS_MONTH'
+  );
   const [from, setFromState] = useState(initial.from);
   const [to, setToState] = useState(initial.to);
   const [applied, setApplied] = useState<CashFilters>(initial);

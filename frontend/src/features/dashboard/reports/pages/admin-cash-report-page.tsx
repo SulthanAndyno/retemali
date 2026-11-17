@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCashPeriod } from '../hooks/use-cash-period';
 import { useCashReport } from '../hooks/use-cash-report';
 import { useReportToast } from '../hooks/use-report-toast';
@@ -15,11 +17,30 @@ import { ReportErrorCard } from '../components/report-error-card';
 import { ReportSourceWarnings } from '../components/report-source-warnings';
 import { ReportToast } from '../components/report-toast';
 
-export function AdminCashReportPage() {
-  const period = useCashPeriod();
+interface AdminCashReportPageProps {
+  initialFrom?: string;
+  initialTo?: string;
+}
+
+export function AdminCashReportPage({
+  initialFrom = '',
+  initialTo = '',
+}: AdminCashReportPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const period = useCashPeriod({ from: initialFrom, to: initialTo });
   const { report, loading, error, reload } = useCashReport(period.applied);
   const { toast, showToast } = useReportToast();
   const exporter = useReportExport();
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (period.applied.from) params.set('dari', period.applied.from);
+    if (period.applied.to) params.set('sampai', period.applied.to);
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [period.applied, pathname, router]);
 
   const handleExport = async () => {
     const result = await exporter.download(

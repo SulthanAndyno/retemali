@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/ui/card';
@@ -15,14 +16,23 @@ import { EventFormModal } from '../components/event-form-modal';
 
 type ToastState = { message: string; type: 'success' | 'error' } | null;
 
-export function AdminEventsPage() {
+interface AdminEventsPageProps {
+  initialCategory?: 'ALL' | EventCategory;
+}
+
+export function AdminEventsPage({
+  initialCategory = 'ALL',
+}: AdminEventsPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const events = useEvents();
   const autoClose = useAutoClose();
   const form = useEventForm({
     onSaved: events.reload,
     onDeleted: events.removeEvent,
   });
-  const [activeCategory, setActiveCategory] = useState<'ALL' | EventCategory>('ALL');
+  const [activeCategory, setActiveCategory] =
+    useState<'ALL' | EventCategory>(initialCategory);
   const [toast, setToast] = useState<ToastState>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -37,6 +47,14 @@ export function AdminEventsPage() {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const query =
+      activeCategory === 'ALL'
+        ? ''
+        : `?kategori=${encodeURIComponent(activeCategory)}`;
+    router.replace(`${pathname}${query}`, { scroll: false });
+  }, [activeCategory, pathname, router]);
 
   const filtered =
     activeCategory === 'ALL'

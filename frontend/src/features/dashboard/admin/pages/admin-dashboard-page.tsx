@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Receipt } from 'lucide-react';
-import { LinkButton } from '@/components/ui/button';
+import { Button, LinkButton } from '@/components/ui/button';
 import { SectionTitle } from '@/components/ui/card';
 import { useAdminOverview } from '../hooks/use-admin-overview';
 import { AdminStatGrid } from '../components/admin-stat-grid';
@@ -13,7 +15,16 @@ import { AdminVolunteerTable } from '../components/admin-volunteer-table';
 import { AdminDonationStatusTable } from '../components/admin-donation-status-table';
 
 export function AdminDashboardPage() {
-  const { data, loading } = useAdminOverview();
+  const router = useRouter();
+  const { data, loading, failedSources, authStatus, reload } = useAdminOverview();
+
+  useEffect(() => {
+    if (authStatus === 401) {
+      router.replace('/login?next=%2Fadmin');
+    } else if (authStatus === 403) {
+      router.replace('/portal');
+    }
+  }, [authStatus, router]);
 
   return (
     <div className="space-y-8">
@@ -27,6 +38,17 @@ export function AdminDashboardPage() {
           </LinkButton>
         }
       />
+
+      {failedSources.length > 0 ? (
+        <div className="flex items-center justify-between gap-3 rounded-card border border-amber-200 bg-amber-50 p-3">
+          <p className="text-sm text-amber-900">
+            Sebagian data gagal dimuat: {failedSources.join(', ')}.
+          </p>
+          <Button size="sm" variant="secondary" onClick={() => void reload()}>
+            Coba Lagi
+          </Button>
+        </div>
+      ) : null}
 
       <AdminStatGrid
         booksTotal={data.booksTotal}

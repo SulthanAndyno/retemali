@@ -1,4 +1,4 @@
-import { AdminAttendancePage } from '@/features/admin/attendance/pages/admin-attendance-page';
+import { AdminAttendancePage } from '@/features/admin';
 
 export const metadata = { title: 'QR dan Absensi — Rete Mali' };
 

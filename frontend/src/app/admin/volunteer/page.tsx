@@ -1,4 +1,4 @@
-import { AdminVolunteersPage } from '@/features/admin/volunteers/pages/admin-volunteers-page';
+import { AdminVolunteersPage } from '@/features/admin';
 
 export const metadata = { title: 'Manajemen Volunteer — Rete Mali' };
 

@@ -1,4 +1,4 @@
-import { AdminEventDetailPage } from '@/features/admin/events/pages/admin-event-detail-page';
+import { AdminEventDetailPage } from '@/features/admin';
 export default function Page() {
   return <AdminEventDetailPage />;
 }

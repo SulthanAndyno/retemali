@@ -19,11 +19,21 @@ export interface UseReportFiltersResult {
   reset: () => void;
 }
 
-export function useReportFilters(): UseReportFiltersResult {
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [eventId, setEventId] = useState('');
-  const [applied, setApplied] = useState<AttendanceFilters>(EMPTY_FILTERS);
+export function useReportFilters(
+  initial: Partial<AttendanceFilters> = {}
+): UseReportFiltersResult {
+  const initialFrom = initial.from ?? '';
+  const initialTo = initial.to ?? '';
+  const initialEventId = initial.eventId ?? '';
+
+  const [from, setFrom] = useState(initialFrom);
+  const [to, setTo] = useState(initialTo);
+  const [eventId, setEventId] = useState(initialEventId);
+  const [applied, setApplied] = useState<AttendanceFilters>({
+    from: initialFrom,
+    to: initialTo,
+    eventId: initialEventId,
+  });
   const [eventOptions, setEventOptions] = useState<EventOption[]>([]);
 
   useEffect(() => {

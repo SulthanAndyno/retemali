@@ -1,4 +1,4 @@
-import { AdminSettingsPage } from '@/features/admin/settings/pages/admin-settings-page';
+import { AdminSettingsPage } from '@/features/admin';
 
 export const metadata = { title: 'Pengaturan Website — Rete Mali' };
 

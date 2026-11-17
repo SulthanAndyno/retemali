@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { BookOpen, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { getImageUrl } from '@/lib/utils';
@@ -12,8 +13,8 @@ import { useCatalogBooks } from '../hooks/use-catalog-books';
 import { useBookMutations } from '../hooks/use-book-mutations';
 import { useBookForm } from '../hooks/use-book-form';
 import { getBookCategoryLabel } from '../lib/book-category';
-import { formatBookRating } from '../lib/catalog-query';
-import type { CatalogBook } from '../types/catalog.types';
+import { formatBookRating, resolveCatalogTab } from '../lib/catalog-query';
+import type { CatalogBook, CatalogSort } from '../types/catalog.types';
 import { CatalogToolbar } from '../components/catalog-toolbar';
 import { CategoryFilterPills } from '../components/category-filter-pills';
 import { CatalogPagination } from '../components/catalog-pagination';
@@ -22,8 +23,27 @@ import { BookFormModal } from '../components/book-form-modal';
 
 type Notification = { message: string; type: 'success' | 'error' } | null;
 
-export function AdminBooksPage() {
-  const catalog = useCatalogBooks('', 'ALL');
+interface AdminBooksPageProps {
+  initialSearch?: string;
+  initialCategory?: string;
+  initialSort?: CatalogSort;
+  initialPage?: number;
+}
+
+export function AdminBooksPage({
+  initialSearch = '',
+  initialCategory = 'ALL',
+  initialSort = 'newest',
+  initialPage = 1,
+}: AdminBooksPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const catalog = useCatalogBooks(
+    initialSearch,
+    resolveCatalogTab(initialCategory),
+    initialSort,
+    initialPage
+  );
   const mutations = useBookMutations();
   const form = useBookForm({ canCreate: true, onSaved: catalog.refresh });
   const [notification, setNotification] = useState<Notification>(null);
@@ -40,6 +60,24 @@ export function AdminBooksPage() {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (catalog.searchQuery) params.set('cari', catalog.searchQuery);
+    if (catalog.activeTab !== 'ALL') params.set('kategori', catalog.activeTab);
+    if (catalog.sortBy !== 'newest') params.set('urut', catalog.sortBy);
+    if (catalog.page > 1) params.set('hal', String(catalog.page));
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [
+    catalog.searchQuery,
+    catalog.activeTab,
+    catalog.sortBy,
+    catalog.page,
+    pathname,
+    router,
+  ]);
 
   const handleDelete = async (book: CatalogBook) => {
     if (!confirm(`Hapus buku "${book.title}" secara permanen?`)) return;

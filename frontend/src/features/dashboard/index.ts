@@ -4,5 +4,8 @@ export { CashReportPage } from './reports/pages/cash-report-page';
 export { AdminReportsPage } from './reports/pages/admin-reports-page';
 export { AdminAttendanceReportPage } from './reports/pages/admin-attendance-report-page';
 export { AdminCashReportPage } from './reports/pages/admin-cash-report-page';
+export { useEventPaymentVerification } from './admin/hooks/use-event-payment-verification';
+export { EventPaymentVerificationCard } from './admin/components/event-payment-verification-card';
+export { PaymentProofModal } from './admin/components/payment-proof-modal';
 export { MemberDashboardPage } from './member/pages/member-dashboard-page';
 export { VolunteerDashboardPage } from './volunteer/pages/volunteer-dashboard-page';

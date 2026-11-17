@@ -2,8 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { SectionTitle } from '@/components/ui/card';
 import EmptyState from '@/components/ui/EmptyState';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
-import { DUMMY_DONATIONS } from '@/features/admin/fixtures/admin-dummy';
+import { DummyNotice } from '@/features/admin';
+import { DUMMY_DONATIONS } from '@/features/admin';
 import type { AdminBookDonationSnapshot } from '../types/admin.types';
 
 interface AdminDonationStatusTableProps {

@@ -1,4 +1,4 @@
-import { AdminNotificationsPage } from '@/features/admin/notifications/pages/admin-notifications-page';
+import { AdminNotificationsPage } from '@/features/admin';
 
 export const metadata = { title: 'Notifikasi Admin — Rete Mali' };
 

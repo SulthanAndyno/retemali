@@ -1,4 +1,4 @@
-import { AdminAttendanceDetailPage } from '@/features/admin/attendance/pages/admin-attendance-detail-page';
+import { AdminAttendanceDetailPage } from '@/features/admin';
 export default function Page() {
   return <AdminAttendanceDetailPage />;
 }
