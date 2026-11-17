@@ -12,11 +12,7 @@ import {
   LogIn,
   UserPlus,
   ChevronRight,
-  Settings,
   Sparkles,
-  QrCode,
-  CheckCircle2,
-  AlertTriangle,
   AlertCircle,
   ArrowLeftRight
 } from 'lucide-react';
@@ -134,7 +130,7 @@ export default function PortalPage() {
                   </button>
 
                   <button
-                    onClick={() => router.push('/dashboard/volunteer')}
+                    onClick={() => router.push('/volunteer/operasional')}
                     className="w-full p-3 rounded-xl bg-teal-50/60 hover:bg-teal-100/80 text-left flex items-center justify-between transition-colors group"
                   >
                     <div className="flex items-center gap-3">
@@ -156,7 +152,7 @@ export default function PortalPage() {
               {/* Volunteer Operational (Khusus VOLUNTEER) */}
               {user.role === 'VOLUNTEER' && (
                 <button
-                  onClick={() => router.push('/dashboard/volunteer')}
+                  onClick={() => router.push('/volunteer/operasional')}
                   className="w-full p-3 rounded-xl bg-teal-50/60 hover:bg-teal-100/80 text-left flex items-center justify-between transition-colors group"
                 >
                   <div className="flex items-center gap-3">

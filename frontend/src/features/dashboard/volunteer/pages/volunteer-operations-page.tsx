@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
 import { useRole } from '@/features/auth';
 import { useVolunteerDashboard } from '../hooks/use-volunteer-dashboard';
 import { useShiftClock } from '../hooks/use-shift-clock';
@@ -34,7 +33,7 @@ const EMPTY_METRICS: TodayMetrics = {
   totalEventQuota: 0,
 };
 
-export function VolunteerDashboardPage() {
+export function VolunteerOperationsPage() {
   const router = useRouter();
   const {
     activeRole,
@@ -163,17 +162,15 @@ export function VolunteerDashboardPage() {
   const isRedirecting = error?.status === 401 || error?.status === 403;
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-blue-50/60 pb-16 text-slate-800">
+    <div className="space-y-3.5 text-slate-800">
       <VolunteerToast toast={toast} />
-
-      <Header title="Operasional Relawan" subtitle="Presensi & Sirkulasi Cepat" showBack />
 
       {loading || isRedirecting ? (
         <VolunteerDashboardLoading />
       ) : error && !data ? (
         <VolunteerDashboardError message={error.message} onRetry={() => void reload()} />
       ) : (
-        <main className="px-4 pt-3 space-y-3.5">
+        <div className="space-y-3.5">
           <RoleSwitchCard
             activeRole={activeRole}
             isVolunteerMode={isVolunteerMode}
@@ -230,7 +227,7 @@ export function VolunteerDashboardPage() {
             onToggleTag={note.toggleTag}
             onSave={handleSaveNotes}
           />
-        </main>
+        </div>
       )}
     </div>
   );

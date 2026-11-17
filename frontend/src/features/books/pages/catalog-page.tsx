@@ -180,7 +180,7 @@ export function CatalogPage({
           />
         )}
 
-        <QuickScanBar onScan={() => router.push('/dashboard/volunteer')} />
+        <QuickScanBar onScan={() => router.push('/volunteer/operasional')} />
 
         <CatalogPagination
           page={catalog.page}

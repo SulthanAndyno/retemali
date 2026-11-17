@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   Menu,
   ArrowLeft,
-  User as UserIcon,
   LogIn,
   LogOut,
   X,
@@ -278,7 +277,7 @@ export default function Header({
 
                       <button
                         onClick={() => {
-                          router.push('/dashboard/volunteer');
+                          router.push('/volunteer/operasional');
                           setDrawerOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
@@ -296,7 +295,7 @@ export default function Header({
                   {user.role === 'VOLUNTEER' && (
                     <button
                       onClick={() => {
-                        router.push('/dashboard/volunteer');
+                        router.push('/volunteer/operasional');
                         setDrawerOpen(false);
                       }}
                       className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"

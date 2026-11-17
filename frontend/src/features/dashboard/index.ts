@@ -8,4 +8,4 @@ export { useEventPaymentVerification } from './admin/hooks/use-event-payment-ver
 export { EventPaymentVerificationCard } from './admin/components/event-payment-verification-card';
 export { PaymentProofModal } from './admin/components/payment-proof-modal';
 export { MemberDashboardPage } from './member/pages/member-dashboard-page';
-export { VolunteerDashboardPage } from './volunteer/pages/volunteer-dashboard-page';
+export { VolunteerOperationsPage } from './volunteer/pages/volunteer-operations-page';
