@@ -189,14 +189,9 @@ export default function KatalogPage() {
       if (bookFormData.synopsis.trim()) formData.append('synopsis', bookFormData.synopsis.trim());
       if (bookCoverFile) formData.append('coverImage', bookCoverFile);
 
-      const token = typeof window !== 'undefined' ? localStorage.getItem('retemali_token') : null;
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const url = `${API_URL}/books${editingBook ? `/${editingBook.id}` : ''}`;
+      const url = `/api/backend/books${editingBook ? `/${editingBook.id}` : ''}`;
       const res = await fetch(url, {
         method: editingBook ? 'PATCH' : 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: formData,
       });
 
