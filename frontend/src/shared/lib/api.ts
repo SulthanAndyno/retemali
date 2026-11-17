@@ -1,9 +1,23 @@
 const BASE_URL = '/api/backend';
 
-export function getAuthHeaders(): Record<string, string> {
-  return {
-    'Content-Type': 'application/json',
-  };
+/**
+ * Error dari BFF/backend. `status` memungkinkan pemanggil membedakan
+ * 401 (sesi habis), 403 (role), 400/404 (validasi), dan 5xx.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
+function isFormData(body: unknown): body is FormData {
+  return typeof FormData !== 'undefined' && body instanceof FormData;
 }
 
 export async function apiRequest<T = unknown>(
@@ -13,11 +27,13 @@ export async function apiRequest<T = unknown>(
   extraHeaders?: Record<string, string>
 ): Promise<T> {
   const url = `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  const formData = isFormData(body);
 
-  const headers: Record<string, string> = {
-    ...getAuthHeaders(),
-    ...extraHeaders,
-  };
+  const headers: Record<string, string> = { ...extraHeaders };
+  // Multipart: biarkan browser menulis boundary sendiri.
+  if (!formData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const config: RequestInit = {
     method,
@@ -27,7 +43,7 @@ export async function apiRequest<T = unknown>(
   };
 
   if (body !== undefined && method !== 'GET') {
-    config.body = JSON.stringify(body);
+    config.body = formData ? body : JSON.stringify(body);
   }
 
   const response = await fetch(url, config);
@@ -36,12 +52,16 @@ export async function apiRequest<T = unknown>(
   try {
     data = await response.json();
   } catch {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    throw new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status);
   }
 
   if (!response.ok) {
     const errorData = data as { message?: string };
-    throw new Error(errorData?.message || `HTTP ${response.status}: ${response.statusText}`);
+    throw new ApiError(
+      errorData?.message || `HTTP ${response.status}: ${response.statusText}`,
+      response.status,
+      data
+    );
   }
 
   return data as T;
