@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminAttendanceReportPage } from '@/features/dashboard';
+
 export const metadata = { title: 'Laporan Presensi — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Laporan Presensi" description="Rekap kehadiran kegiatan." />;
+  return <AdminAttendanceReportPage />;
 }
