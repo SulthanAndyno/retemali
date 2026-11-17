@@ -10,13 +10,16 @@ import {
   computeQuotaState,
   type EventPhase,
 } from '@/features/events/lib/events';
+import { formatRupiah, toNumber } from '@/shared/lib/format';
+
+export {
+  formatDateId,
+  formatDateTimeId,
+  formatNumber,
+  formatRupiah,
+} from '@/shared/lib/format';
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
-
-export interface ReportPeriod {
-  from: string | null;
-  to: string | null;
-}
 
 const MONTHS_ID = [
   'Januari',
@@ -33,42 +36,9 @@ const MONTHS_ID = [
   'Desember',
 ];
 
-export function formatDateId(value: string | Date | null | undefined): string {
-  if (!value) return '-';
-  const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '-';
-  return `${date.getDate()} ${MONTHS_ID[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-export function formatDateTimeId(value: string | Date | null | undefined): string {
-  if (!value) return '-';
-  const date = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return '-';
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${formatDateId(date)} • ${hours}:${minutes} WIB`;
-}
-
-export function formatRupiah(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number.isFinite(amount) ? amount : 0);
-}
-
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('id-ID').format(Number.isFinite(value) ? value : 0);
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
+export interface ReportPeriod {
+  from: string | null;
+  to: string | null;
 }
 
 function inPeriod(value: string | Date | null | undefined, period: ReportPeriod): boolean {
