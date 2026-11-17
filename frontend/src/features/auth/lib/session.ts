@@ -16,6 +16,21 @@ export async function getActiveRole(): Promise<string | null> {
   return (await cookies()).get(ROLE_COOKIE)?.value ?? null;
 }
 
+/**
+ * Session token for an incoming route-handler request: the httpOnly cookie
+ * wins, with an Authorization: Bearer header as a fallback for non-browser
+ * callers.
+ */
+export async function resolveRequestToken(request: Request): Promise<string | null> {
+  const cookieToken = await getSessionToken();
+  if (cookieToken) return cookieToken;
+
+  const header = request.headers.get('authorization');
+  if (!header) return null;
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  return match ? match[1].trim() : header.trim() || null;
+}
+
 export async function setSession(token: string, role: string): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, sessionCookieOptions);
