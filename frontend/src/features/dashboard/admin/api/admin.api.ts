@@ -1,8 +1,15 @@
 import { del, get, patch, post } from '@/lib/api';
 import type { ApiEnvelope, PaginatedMeta } from '@/shared/types/api';
 import type {
+  AdminAttendanceSnapshot,
+  AdminAuditLogSnapshot,
+  AdminBookDonationSnapshot,
   AdminDashboard,
+  AdminEventSnapshot,
+  AdminRegistrationSnapshot,
+  AdminVolunteerApplicationSnapshot,
   EventPaymentRegistration,
+  EventPaymentStatus,
   PaymentAccount,
   ReviewVolunteerApplicationInput,
   VerifyEventPaymentInput,
@@ -58,4 +65,47 @@ export function verifyEventPayment(id: string, input: VerifyEventPaymentInput) {
     `/events/registrations/${id}/verify`,
     input
   );
+}
+
+export function getBookCount() {
+  return get<ApiEnvelope<unknown[]> & { meta: PaginatedMeta }>('/books?limit=1');
+}
+
+export function getEventSnapshot() {
+  return get<ApiEnvelope<AdminEventSnapshot[]> & { meta: PaginatedMeta }>(
+    '/events?limit=100'
+  );
+}
+
+export function getRegistrationSnapshot(
+  params: { limit?: number; paymentStatus?: EventPaymentStatus } = {}
+) {
+  const query = new URLSearchParams({ limit: String(params.limit ?? 5) });
+  if (params.paymentStatus) query.set('paymentStatus', params.paymentStatus);
+
+  return get<ApiEnvelope<AdminRegistrationSnapshot[]> & { meta: PaginatedMeta }>(
+    `/events/registrations?${query.toString()}`
+  );
+}
+
+export function getBookDonationSnapshot() {
+  return get<ApiEnvelope<AdminBookDonationSnapshot[]> & { meta: PaginatedMeta }>(
+    '/donations/books?status=PENDING_CURATION&limit=5'
+  );
+}
+
+export function getVolunteerApplicationSnapshot() {
+  return get<ApiEnvelope<AdminVolunteerApplicationSnapshot[]> & { meta: PaginatedMeta }>(
+    '/volunteers/applications?limit=20'
+  );
+}
+
+export function getAuditLogSnapshot(limit = 6) {
+  return get<ApiEnvelope<AdminAuditLogSnapshot[]> & { meta: PaginatedMeta }>(
+    `/audit-logs?limit=${limit}`
+  );
+}
+
+export function getAttendanceSnapshot() {
+  return get<ApiEnvelope<{ events: AdminAttendanceSnapshot[] }>>('/events/attendance');
 }

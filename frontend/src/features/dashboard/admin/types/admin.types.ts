@@ -138,3 +138,71 @@ export interface VerifyEventPaymentInput {
   status: Exclude<EventPaymentStatus, 'PENDING'>;
   paymentNote?: string;
 }
+
+export interface AdminEventSnapshot {
+  id: string;
+  title: string;
+  eventDate: string;
+  status: string;
+  feeType: 'FREE' | 'INFAQ';
+  infaqAmount: string | number;
+  quota: number;
+  registeredCount: number;
+}
+
+export interface AdminRegistrationSnapshot {
+  id: string;
+  ticketCode: string;
+  status: string;
+  paymentStatus: EventPaymentStatus | null;
+  paymentNote: string | null;
+  createdAt: string;
+  event: {
+    id: string;
+    title: string;
+    infaqAmount: string | number;
+  };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    memberCode: string;
+  };
+}
+
+export interface AdminBookDonationSnapshot {
+  id: string;
+  batchCode: string;
+  donorName: string;
+  packageTitle: string;
+  totalBooks: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface AdminVolunteerApplicationSnapshot {
+  id: string;
+  status: VolunteerApplicationStatus;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface AdminAuditLogSnapshot {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface AdminAttendanceSnapshot {
+  id: string;
+  title: string;
+  eventDate: string;
+  registeredCount: number;
+  attendedCount: number;
+}
