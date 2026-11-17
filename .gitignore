@@ -6,3 +6,6 @@ generated/
 !.env.example
 uploads/*
 !uploads/**/.gitkeep
+
+# Local API contract docs (not published)
+docs/
