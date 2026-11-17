@@ -216,8 +216,6 @@ export default function KegiatanPage() {
   const submitRegistration = async (event: EventItem, proof?: File) => {
     try {
       setRegisteringId(event.id);
-      const token = typeof window !== 'undefined' ? localStorage.getItem('retemali_token') : null;
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
       let body: FormData | undefined;
       if (proof) {
@@ -225,11 +223,8 @@ export default function KegiatanPage() {
         body.append('paymentProof', proof);
       }
 
-      const res = await fetch(`${API_URL}/events/${event.id}/register`, {
+      const res = await fetch(`/api/backend/events/${event.id}/register`, {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body,
       });
       const payload = await res.json().catch(() => ({}));
@@ -394,14 +389,9 @@ export default function KegiatanPage() {
         formDataToSend.append('bannerImage', bannerFile);
       }
 
-      const token = typeof window !== 'undefined' ? localStorage.getItem('retemali_token') : null;
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const url = `${API_URL}/events${editingEvent ? `/${editingEvent.id}` : ''}`;
+      const url = `/api/backend/events${editingEvent ? `/${editingEvent.id}` : ''}`;
       const res = await fetch(url, {
         method: editingEvent ? 'PATCH' : 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: formDataToSend,
       });
 
