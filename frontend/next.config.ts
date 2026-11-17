@@ -8,10 +8,10 @@ import type { NextConfig } from 'next';
  *
  * NEXT_PUBLIC_API_URL is inlined at build time, which is what we want here:
  * remotePatterns is baked into the build as well. API_URL is accepted as a
- * fallback for builds that only define the server-side variable. localhost:5000
+ * fallback for builds that only define the server-side variable. localhost:2000
  * (the dev API) is always allowed so `next dev` needs no configuration.
  */
-const DEV_API_ORIGIN = 'http://localhost:5000';
+const DEV_API_ORIGIN = 'http://localhost:2000';
 
 interface UploadPattern {
   protocol: 'http' | 'https';

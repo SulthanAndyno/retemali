@@ -7,7 +7,7 @@
 const API_BASE = (
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:5000/api'
+  'http://localhost:2000/api'
 ).replace(/\/$/, '');
 
 export interface UpstreamResult<T> {
