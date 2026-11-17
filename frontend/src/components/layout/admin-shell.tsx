@@ -50,10 +50,10 @@ export function AdminShell({ children }: AdminShellProps) {
         />
       ) : null}
 
-      <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:px-6 lg:py-6">
+      <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-6 lg:px-6 lg:py-6">
         <aside
           aria-label="Sidebar admin"
-          className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-surface-soft bg-white shadow-drawer transition-transform duration-200 lg:sticky lg:inset-y-auto lg:left-auto lg:top-6 lg:z-0 lg:col-span-4 lg:h-[calc(100dvh-3rem)] lg:w-auto lg:translate-x-0 lg:rounded-card lg:border lg:shadow-card ${
+          className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-surface-soft bg-white shadow-drawer transition-transform duration-200 lg:sticky lg:inset-y-auto lg:left-auto lg:top-6 lg:z-0 lg:h-[calc(100dvh-3rem)] lg:w-auto lg:translate-x-0 lg:rounded-card lg:border lg:shadow-card ${
             open ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -71,7 +71,7 @@ export function AdminShell({ children }: AdminShellProps) {
           <SidebarNav items={adminNav} onNavigate={() => setOpen(false)} />
         </aside>
 
-        <div className="flex flex-col lg:col-span-8">
+        <div className="flex min-w-0 flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-surface-soft bg-white/90 px-4 backdrop-blur lg:px-6">
           <button
             type="button"
