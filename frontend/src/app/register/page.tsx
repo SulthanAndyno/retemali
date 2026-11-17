@@ -4,14 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Loader2, CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Header from '@/components/layout/Header';
-import { post } from '@/lib/api';
 
 interface RegisterResponse {
   data: {
-    memberCode: string;
-    name: string;
+    user: {
+      memberCode: string;
+      name: string;
+    };
   };
-  message: string;
+  message?: string;
   status: string;
 }
 
@@ -51,14 +52,26 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await post<RegisterResponse>('/auth/register', {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        rtRw: form.rtRw,
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+          rtRw: form.rtRw,
+        }),
       });
-      setSuccessCode(res.data.memberCode);
+
+      const res = (await response.json().catch(() => null)) as RegisterResponse | null;
+
+      if (!response.ok || !res?.data?.user) {
+        throw new Error(res?.message ?? 'Pendaftaran gagal. Coba lagi.');
+      }
+
+      setSuccessCode(res.data.user.memberCode);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Pendaftaran gagal. Coba lagi.';
       setError(msg);
