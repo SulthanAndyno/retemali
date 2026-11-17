@@ -41,7 +41,7 @@ export function AdminShell({ children }: AdminShellProps) {
   };
 
   return (
-    <div className="min-h-dvh bg-surface text-ink">
+    <div className="bg-surface text-ink">
       {open ? (
         <div
           className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[2px] lg:hidden"
@@ -50,28 +50,29 @@ export function AdminShell({ children }: AdminShellProps) {
         />
       ) : null}
 
-      <aside
-        aria-label="Sidebar admin"
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-surface-soft bg-white shadow-drawer transition-transform duration-200 lg:translate-x-0 lg:shadow-none ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between pr-2">
-          <SidebarBrand />
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Tutup menu navigasi"
-            className="rounded-field p-2 text-ink transition-colors hover:bg-surface-blue lg:hidden"
-          >
-            <X className="h-6 w-6" aria-hidden />
-          </button>
-        </div>
-        <SidebarNav items={adminNav} onNavigate={() => setOpen(false)} />
-      </aside>
+      <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:px-6 lg:py-6">
+        <aside
+          aria-label="Sidebar admin"
+          className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-surface-soft bg-white shadow-drawer transition-transform duration-200 lg:sticky lg:inset-y-auto lg:left-auto lg:top-6 lg:z-0 lg:col-span-4 lg:h-[calc(100dvh-3rem)] lg:w-auto lg:translate-x-0 lg:rounded-card lg:border lg:shadow-card ${
+            open ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between pr-2">
+            <SidebarBrand />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Tutup menu navigasi"
+              className="rounded-field p-2 text-ink transition-colors hover:bg-surface-blue lg:hidden"
+            >
+              <X className="h-6 w-6" aria-hidden />
+            </button>
+          </div>
+          <SidebarNav items={adminNav} onNavigate={() => setOpen(false)} />
+        </aside>
 
-      <div className="flex min-h-dvh flex-col lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-surface-soft bg-white/90 px-4 backdrop-blur lg:px-6">
+        <div className="flex flex-col lg:col-span-8">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-surface-soft bg-white/90 px-4 backdrop-blur lg:px-6">
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -104,11 +105,12 @@ export function AdminShell({ children }: AdminShellProps) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">{children}</main>
+          <main className="w-full flex-1 px-4 py-6 lg:px-0">{children}</main>
 
-        <footer className="border-t border-surface-soft px-4 py-4 text-center text-xs text-ink-soft lg:px-6">
-          Taman Baca ReteMali — Konsol Administrator
-        </footer>
+          <footer className="border-t border-surface-soft px-4 py-4 text-center text-xs text-ink-soft lg:px-0">
+            Taman Baca ReteMali — Konsol Administrator
+          </footer>
+        </div>
       </div>
     </div>
   );
