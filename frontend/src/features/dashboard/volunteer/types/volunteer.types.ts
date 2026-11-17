@@ -99,3 +99,6 @@ export interface HandoverNoteInput {
   content: string;
   tags: string[];
 }
+
+/** Hasil seragam untuk hook mutasi di dashboard relawan. */
+export type ActionResult = { ok: true } | { ok: false; message: string };
