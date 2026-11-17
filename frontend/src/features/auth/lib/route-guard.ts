@@ -31,6 +31,14 @@ function matchesPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
+/** Dashboard utama per role, dipakai setelah login dan saat membuka halaman auth. */
+export function dashboardForRole(role?: Role): string {
+  if (role === 'ADMIN') return '/admin';
+  if (role === 'VOLUNTEER') return '/volunteer';
+  if (role === 'MEMBER' || role === 'DONOR') return '/dashboard/member';
+  return '/portal';
+}
+
 export function resolveRouteAccess({
   pathname,
   isAuthenticated,
@@ -47,7 +55,7 @@ export function resolveRouteAccess({
   }
 
   if (!rule && isAuthenticated && AUTH_PAGES.includes(pathname)) {
-    return { type: 'redirect', to: '/portal' };
+    return { type: 'redirect', to: dashboardForRole(role) };
   }
 
   return { type: 'next' };

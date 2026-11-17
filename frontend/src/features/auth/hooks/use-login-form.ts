@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ACCESS_MODES, getAccessModeLabel } from '../lib/auth-options';
+import { dashboardForRole } from '../lib/route-guard';
 import type { AccessMode } from '../types';
 
 export interface UseLoginFormResult {
@@ -71,7 +72,15 @@ export function useLoginForm(): UseLoginFormResult {
 
     try {
       const loggedUser = await login(email, password);
-      router.push(loggedUser.role === 'ADMIN' ? '/admin' : '/portal');
+      const requestedNext =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('next')
+          : null;
+      const destination =
+        requestedNext?.startsWith('/') && !requestedNext.startsWith('//')
+          ? requestedNext
+          : dashboardForRole(loggedUser.role);
+      router.replace(destination);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Login gagal. Periksa email & password.';
