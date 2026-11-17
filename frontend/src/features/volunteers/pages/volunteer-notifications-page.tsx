@@ -1,6 +1,6 @@
 import { BellRing } from 'lucide-react';
 import { Card, SectionTitle } from '@/components/ui/card';
-import { VolunteerNotificationsInbox } from '../components/volunteer-notifications-inbox';
+import { NotificationsInbox } from '@/components/notifications/notifications-inbox';
 
 export function VolunteerNotificationsPage() {
   return (
@@ -19,7 +19,7 @@ export function VolunteerNotificationsPage() {
           tercatat pada penugasan kegiatan terpublikasi.
         </p>
       </Card>
-      <VolunteerNotificationsInbox />
+      <NotificationsInbox />
     </div>
   );
 }

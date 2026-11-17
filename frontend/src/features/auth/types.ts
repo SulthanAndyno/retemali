@@ -12,6 +12,8 @@ export interface User {
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
   points: number;
   readingTarget: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type SafeUser = User & {

@@ -22,7 +22,7 @@ function severityTone(
   return 'info';
 }
 
-export function VolunteerNotificationsInbox() {
+export function NotificationsInbox() {
   const {
     items,
     unreadCount,

@@ -35,7 +35,7 @@ function matchesPrefix(pathname: string, prefix: string): boolean {
 export function dashboardForRole(role?: Role): string {
   if (role === 'ADMIN') return '/admin';
   if (role === 'VOLUNTEER') return '/volunteer';
-  if (role === 'MEMBER' || role === 'DONOR') return '/dashboard/member';
+  if (role === 'MEMBER' || role === 'DONOR') return '/member';
   return '/portal';
 }
 

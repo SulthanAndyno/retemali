@@ -7,5 +7,5 @@ export { AdminCashReportPage } from './reports/pages/admin-cash-report-page';
 export { useEventPaymentVerification } from './admin/hooks/use-event-payment-verification';
 export { EventPaymentVerificationCard } from './admin/components/event-payment-verification-card';
 export { PaymentProofModal } from './admin/components/payment-proof-modal';
-export { MemberDashboardPage } from './member/pages/member-dashboard-page';
+export { MemberOperationsPage } from './member/pages/member-operations-page';
 export { VolunteerOperationsPage } from './volunteer/pages/volunteer-operations-page';

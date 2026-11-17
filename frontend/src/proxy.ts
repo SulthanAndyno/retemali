@@ -10,6 +10,7 @@ import {
 } from '@/features/auth/lib/route-guard';
 
 const LEGACY_ADMIN_REDIRECTS: Record<string, string> = {
+  '/dashboard/member': '/member',
   '/dashboard/volunteer': '/volunteer',
   '/dashboard/admin': '/admin',
   '/dashboard/admin/borrowings': '/admin/peminjaman',

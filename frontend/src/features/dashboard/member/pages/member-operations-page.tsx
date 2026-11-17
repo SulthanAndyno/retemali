@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Calendar, Clock } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
 import { useAuth } from '@/features/auth';
 import { useMemberDashboard } from '../hooks/use-member-dashboard';
 import { useMemberActions } from '../hooks/use-member-actions';
@@ -23,7 +21,7 @@ import { MemberDashboardError } from '../components/member-dashboard-error';
 
 type ToastState = { message: string; type: 'success' | 'error' } | null;
 
-export function MemberDashboardPage() {
+export function MemberOperationsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -49,7 +47,7 @@ export function MemberDashboardPage() {
   // Sesi habis / role tidak sesuai: proxy menangani navigasi berikutnya.
   useEffect(() => {
     if (error?.status === 401) {
-      router.replace('/login?next=%2Fdashboard%2Fmember');
+      router.replace('/login?next=%2Fmember');
     } else if (error?.status === 403) {
       router.replace('/portal');
     }
@@ -91,17 +89,15 @@ export function MemberDashboardPage() {
   const isRedirecting = error?.status === 401 || error?.status === 403;
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-blue-50/50 pb-24 text-slate-800">
+    <div className="space-y-4 text-slate-800">
       <MemberToast toast={toast} />
-
-      <Header title="Dashboard Member" subtitle="Kartu & Layanan Anggota" showBack />
 
       {loading || isRedirecting ? (
         <MemberDashboardLoading />
       ) : error && !data ? (
         <MemberDashboardError message={error.message} onRetry={() => void reload()} />
       ) : (
-        <main className="px-4 pt-3 space-y-4">
+        <div className="space-y-4">
           <MemberCard
             member={data?.memberCard ?? null}
             fallback={{
@@ -150,7 +146,7 @@ export function MemberDashboardPage() {
           </MemberSection>
 
           <VolunteerCta onOpen={() => setShowApplyModal(true)} />
-        </main>
+        </div>
       )}
 
       <VolunteerApplyModal
@@ -162,7 +158,6 @@ export function MemberDashboardPage() {
         onSubmit={handleApplyVolunteer}
       />
 
-      <BottomNav />
     </div>
   );
 }

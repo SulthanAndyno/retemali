@@ -94,7 +94,7 @@ export function HomePage() {
             <HomeSupport
               onDonate={() => router.push('/donasi')}
               onJoinVolunteer={() =>
-                router.push(user ? '/dashboard/member' : '/login')
+                router.push(user ? '/member' : '/login')
               }
             />
             <HomeVenue community={data?.communityInfo ?? null} />
