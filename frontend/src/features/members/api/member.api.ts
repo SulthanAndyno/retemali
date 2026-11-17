@@ -1,4 +1,4 @@
-import { get, patch } from '@/lib/api';
+import { get, patch } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
 import type {
   MemberEvent,

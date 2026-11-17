@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { applyVolunteer } from '../api/member.api';
 import type { ActionResult } from './use-member-actions';
 

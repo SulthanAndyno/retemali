@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { CircleAlert, Eye, EyeOff, KeyRound } from 'lucide-react';
-import { Button, LinkButton } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
 import type { LoginFieldErrors } from '../hooks/use-login-form';
 import type { AccessMode } from '../types';
 

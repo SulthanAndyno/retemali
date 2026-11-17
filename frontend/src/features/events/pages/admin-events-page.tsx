@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
 import { useEvents } from '../hooks/use-events';
 import { useAutoClose } from '../hooks/use-auto-close';
 import { useEventForm } from '../hooks/use-event-form';

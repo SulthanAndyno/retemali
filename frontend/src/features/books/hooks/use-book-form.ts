@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
-import { getImageUrl } from '@/lib/utils';
+import { ApiError } from '@/shared/lib/api';
+import { getImageUrl } from '@/shared/lib/utils';
 import { createBook, updateBook } from '../api/books.api';
 import type { BookActionResult, BookFormValues, CatalogBook } from '../types/catalog.types';
 

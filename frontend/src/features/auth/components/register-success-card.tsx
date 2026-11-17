@@ -1,6 +1,6 @@
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { Button, LinkButton } from '@/components/ui/button';
+import { Button, LinkButton } from '@/shared/components/ui/button';
 
 export function RegisterSuccessCard({
   code,

@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { BookOpen, CheckCircle2, SearchX } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category';
 import { usePublicCatalog } from '../hooks/use-public-catalog';
 import type { PublicBookSort } from '../api/books.api';
 import { PublicBookCard } from '../components/public-book-card';
-import { PublicEmptyState } from '../components/public-empty-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
 interface CatalogPageProps {
   initialSearch?: string;
@@ -232,7 +232,7 @@ export function CatalogPage({
           ))}
         </div>
       ) : catalog.books.length === 0 ? (
-        <PublicEmptyState
+        <EmptyState
           icon={<SearchX aria-hidden />}
           title="Tidak ada buku yang cocok"
           description="Tidak ditemukan koleksi dengan kombinasi pencarian/filter tersebut. Coba ubah kata kunci atau atur ulang filter."

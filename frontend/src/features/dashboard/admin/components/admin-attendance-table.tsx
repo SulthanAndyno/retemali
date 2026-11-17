@@ -1,7 +1,7 @@
-import { LinkButton } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
-import EmptyState from '@/components/ui/EmptyState';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
+import { LinkButton } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import type { AdminAttendanceSnapshot } from '../types/admin.types';
 
 interface AdminAttendanceTableProps {

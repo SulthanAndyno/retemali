@@ -1,11 +1,11 @@
 'use client';
 
 import { ClipboardList } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
 import { VOLUNTEER_ASSIGNMENTS } from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { VolunteerProfileForm } from '../components/volunteer-profile-form';
 
 export function VolunteerProfilePage() {

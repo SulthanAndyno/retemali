@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react';
 import { Heart } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/shared/lib/utils';
 import type { PaymentAccount } from '../types/donation.types';
 import { AmountInput } from './amount-input';
 import { AmountPresets } from './amount-presets';

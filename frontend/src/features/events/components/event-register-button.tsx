@@ -1,6 +1,6 @@
 import { CheckCircle2, Ticket } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
-import type { EventTimeline, QuotaState } from '../lib/events';
+import { formatCurrency } from '@/shared/lib/utils';
+import type { EventTimeline, QuotaState } from '@/shared/lib/event-timeline';
 import { isPaidEvent } from '../lib/event-options';
 import type { EventItem } from '../types/event.types';
 

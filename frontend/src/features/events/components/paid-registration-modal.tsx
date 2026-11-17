@@ -1,5 +1,5 @@
 import { CheckCircle2, Ticket, X } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/shared/lib/utils';
 import type { EventItem } from '../types/event.types';
 import { ProofUpload } from './proof-upload';
 

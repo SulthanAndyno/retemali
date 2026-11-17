@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { DummyNotice } from '../components/dummy-notice';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 
 export function BookConfirmationPage({ reference }: { reference: string }) {
   return (

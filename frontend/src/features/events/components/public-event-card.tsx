@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 import { formatDateId } from '@/shared/lib/format';
 import type { AutoCloseState, EventItem } from '../types/event.types';
 import { isPaidEvent } from '../lib/event-options';

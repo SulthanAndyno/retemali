@@ -1,5 +1,5 @@
 import { ChevronRight, MapPin } from 'lucide-react';
-import { formatCurrency, getImageUrl } from '@/lib/utils';
+import { formatCurrency, getImageUrl } from '@/shared/lib/utils';
 import { formatEventSchedule, getEventSeatsLabel, isWithinDays } from '../lib/home-format';
 import type { FeaturedEvent } from '../types/home.types';
 

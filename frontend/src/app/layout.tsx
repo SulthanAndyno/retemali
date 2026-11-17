@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { RoleProvider } from '@/contexts/RoleContext';
-import { NotificationsProvider } from '@/contexts/NotificationsContext';
+import { AuthProvider } from '@/features/auth';
+import { RoleProvider } from '@/features/auth';
+import { NotificationsProvider } from '@/features/notifications';
 
 export const metadata: Metadata = {
   title: 'Rete Mali - Taman Baca & Komunitas',

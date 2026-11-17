@@ -1,7 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
 import { formatDateId } from '@/shared/lib/format';
 import { MemberProfileForm } from '../components/member-profile-form';

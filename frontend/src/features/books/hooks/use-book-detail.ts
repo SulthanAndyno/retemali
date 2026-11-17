@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { getBookById } from '../api/books.api';
 import type { Book } from '../types/book.types';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import {
   getBookDonations,
   verifyBookDonation,

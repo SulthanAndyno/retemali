@@ -1,5 +1,5 @@
 import { BookOpen } from 'lucide-react';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 
 interface BookCoverProps {
   title: string;

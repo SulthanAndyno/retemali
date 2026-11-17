@@ -1,10 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { Input, Textarea } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { Input, Textarea } from '@/shared/components/ui/input';
+import { useToast } from '@/shared/components/ui/toast';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { DUMMY_SITE_SETTINGS } from '@/features/admin/fixtures/admin-dummy';
 
 export function AdminSettingsPage() {

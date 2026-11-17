@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
-import { SectionTitle } from '@/components/ui/card';
-import { EmptyState } from '../components/empty-state';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { formatDateId } from '@/shared/lib/format';
 import {
   VOLUNTEER_PAST_ASSIGNMENTS,
   VOLUNTEER_UPCOMING_ASSIGNMENTS,
 } from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { UpcomingAssignmentCard } from '../components/upcoming-assignment-card';
 
 export function VolunteerSchedulePage() {

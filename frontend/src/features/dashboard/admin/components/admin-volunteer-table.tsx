@@ -1,7 +1,7 @@
-import { Badge } from '@/components/ui/badge';
-import { LinkButton } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
+import { Badge } from '@/shared/components/ui/badge';
+import { LinkButton } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import type { AdminVolunteerApplicationSnapshot } from '../types/admin.types';
 
 interface AdminVolunteerTableProps {

@@ -1,6 +1,6 @@
 import { Calendar } from 'lucide-react';
-import { formatDate, getImageUrl } from '@/lib/utils';
-import { isThisWeek, type EventTimeline } from '../lib/events';
+import { formatDate, getImageUrl } from '@/shared/lib/utils';
+import { isThisWeek, type EventTimeline } from '@/shared/lib/event-timeline';
 import { EVENT_FEE_LABELS } from '../lib/event-options';
 import type { EventItem } from '../types/event.types';
 

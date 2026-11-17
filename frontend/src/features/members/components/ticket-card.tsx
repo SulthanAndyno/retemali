@@ -1,6 +1,6 @@
 import { CalendarDays, CircleAlert, Hourglass, MapPin } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import type { MemberTicket } from '../types/member-page.types';
 

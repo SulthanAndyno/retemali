@@ -5,17 +5,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark, BookOpen, Star } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button, LinkButton } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/toast';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { useToast } from '@/shared/components/ui/toast';
 import { useAuth } from '@/features/auth';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import { formatBookRating } from '../lib/catalog-query';
 import { getBookCategoryLabel } from '../lib/book-category';
 import { useBookDetail } from '../hooks/use-book-detail';
 import { useBookMutations } from '../hooks/use-book-mutations';
-import { PublicEmptyState } from '../components/public-empty-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
 export function CatalogDetailPage({ bookId }: { bookId: string }) {
   const router = useRouter();
@@ -47,7 +47,7 @@ export function CatalogDetailPage({ bookId }: { bookId: string }) {
             Coba Lagi
           </Button>
         </div>
-        <PublicEmptyState
+        <EmptyState
           title="Detail buku tidak tersedia"
           description="Periksa kembali tautan atau pilih buku lain dari katalog."
         />

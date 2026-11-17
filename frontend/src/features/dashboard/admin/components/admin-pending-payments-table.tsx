@@ -1,8 +1,8 @@
-import { Badge } from '@/components/ui/badge';
-import { SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import EmptyState from '@/components/ui/EmptyState';
-import { DummyNotice } from '@/features/admin';
+import { Badge } from '@/shared/components/ui/badge';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { DUMMY_PENDING_PAYMENTS } from '@/features/admin';
 import { formatDateTimeId, formatRupiah } from '@/shared/lib/format';
 import type { AdminRegistrationSnapshot } from '../types/admin.types';

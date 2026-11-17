@@ -7,8 +7,8 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
-import { StatCard } from '@/components/ui/card';
-import { DummyNotice } from '@/features/admin';
+import { StatCard } from '@/shared/components/ui/card';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import {
   DUMMY_MEMBERS,
   DUMMY_PENDING_PAYMENTS,

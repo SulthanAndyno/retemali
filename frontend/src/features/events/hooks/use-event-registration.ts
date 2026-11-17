@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { registerEvent } from '../api/events.api';
 import { isPaidEvent } from '../lib/event-options';
 import type { EventActionResult, EventItem } from '../types/event.types';

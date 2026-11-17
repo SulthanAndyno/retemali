@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { AdminShell } from '@/components/layout/admin-shell';
-import { ToastProvider } from '@/components/ui/toast';
+import { AdminShell } from '@/features/admin';
+import { ToastProvider } from '@/shared/components/ui/toast';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

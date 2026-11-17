@@ -1,7 +1,7 @@
 'use client';
 
 import { CreditCard, Hourglass, Info, Lock } from 'lucide-react';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
 import { PasswordChangeForm } from '../components/password-change-form';
 

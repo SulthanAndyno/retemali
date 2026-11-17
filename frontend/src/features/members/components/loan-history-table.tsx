@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { formatDateId } from '@/shared/lib/format';
 import type { MemberLoan } from '../types/member-page.types';
 

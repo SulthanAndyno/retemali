@@ -1,4 +1,4 @@
-import { get } from '@/lib/api';
+import { get } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
 import type { AdminAttendanceEvent } from '../types/attendance.types';
 

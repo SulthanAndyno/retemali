@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { BookOpen, ChevronRight, Edit2, Heart, Star, Trash2 } from 'lucide-react';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import { formatBookRating } from '../lib/catalog-query';
 import type { CatalogBook } from '../types/catalog.types';
 

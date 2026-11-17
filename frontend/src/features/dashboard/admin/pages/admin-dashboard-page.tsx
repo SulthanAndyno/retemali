@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Receipt } from 'lucide-react';
-import { Button, LinkButton } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
 import { useAdminOverview } from '../hooks/use-admin-overview';
 import { AdminStatGrid } from '../components/admin-stat-grid';
 import { AdminPendingPaymentsTable } from '../components/admin-pending-payments-table';

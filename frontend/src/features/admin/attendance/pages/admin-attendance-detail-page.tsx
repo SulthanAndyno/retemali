@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { DUMMY_QR_TOKENS } from '@/features/admin/fixtures/admin-dummy';
 import { formatDateId, formatDateTimeId } from '@/shared/lib/format';
 import { useAdminAttendance } from '../hooks/use-admin-attendance';

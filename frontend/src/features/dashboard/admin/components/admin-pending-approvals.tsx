@@ -1,6 +1,6 @@
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import EmptyState from '@/components/ui/EmptyState';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
 interface AdminPendingApprovalsProps {
   pendingBookDonations: number;

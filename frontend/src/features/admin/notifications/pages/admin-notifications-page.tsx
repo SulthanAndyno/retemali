@@ -1,10 +1,10 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/toast';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { useToast } from '@/shared/components/ui/toast';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { DUMMY_BROADCASTS } from '@/features/admin/fixtures/admin-dummy';
 
 export function AdminNotificationsPage() {

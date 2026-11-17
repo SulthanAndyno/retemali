@@ -1,4 +1,4 @@
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 
 export function MemberDashboardLoading() {
   return (

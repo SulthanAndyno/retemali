@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { BookOpen, Info, MapPin, Star } from 'lucide-react';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import { getBookCategoryLabel } from '../lib/book-category';
 import { formatBookRating } from '../lib/catalog-query';
 import { getBookStatusLabel } from '../lib/home-format';

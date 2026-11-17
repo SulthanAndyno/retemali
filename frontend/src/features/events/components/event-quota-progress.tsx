@@ -4,7 +4,7 @@ import {
   TONE_CLASSES,
   type EventTimeline,
   type QuotaState,
-} from '../lib/events';
+} from '@/shared/lib/event-timeline';
 
 interface EventQuotaProgressProps {
   timeline: EventTimeline;

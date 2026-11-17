@@ -1,10 +1,10 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { useToast } from '@/components/ui/toast';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { Badge } from '@/shared/components/ui/badge';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { useToast } from '@/shared/components/ui/toast';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { DUMMY_PENDING_PAYMENTS } from '@/features/admin/fixtures/admin-dummy';
 import { formatDateTimeId, formatRupiah } from '@/shared/lib/format';
 import { useEventPaymentVerification } from '@/features/dashboard';

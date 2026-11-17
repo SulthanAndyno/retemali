@@ -2,10 +2,10 @@
 
 import { KeyRound } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { useToast } from '@/shared/components/ui/toast';
 import { useChangePassword } from '../hooks/use-change-password';
 
 export function AdminAccountPage() {

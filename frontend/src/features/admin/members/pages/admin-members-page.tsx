@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { useToast } from '@/components/ui/toast';
-import { DummyNotice } from '@/features/admin/components/dummy-notice';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { useToast } from '@/shared/components/ui/toast';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import {
   DUMMY_MEMBERS,
   type DummyMembershipStatus,

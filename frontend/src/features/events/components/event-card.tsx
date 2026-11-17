@@ -1,5 +1,5 @@
 import { MapPin } from 'lucide-react';
-import { resolveEventState, type ServerEventState } from '../lib/events';
+import { resolveEventState, type ServerEventState } from '@/shared/lib/event-timeline';
 import type { EventItem } from '../types/event.types';
 import { EventAdminActions } from './event-admin-actions';
 import { EventCardBanner } from './event-card-banner';

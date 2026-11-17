@@ -3,11 +3,11 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { getFinancialReceipt } from '../api/donations.api';
 import { DUMMY_BOOK_DONATION_STATUS } from '../fixtures/public-donation-dummy';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 
 export function DonationStatusPage() {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import { BellRing } from 'lucide-react';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { NotificationsInbox } from '@/components/notifications/notifications-inbox';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { NotificationsInbox } from '@/features/notifications';
 
 export function VolunteerNotificationsPage() {
   return (

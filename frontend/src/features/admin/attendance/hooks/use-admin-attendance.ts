@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { getAttendanceOverview } from '../api/attendance.api';
 import type { AdminAttendanceEvent } from '../types/attendance.types';
 

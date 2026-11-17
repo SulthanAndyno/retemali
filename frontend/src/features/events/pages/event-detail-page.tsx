@@ -12,12 +12,12 @@ import {
   UserRound,
   Users,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/toast';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { useToast } from '@/shared/components/ui/toast';
 import { useAuth } from '@/features/auth';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useEventDetail } from '../hooks/use-event-detail';
 import { useEventRegistration } from '../hooks/use-event-registration';
@@ -25,8 +25,8 @@ import {
   computeEventTimeline,
   computeQuotaState,
   getRegistrationGate,
-} from '../lib/events';
-import { PublicEmptyState } from '@/features/books';
+} from '@/shared/lib/event-timeline';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { EventRegisterButton } from '../components/event-register-button';
 import { PaidRegistrationModal } from '../components/paid-registration-modal';
 
@@ -69,7 +69,7 @@ export function EventDetailPage({ eventId }: { eventId: string }) {
             Coba Lagi
           </Button>
         </div>
-        <PublicEmptyState
+        <EmptyState
           title="Detail kegiatan tidak tersedia"
           description="Periksa kembali tautan atau pilih kegiatan lain."
         />

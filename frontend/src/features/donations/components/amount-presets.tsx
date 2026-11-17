@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/shared/lib/utils';
 import { DONATION_PRESETS } from '../lib/donation-options';
 
 interface AmountPresetsProps {

@@ -4,11 +4,9 @@
  * place so every report endpoint behaves the same way.
  */
 
-const API_BASE = (
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:2000/api'
-).replace(/\/$/, '');
+import { SERVER_API_BASE_URL } from './env.server';
+
+const API_BASE = SERVER_API_BASE_URL;
 
 export interface UpstreamResult<T> {
   ok: boolean;

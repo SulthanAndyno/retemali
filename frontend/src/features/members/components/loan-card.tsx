@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
-import { getImageUrl } from '@/lib/utils';
+import { Card } from '@/shared/components/ui/card';
+import { getImageUrl } from '@/shared/lib/utils';
 import { formatDateId } from '@/shared/lib/format';
 import type { MemberLoan } from '../types/member-page.types';
 import { loanHint, resolveLoanState } from '../lib/member-loans';

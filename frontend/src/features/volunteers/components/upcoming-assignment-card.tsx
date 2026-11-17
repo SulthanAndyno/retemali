@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CalendarDays, MapPin } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 import { formatDateId } from '@/shared/lib/format';
 import type { VolunteerAssignment } from '../types/volunteer-page.types';
 

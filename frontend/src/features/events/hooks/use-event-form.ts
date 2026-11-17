@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
-import { getImageUrl } from '@/lib/utils';
+import { ApiError } from '@/shared/lib/api';
+import { getImageUrl } from '@/shared/lib/utils';
 import { createEvent, deleteEvent, updateEvent } from '../api/events.api';
 import { DEFAULT_EVENT_LOCATION } from '../lib/event-options';
 import type { EventActionResult, EventFormValues, EventItem } from '../types/event.types';

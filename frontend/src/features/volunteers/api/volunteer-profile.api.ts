@@ -1,4 +1,4 @@
-import { patch } from '@/lib/api';
+import { patch } from '@/shared/lib/api';
 import type { SafeUser } from '@/features/auth';
 import type { ApiEnvelope } from '@/shared/types/api';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { useAuth } from '@/features/auth';
 import { getEvents, getMyTickets } from '../api/events.api';
 import type { EventItem } from '../types/event.types';

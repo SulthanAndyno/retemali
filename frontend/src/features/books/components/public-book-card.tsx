@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { getImageUrl } from '@/lib/utils';
+import { Badge } from '@/shared/components/ui/badge';
+import { getImageUrl } from '@/shared/lib/utils';
 import { getBookCategoryLabel } from '../lib/book-category';
 import type { Book } from '../types/book.types';
 

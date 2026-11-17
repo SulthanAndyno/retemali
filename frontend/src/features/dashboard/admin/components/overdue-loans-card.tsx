@@ -1,5 +1,5 @@
 import { BookOpen } from 'lucide-react';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import { formatOverdueLoan } from '../lib/admin-format';
 import type { OverdueCirculationAlert } from '../types/admin.types';
 import { AdminSection } from './admin-section';

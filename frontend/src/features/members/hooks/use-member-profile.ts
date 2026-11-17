@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { useAuth } from '@/features/auth';
 import { updateMemberProfile } from '../api/member.api';
 

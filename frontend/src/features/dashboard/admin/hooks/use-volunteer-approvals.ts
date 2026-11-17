@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { reviewVolunteerApplication } from '../api/admin.api';
 import type { ReviewVolunteerApplicationInput } from '../types/admin.types';
 

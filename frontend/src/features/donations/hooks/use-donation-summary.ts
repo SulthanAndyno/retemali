@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { getDonationSummary } from '../api/donations.api';
 import { getCampaignPercentage } from '../lib/donation-options';
 import type { DonationCampaign, DonationSummary } from '../types/donation.types';

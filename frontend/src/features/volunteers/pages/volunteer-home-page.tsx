@@ -1,11 +1,11 @@
 'use client';
 
 import { QrCode, ScrollText } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle, StatCard } from '@/components/ui/card';
-import { EmptyState } from '../components/empty-state';
-import { useNotifications } from '@/contexts/NotificationsContext';
+import { Badge } from '@/shared/components/ui/badge';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle, StatCard } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { useNotifications } from '@/features/notifications';
 import { useAuth } from '@/features/auth';
 import {
   VOLUNTEER_ASSIGNMENTS,
@@ -13,7 +13,7 @@ import {
   VOLUNTEER_UPCOMING_ASSIGNMENTS,
 } from '../fixtures/volunteer-dummy';
 import { AttendanceHistoryList } from '../components/attendance-history-list';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { UpcomingAssignmentCard } from '../components/upcoming-assignment-card';
 
 export function VolunteerHomePage() {

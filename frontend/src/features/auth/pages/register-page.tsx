@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/shared/components/ui/card';
 import { useRegisterForm } from '../hooks/use-register-form';
 import { RegisterForm } from '../components/register-form';
 import { RegisterSuccessCard } from '../components/register-success-card';

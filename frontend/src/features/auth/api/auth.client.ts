@@ -1,4 +1,4 @@
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import type { SafeUser } from '../types';
 
 interface RegisterResponse {

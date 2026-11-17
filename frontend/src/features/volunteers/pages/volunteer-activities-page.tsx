@@ -1,8 +1,8 @@
-import { SectionTitle } from '@/components/ui/card';
-import { EmptyState } from '../components/empty-state';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { VOLUNTEER_ASSIGNMENTS } from '../fixtures/volunteer-dummy';
 import { AssignmentCard } from '../components/assignment-card';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 
 export function VolunteerActivitiesPage() {
   const sorted = [...VOLUNTEER_ASSIGNMENTS].sort((a, b) =>

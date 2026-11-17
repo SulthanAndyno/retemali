@@ -1,4 +1,4 @@
-import { Card } from '@/components/ui/card';
+import { Card } from '@/shared/components/ui/card';
 import { formatDateTimeId } from '@/shared/lib/format';
 import type { VolunteerAttendanceRecord } from '../types/volunteer-page.types';
 

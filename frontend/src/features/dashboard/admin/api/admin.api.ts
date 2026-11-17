@@ -1,4 +1,4 @@
-import { del, get, patch, post } from '@/lib/api';
+import { del, get, patch, post } from '@/shared/lib/api';
 import type { ApiEnvelope, PaginatedMeta } from '@/shared/types/api';
 import type {
   AdminAttendanceSnapshot,

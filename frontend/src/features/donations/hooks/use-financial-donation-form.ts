@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ApiError } from '@/lib/api';
+import { ApiError } from '@/shared/lib/api';
 import { createFinancialDonation } from '../api/donations.api';
 import { DONATION_PURPOSES, MIN_DONATION, resolvePaymentMethod } from '../lib/donation-options';
 import type { DonationActionResult, PaymentAccount } from '../types/donation.types';

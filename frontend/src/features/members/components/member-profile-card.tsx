@@ -1,6 +1,6 @@
 import { QrCode } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 
 interface MemberProfileCardProps {
   name: string;

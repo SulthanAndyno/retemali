@@ -1,11 +1,11 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import EmptyState from '@/components/ui/EmptyState';
-import { useToast } from '@/components/ui/toast';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { useToast } from '@/shared/components/ui/toast';
 import { formatDateId } from '@/shared/lib/format';
 import { useAdminVolunteers } from '../hooks/use-admin-volunteers';
 

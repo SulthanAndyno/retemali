@@ -1,10 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
 import { useMemberLoans } from '../hooks/use-member-loans';
 import { isActiveLoan } from '../lib/member-loans';
-import { EmptyState } from '../components/empty-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { LoanCard } from '../components/loan-card';
 import { LoanHistoryTable } from '../components/loan-history-table';
 

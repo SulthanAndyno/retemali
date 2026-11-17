@@ -1,5 +1,5 @@
 import { BadgeCheck, Eye, Receipt, XCircle } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/shared/lib/utils';
 import type { EventPaymentRegistration } from '../types/admin.types';
 
 interface EventPaymentVerificationCardProps {

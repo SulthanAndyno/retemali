@@ -1,5 +1,5 @@
 import { ArrowLeftRight, BookOpen, Heart, Users } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/shared/lib/utils';
 import { getDonationTargetPercentage } from '../lib/admin-format';
 import type { AdminKpiCards } from '../types/admin.types';
 import { AdminKpiCard } from './admin-kpi-card';

@@ -2,9 +2,9 @@
 
 import { useState, type FormEvent } from 'react';
 import { CircleAlert, CircleCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
+import { useToast } from '@/shared/components/ui/toast';
 import { useMemberProfile } from '../hooks/use-member-profile';
 
 interface MemberProfileFormProps {

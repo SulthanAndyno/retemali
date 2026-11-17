@@ -1,19 +1,19 @@
 'use client';
 
 import { QrCode, ScanLine } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { EmptyState } from '../components/empty-state';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { useNotifications } from '@/contexts/NotificationsContext';
+import { Badge } from '@/shared/components/ui/badge';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { useNotifications } from '@/features/notifications';
 import { formatDateId, formatDateTimeId } from '@/shared/lib/format';
 import {
   VOLUNTEER_ATTENDANCE,
   VOLUNTEER_QR_TOKENS,
   VOLUNTEER_UPCOMING_ASSIGNMENTS,
 } from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '../components/dummy-notice';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 
 export function VolunteerQrPage() {
   const { items } = useNotifications();

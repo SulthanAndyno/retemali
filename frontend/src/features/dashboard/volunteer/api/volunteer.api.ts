@@ -1,4 +1,4 @@
-import { get, patch, post } from '@/lib/api';
+import { get, patch, post } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
 import type {
   ClockInInput,

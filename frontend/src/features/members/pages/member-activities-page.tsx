@@ -1,11 +1,11 @@
 'use client';
 
 import { CalendarDays } from 'lucide-react';
-import { Button, LinkButton } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
 import { useMemberTickets } from '../hooks/use-member-tickets';
-import { EmptyState } from '../components/empty-state';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { TicketCard } from '../components/ticket-card';
 
 export function MemberActivitiesPage() {

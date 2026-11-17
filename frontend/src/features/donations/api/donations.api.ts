@@ -1,4 +1,4 @@
-import { get, post } from '@/lib/api';
+import { get, post } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
 import type {
   BookDonationInput,

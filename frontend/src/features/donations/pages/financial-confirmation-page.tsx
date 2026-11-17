@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, CircleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button, LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { formatDateTimeId, formatRupiah } from '@/shared/lib/format';
 import { useFinancialReceipt } from '../hooks/use-financial-receipt';
 

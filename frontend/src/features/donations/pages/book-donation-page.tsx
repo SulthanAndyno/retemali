@@ -4,10 +4,10 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, BookUp2, MapPin, Truck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { Input, Textarea } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { Button } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { Input, Textarea } from '@/shared/components/ui/input';
+import { useToast } from '@/shared/components/ui/toast';
 import { useAuth } from '@/features/auth';
 import { useBookDonationForm } from '../hooks/use-book-donation-form';
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { FileSpreadsheet, Receipt } from 'lucide-react';
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
 
 export function AdminReportsPage() {
   return (

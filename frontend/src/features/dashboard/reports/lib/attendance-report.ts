@@ -1,7 +1,7 @@
 import {
   computeEventTimeline,
   computeQuotaState,
-} from '@/features/events/lib/events';
+} from '@/shared/lib/event-timeline';
 import { attendancePercent, parsePercent } from './report-format';
 import type {
   AttendanceEventRow,

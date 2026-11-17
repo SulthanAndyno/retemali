@@ -1,5 +1,5 @@
 import { QrCode } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/shared/lib/utils';
 import type { MyTicket } from '../types/member.types';
 
 interface TicketItemProps {

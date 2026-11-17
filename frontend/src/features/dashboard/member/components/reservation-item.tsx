@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/shared/lib/utils';
 import type { ReadyReservation } from '../types/member.types';
 
 interface ReservationItemProps {

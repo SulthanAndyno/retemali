@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ToastProvider } from '@/components/ui/toast';
+import { ToastProvider } from '@/shared/components/ui/toast';
 import { PublicShell } from '@/features/public';
 
 export default function NonMemberLayout({ children }: { children: ReactNode }) {

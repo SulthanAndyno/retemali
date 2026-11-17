@@ -1,5 +1,5 @@
 import { QrCode } from 'lucide-react';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/shared/lib/utils';
 import type { PaymentAccount } from '../types/donation.types';
 
 interface QrisCardProps {

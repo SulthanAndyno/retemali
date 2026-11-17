@@ -1,77 +1,37 @@
 import type { NextRequest } from 'next/server';
-import { jsonError, jsonOk, upstreamRequest } from '@/shared/lib/server-upstream';
+import { jsonError, jsonOk } from '@/shared/lib/server-upstream';
 import { getSessionToken, setSession } from '@/features/auth/lib/session';
+import { switchActiveRole } from '@/features/auth/api/auth.server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-type SwitchableRole = 'MEMBER' | 'VOLUNTEER';
-
-interface RoleSwitchBody {
-  role?: string;
-}
-
-interface RoleSwitchEnvelope {
-  data?: {
-    token: string;
-    activeRole: SwitchableRole;
-    accountRole: string;
-    mode: 'ACCOUNT' | 'SWITCHED';
-    capabilities: Record<string, boolean>;
-    note: string;
-  };
-}
-
-/**
- * POST /api/role-switch
- *
- * Delegates to the backend so the active role is signed into a fresh JWT.
- * The new token is stored in the httpOnly session cookie; the client never
- * sees or claims a role by itself.
- */
 export async function POST(request: NextRequest) {
   const token = await getSessionToken();
   if (!token) {
     return jsonError('Sesi tidak ditemukan. Silakan masuk kembali.', 401);
   }
 
-  let body: RoleSwitchBody | null = null;
+  let body: { role?: string } | null = null;
   try {
-    body = (await request.json()) as RoleSwitchBody;
+    body = (await request.json()) as { role?: string };
   } catch {
     return jsonError('Body permintaan tidak valid (JSON diperlukan).', 400);
   }
 
-  const requested = (body?.role ?? '').toUpperCase();
-  if (requested !== 'MEMBER' && requested !== 'VOLUNTEER') {
-    return jsonError(
-      'Peran tujuan tidak valid. Pilihan yang tersedia: MEMBER atau VOLUNTEER.',
-      400,
-    );
+  const result = await switchActiveRole(token, body?.role ?? '');
+  if (!result.ok || !result.data) {
+    return jsonError(result.error ?? 'Gagal mengganti peran.', result.status);
   }
 
-  const result = await upstreamRequest<RoleSwitchEnvelope>('/auth/role-switch', {
-    method: 'POST',
-    token,
-    body: { role: requested },
-  });
-
-  const data = result.data?.data;
-  if (!result.ok || !data) {
-    return jsonError(
-      result.error ?? 'Gagal mengganti peran.',
-      result.status || 502,
-    );
-  }
-
-  await setSession(data.token, data.activeRole);
+  await setSession(result.data.token, result.data.activeRole);
 
   return jsonOk({
-    activeRole: data.activeRole,
-    accountRole: data.accountRole,
-    mode: data.mode,
+    activeRole: result.data.activeRole,
+    accountRole: result.data.accountRole,
+    mode: result.data.mode,
     persisted: true,
-    capabilities: data.capabilities,
-    note: data.note,
+    capabilities: result.data.capabilities,
+    note: result.data.note,
   });
 }

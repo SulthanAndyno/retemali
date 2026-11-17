@@ -1,4 +1,4 @@
-import { get } from '@/lib/api';
+import { get } from '@/shared/lib/api';
 import { downloadFile, getJson } from '@/shared/lib/same-origin';
 import type { ApiEnvelope } from '@/shared/types/api';
 import { attendanceParams, cashParams } from '../lib/report-query';

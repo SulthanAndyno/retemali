@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { BookOpen, HeartHandshake, ShieldCheck, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/shared/components/ui/badge';
 import type { AccessModeOption } from '../lib/auth-options';
 import type { AccessMode } from '../types';
 

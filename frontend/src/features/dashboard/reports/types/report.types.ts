@@ -1,4 +1,4 @@
-import type { EventPhase } from '@/features/events/lib/events';
+import type { EventPhase } from '@/shared/lib/event-timeline';
 
 export interface ReportPeriod {
   from: string | null;

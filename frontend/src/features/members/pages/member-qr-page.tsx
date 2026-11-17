@@ -1,11 +1,11 @@
 'use client';
 
 import { QrCode } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { LinkButton } from '@/components/ui/button';
-import { Card, SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { useNotifications } from '@/contexts/NotificationsContext';
+import { Badge } from '@/shared/components/ui/badge';
+import { LinkButton } from '@/shared/components/ui/button';
+import { Card, SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { useNotifications } from '@/features/notifications';
 import { formatDateId, formatDateTimeId } from '@/shared/lib/format';
 import { useMemberTickets } from '../hooks/use-member-tickets';
 import { useNow } from '../hooks/use-now';
@@ -13,8 +13,8 @@ import {
   MEMBER_ATTENDANCE,
   MEMBER_QR_TOKENS,
 } from '../fixtures/member-dummy';
-import { DummyNotice } from '../components/dummy-notice';
-import { EmptyState } from '../components/empty-state';
+import { DummyNotice } from '@/shared/components/ui/dummy-notice';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
 export function MemberQrPage() {
   const { tickets, loading } = useMemberTickets();

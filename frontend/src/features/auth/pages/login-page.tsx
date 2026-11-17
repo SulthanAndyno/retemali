@@ -1,7 +1,7 @@
 'use client';
 
-import { Logo } from '@/components/ui/logo';
-import { Card } from '@/components/ui/card';
+import { Logo } from '@/shared/components/ui/logo';
+import { Card } from '@/shared/components/ui/card';
 import { useLoginForm } from '../hooks/use-login-form';
 import { ACCESS_MODES, LOGIN_FEATURES } from '../lib/auth-options';
 import { AuthAccessOption } from '../components/auth-access-option';

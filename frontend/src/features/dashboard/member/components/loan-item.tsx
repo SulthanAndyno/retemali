@@ -1,7 +1,7 @@
 'use client';
 
 import { Clock, RotateCw } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/shared/lib/utils';
 import type { ActiveLoan } from '../types/member.types';
 
 interface LoanItemProps {

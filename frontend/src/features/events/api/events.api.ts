@@ -1,4 +1,4 @@
-import { ApiError, del, get, patch, post } from '@/lib/api';
+import { ApiError, del, get, patch, post } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
 import type {
   AutoCloseState,

@@ -1,9 +1,9 @@
 'use client';
 
-import { Button, LinkButton } from '@/components/ui/button';
-import { SectionTitle } from '@/components/ui/card';
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import EmptyState from '@/components/ui/EmptyState';
+import { Button, LinkButton } from '@/shared/components/ui/button';
+import { SectionTitle } from '@/shared/components/ui/card';
+import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { formatDateId } from '@/shared/lib/format';
 import { useAdminAttendance } from '../hooks/use-admin-attendance';
 

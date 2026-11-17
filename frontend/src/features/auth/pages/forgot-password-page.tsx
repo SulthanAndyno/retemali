@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import { ForgotPasswordForm } from '../components/forgot-password-form';
 
 export function ForgotPasswordPage() {

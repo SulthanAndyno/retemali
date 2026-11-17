@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '../providers/auth-provider';
 import { getAccessModeLabel } from '../lib/auth-options';
 import { dashboardForRole } from '../lib/route-guard';
 import type { AccessMode } from '../types';

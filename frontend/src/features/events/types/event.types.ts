@@ -1,4 +1,4 @@
-import type { EventPhase } from '../lib/events';
+import type { EventPhase } from '@/shared/lib/event-timeline';
 
 export type EventCategory = 'ANAK' | 'SAINS' | 'KLUB_BUKU' | 'MENULIS' | 'DONGENG' | 'UMUM';
 export type EventFeeType = 'FREE' | 'INFAQ';
