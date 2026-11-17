@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { jsonError, jsonOk, upstreamRequest } from '@/shared/lib/server-upstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
 import { computeEventTimeline } from '@/features/events/lib/events';
-import { formatDateId } from '@/lib/reports';
+import { formatDateId } from '@/shared/lib/format';
 import type { ActivityNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
