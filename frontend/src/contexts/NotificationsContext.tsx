@@ -82,15 +82,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!user) return;
-    const token = typeof window !== 'undefined' ? window.localStorage.getItem('retemali_token') : null;
-    if (!token) return;
 
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
 

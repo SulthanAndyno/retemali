@@ -9,25 +9,12 @@ import React, {
   ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { post, get } from '@/lib/api';
+import type { User } from '@/features/auth/types';
 
-export interface User {
-  id: string;
-  memberCode: string;
-  name: string;
-  email: string;
-  phone?: string;
-  rtRw?: string;
-  avatar?: string;
-  role: 'MEMBER' | 'VOLUNTEER' | 'DONOR' | 'ADMIN';
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
-  points: number;
-  readingTarget: number;
-}
+export type { User } from '@/features/auth/types';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -36,78 +23,85 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'retemali_token';
-
-interface LoginResponse {
-  data: {
-    token: string;
+interface AuthResponse {
+  status: string;
+  message?: string;
+  data?: {
     user: User;
   };
-  message: string;
-  status: string;
 }
 
-interface MeResponse {
-  data: User;
-  message: string;
-  status: string;
+async function readJson<T>(response: Response): Promise<T | null> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    if (!storedToken) {
-      setUser(null);
-      setToken(null);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await get<MeResponse>('/auth/me');
-      setUser(response.data);
-      setToken(storedToken);
+      const response = await fetch('/api/auth/me', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        setUser(null);
+        return;
+      }
+
+      const payload = await readJson<AuthResponse>(response);
+      setUser(payload?.data?.user ?? null);
     } catch {
-      // Token invalid or expired
-      localStorage.removeItem(TOKEN_KEY);
       setUser(null);
-      setToken(null);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // On mount, check for existing token
   useEffect(() => {
-    refreshUser();
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('retemali_token');
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refreshUser();
   }, [refreshUser]);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const response = await post<LoginResponse>('/auth/login', { email, password });
-      const { token: newToken, user: newUser } = response.data;
+  const login = useCallback(async (email: string, password: string) => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ email, password }),
+    });
 
-      localStorage.setItem(TOKEN_KEY, newToken);
-      setToken(newToken);
-      setUser(newUser);
-    },
-    []
-  );
+    const payload = await readJson<AuthResponse>(response);
+
+    if (!response.ok || !payload?.data?.user) {
+      throw new Error(payload?.message ?? 'Login gagal. Periksa email & password.');
+    }
+
+    setUser(payload.data.user);
+  }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
-    setUser(null);
-    router.push('/login');
+    void fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+    }).finally(() => {
+      setUser(null);
+      router.push('/login');
+    });
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

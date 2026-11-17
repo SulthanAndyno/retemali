@@ -96,14 +96,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       }
       setSwitching(true);
       try {
-        const token =
-          typeof window !== 'undefined' ? window.localStorage.getItem('retemali_token') : null;
-
         const response = await fetch('/api/role-switch', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ role }),
         });
