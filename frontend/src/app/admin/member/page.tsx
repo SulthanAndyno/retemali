@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminMembersPage } from '@/features/admin/members/pages/admin-members-page';
+
 export const metadata = { title: 'Manajemen Member — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Manajemen Member" description="Data member masih memakai tampilan menunggu endpoint backend." />;
+  return <AdminMembersPage />;
 }
