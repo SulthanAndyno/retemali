@@ -26,3 +26,10 @@ export const volunteerNav: VolunteerNavItem[] = [
   { label: 'Profil Saya', href: '/volunteer/profil', icon: User },
   { label: 'Operasional', href: '/volunteer/operasional', icon: HeartHandshake },
 ];
+
+export const volunteerMobileNav: VolunteerNavItem[] = [
+  { label: 'Dashboard', href: '/volunteer', icon: LayoutDashboard },
+  { label: 'Kegiatan', href: '/volunteer/kegiatan', icon: CalendarDays },
+  { label: 'Jadwal', href: '/volunteer/jadwal', icon: CalendarClock },
+  { label: 'QR Absensi', href: '/volunteer/qr-absensi', icon: QrCode },
+];

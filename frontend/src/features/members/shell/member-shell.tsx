@@ -2,12 +2,13 @@
 
 import type { ReactNode } from 'react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
-import { memberNav } from './member-nav';
+import { memberMobileNav, memberNav } from './member-nav';
 
 export function MemberShell({ children }: { children: ReactNode }) {
   return (
     <DashboardShell
       items={memberNav}
+      mobileNav={memberMobileNav}
       brandHref="/member"
       titleFallback="Dashboard Member"
       roleLabel="Member ReteMali"

@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { ChevronDown, LogOut, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/logo';
 import NotificationBell from '@/components/layout/NotificationBell';
+import { DashboardBottomNav } from '@/components/layout/dashboard-bottom-nav';
 import { useAuth, type User } from '@/features/auth';
 
 export interface DashboardNavItem {
@@ -17,6 +18,7 @@ export interface DashboardNavItem {
 
 interface DashboardShellProps {
   items: DashboardNavItem[];
+  mobileNav?: DashboardNavItem[];
   brandHref: string;
   titleFallback: string;
   roleLabel: string | ((role: User['role']) => string);
@@ -47,12 +49,10 @@ function DashboardSidebarNav({
   items,
   brandHref,
   collapsed,
-  onNavigate,
 }: {
   items: DashboardNavItem[];
   brandHref: string;
   collapsed: boolean;
-  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
@@ -71,7 +71,6 @@ function DashboardSidebarNav({
           <Link
             key={item.href}
             href={item.href}
-            onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
             title={item.label}
             className={`flex items-center gap-3 rounded-field px-3 py-2.5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary/40 ${
@@ -93,6 +92,7 @@ function DashboardSidebarNav({
 
 export function DashboardShell({
   items,
+  mobileNav,
   brandHref,
   titleFallback,
   roleLabel,
@@ -104,17 +104,9 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    document.documentElement.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.documentElement.style.overflow = '';
-    };
-  }, [open]);
 
   useEffect(() => {
     if (!userMenuOpen) return;
@@ -150,19 +142,11 @@ export function DashboardShell({
 
   return (
     <div className="min-h-dvh">
-      {open ? (
-        <div
-          className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[2px] lg:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      ) : null}
-
       <aside
         aria-label="Sidebar"
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-surface-soft bg-white shadow-drawer transition-all duration-200 lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 hidden w-72 flex-col border-r border-surface-soft bg-white transition-all duration-200 lg:flex lg:shadow-none ${
           collapsed ? 'lg:w-20' : 'lg:w-72'
-        } ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        }`}
       >
         <div className="flex items-center justify-between pr-2">
           <div
@@ -174,21 +158,12 @@ export function DashboardShell({
               <Logo size={36} showName={!collapsed} />
             </Link>
           </div>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Tutup menu navigasi"
-            className="rounded-field p-2 text-ink transition-colors hover:bg-surface-blue lg:hidden"
-          >
-            <X className="h-6 w-6" aria-hidden />
-          </button>
         </div>
 
         <DashboardSidebarNav
           items={items}
           brandHref={brandHref}
           collapsed={collapsed}
-          onNavigate={() => setOpen(false)}
         />
 
         <div
@@ -213,15 +188,6 @@ export function DashboardShell({
         }`}
       >
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-surface-soft bg-white/90 px-4 backdrop-blur lg:px-6">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Buka menu navigasi"
-            className="rounded-field p-2 text-ink transition-colors hover:bg-surface-blue lg:hidden"
-          >
-            <Menu className="h-6 w-6" aria-hidden />
-          </button>
-
           <h1 className="min-w-0 flex-1 truncate text-base font-bold text-primary-deep lg:text-lg">
             {findActiveTitle(pathname, items, brandHref, titleFallback)}
           </h1>
@@ -290,12 +256,20 @@ export function DashboardShell({
           ) : null}
         </header>
 
-        <main className="w-full flex-1 px-4 py-6 lg:px-8">{children}</main>
+        <main className="w-full flex-1 px-4 pt-6 pb-24 lg:px-8 lg:pb-6">
+          {children}
+        </main>
 
-        <footer className="border-t border-surface-soft px-4 py-4 text-center text-xs text-ink-soft lg:px-6">
+        <footer className="border-t border-surface-soft px-4 pt-4 pb-20 text-center text-xs text-ink-soft lg:px-6 lg:py-4">
           {footerText}
         </footer>
       </div>
+
+      <DashboardBottomNav
+        items={items}
+        brandHref={brandHref}
+        mobileNav={mobileNav}
+      />
     </div>
   );
 }

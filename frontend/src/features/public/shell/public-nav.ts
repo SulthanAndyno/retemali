@@ -3,6 +3,7 @@ import {
   CalendarDays,
   HeartHandshake,
   Home,
+  User,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -17,4 +18,12 @@ export const publicNav: PublicNavItem[] = [
   { label: 'Katalog Buku', href: '/katalog', icon: BookOpen },
   { label: 'Kegiatan Komunitas', href: '/kegiatan', icon: CalendarDays },
   { label: 'Donasi', href: '/donasi', icon: HeartHandshake },
+];
+
+export const publicMobileNav: PublicNavItem[] = [
+  { label: 'Beranda', href: '/', icon: Home },
+  { label: 'Katalog', href: '/katalog', icon: BookOpen },
+  { label: 'Kegiatan', href: '/kegiatan', icon: CalendarDays },
+  { label: 'Donasi', href: '/donasi', icon: HeartHandshake },
+  { label: 'Portal', href: '/portal', icon: User },
 ];

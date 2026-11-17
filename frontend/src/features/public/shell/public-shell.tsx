@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import type { User } from '@/features/auth';
-import { publicNav } from './public-nav';
+import { publicMobileNav, publicNav } from './public-nav';
 
 function publicRoleLabel(role: User['role']): string {
   if (role === 'ADMIN') return 'Administrator';
@@ -15,6 +15,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <DashboardShell
       items={publicNav}
+      mobileNav={publicMobileNav}
       brandHref="/"
       titleFallback="ReteMali"
       roleLabel={publicRoleLabel}

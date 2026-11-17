@@ -22,6 +22,13 @@ export interface AdminNavItem {
   icon: LucideIcon;
 }
 
+export const adminMobileNav: AdminNavItem[] = [
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Buku', href: '/admin/buku', icon: BookOpen },
+  { label: 'Peminjaman', href: '/admin/peminjaman', icon: BookMarked },
+  { label: 'Pembayaran', href: '/admin/pembayaran', icon: Receipt },
+];
+
 export const adminNav: AdminNavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Manajemen Buku', href: '/admin/buku', icon: BookOpen },
