@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminBorrowingsPage } from '@/features/circulation';
+
 export const metadata = { title: 'Manajemen Peminjaman — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Manajemen Peminjaman" description="Log dan aksi sirkulasi buku." />;
+  return <AdminBorrowingsPage />;
 }
