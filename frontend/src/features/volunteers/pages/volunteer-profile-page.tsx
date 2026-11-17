@@ -21,7 +21,7 @@ export function VolunteerProfilePage() {
   ).length;
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-6">
+    <div className="w-full space-y-6">
       <SectionTitle
         title="Profil Saya (Relawan)"
         description="Data relawan dan status persetujuan; menu fitur relawan aktif untuk akun disetujui."
