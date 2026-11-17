@@ -1,4 +1,4 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminAttendanceDetailPage } from '@/features/admin/attendance/pages/admin-attendance-detail-page';
 export default function Page() {
-  return <AdminPlaceholder title="Kelola QR Kegiatan" description="Token QR dan daftar peserta kegiatan." />;
+  return <AdminAttendanceDetailPage />;
 }
