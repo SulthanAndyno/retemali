@@ -9,11 +9,7 @@ export function Table({ children }: { children: ReactNode }) {
 }
 
 export function THead({ children }: { children: ReactNode }) {
-  return (
-    <thead className="bg-surface-blue/60 text-left">
-      <tr>{children}</tr>
-    </thead>
-  );
+  return <thead className="bg-surface-blue/60 text-left">{children}</thead>;
 }
 
 export function TH({ children }: { children: ReactNode }) {
