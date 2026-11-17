@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminEventsPage } from '@/features/events';
+
 export const metadata = { title: 'Manajemen Kegiatan — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Manajemen Kegiatan" description="Kelola agenda dan peserta kegiatan." />;
+  return <AdminEventsPage />;
 }

@@ -1,4 +1,4 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminEventDetailPage } from '@/features/admin/events/pages/admin-event-detail-page';
 export default function Page() {
-  return <AdminPlaceholder title="Detail Kegiatan" description="Detail kegiatan dan daftar peserta." />;
+  return <AdminEventDetailPage />;
 }

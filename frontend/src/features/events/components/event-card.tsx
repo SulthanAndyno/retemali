@@ -12,6 +12,7 @@ interface EventCardProps {
   canManage: boolean;
   deleting: boolean;
   registering: boolean;
+  showRegister?: boolean;
   onRegister: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -23,6 +24,7 @@ export function EventCard({
   canManage,
   deleting,
   registering,
+  showRegister = true,
   onRegister,
   onEdit,
   onDelete,
@@ -51,13 +53,15 @@ export function EventCard({
 
         <EventQuotaProgress timeline={timeline} quota={quota} />
 
-        <EventRegisterButton
-          event={event}
-          timeline={timeline}
-          quota={quota}
-          registering={registering}
-          onRegister={onRegister}
-        />
+        {showRegister ? (
+          <EventRegisterButton
+            event={event}
+            timeline={timeline}
+            quota={quota}
+            registering={registering}
+            onRegister={onRegister}
+          />
+        ) : null}
 
         {canManage && (
           <EventAdminActions deleting={deleting} onEdit={onEdit} onDelete={onDelete} />
