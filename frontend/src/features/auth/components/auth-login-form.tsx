@@ -24,9 +24,9 @@ interface AuthLoginFormProps {
 const HINTS: Record<Exclude<AccessMode, 'NON_MEMBER'>, string | null> = {
   MEMBER: null,
   VOLUNTEER:
-    'Akun relawan perlu disetujui admin sebelum dashboard dapat diakses.',
+    'Gunakan akun relawan yang sudah disetujui admin untuk membuka dashboard relawan.',
   ADMIN:
-    'Kredensial administrator tidak akan pernah diekspos pada frontend.',
+    'Khusus pengelola ReteMali. Masuk dengan akun administrator yang diberikan pengurus.',
 };
 
 export function AuthLoginForm({

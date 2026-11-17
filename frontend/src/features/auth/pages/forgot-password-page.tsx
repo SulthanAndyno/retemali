@@ -30,9 +30,9 @@ export function ForgotPasswordPage() {
           <Lock className="h-6 w-6 text-primary-deep" />
         </div>
         <p className="rounded-field bg-surface-blue/60 px-4 py-3 text-sm text-ink">
-          Masukkan alamat email yang terdaftar. Setelah endpoint pemulihan
-          tersedia, instruksi dan tautan verifikasi aman akan dikirim ke email
-          Anda.
+          Masukkan alamat email akun Anda. Fitur pemulihan mandiri belum aktif,
+          jadi ikuti petunjuk bantuan yang muncul atau hubungi pengelola
+          ReteMali untuk proses reset manual.
         </p>
         <Card>
           <ForgotPasswordForm />

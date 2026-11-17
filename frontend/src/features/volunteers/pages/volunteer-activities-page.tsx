@@ -20,7 +20,7 @@ export function VolunteerActivitiesPage() {
       {sorted.length === 0 ? (
         <EmptyState
           title="Belum ada kegiatan yang ditugaskan"
-          description="Penugasan dilakukan admin/manajemen kegiatan; termohon menunggu atau hubungi koordinator."
+          description="Penugasan ditetapkan admin atau pengelola kegiatan. Jika belum ada, tunggu penugasan berikutnya atau hubungi koordinator."
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

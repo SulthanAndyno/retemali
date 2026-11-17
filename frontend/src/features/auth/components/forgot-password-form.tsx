@@ -52,8 +52,8 @@ export function ForgotPasswordForm() {
         Kirim Tautan Pemulihan
       </Button>
       <p className="text-center text-xs text-ink-soft">
-        Backend pemulihan email/token belum tersedia; permintaan tidak dikirim
-        ke mana pun.
+        Fitur pemulihan mandiri belum aktif. Jika membutuhkan bantuan, hubungi
+        pengelola ReteMali.
       </p>
     </form>
   );

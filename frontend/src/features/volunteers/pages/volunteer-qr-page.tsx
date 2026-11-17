@@ -24,7 +24,7 @@ export function VolunteerQrPage() {
     <div className="space-y-6">
       <SectionTitle
         title="QR Absensi Relawan"
-        description="Check-in penugasan Anda melalui QR kegiatan; kehadiran relawan divalidasi per penugasan di server."
+        description="Check-in penugasan Anda melalui QR kegiatan; kehadiran relawan dicatat sesuai penugasan."
       />
 
       <Card className="flex items-start gap-3 bg-surface-blue/50">

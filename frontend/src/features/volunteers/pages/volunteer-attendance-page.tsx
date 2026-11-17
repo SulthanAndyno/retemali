@@ -58,9 +58,9 @@ export function VolunteerAttendancePage() {
           aria-hidden
         />
         <p className="text-sm text-primary-deep">
-          Menu <strong>QR Absensi</strong> dan pencatatan kehadiran otomatis
-          aktif setelah endpoint backend tersedia. Saat ini catatan kehadiran
-          hanya dihasilkan dari proses yang sudah terjadi.
+          Pencatatan kehadiran otomatis akan tersedia setelah fitur absensi
+          diaktifkan. Saat ini catatan kehadiran berasal dari proses yang sudah
+          berjalan.
         </p>
       </Card>
     </div>

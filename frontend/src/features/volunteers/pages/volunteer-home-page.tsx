@@ -128,9 +128,8 @@ export function VolunteerHomePage() {
             Panduan &amp; SOP Relawan
           </p>
           <p className="mt-1 text-sm text-ink-soft">
-            Materi panduan/SOP resmi belum tersedia di aplikasi — dokumen resmi
-            akan dipublikasikan admin ketika disiapkan. Kegiatan tetap mengikuti
-            arahan koordinator pada setiap penugasan.
+            Panduan resmi akan dibagikan pengelola saat sudah siap. Sementara
+            itu, ikuti arahan koordinator pada setiap penugasan.
           </p>
         </div>
       </Card>
