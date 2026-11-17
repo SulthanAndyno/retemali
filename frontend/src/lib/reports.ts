@@ -5,7 +5,11 @@
  * builders so the on-screen report and the Excel export are always identical.
  */
 
-import { computeEventTimeline, computeQuotaState, type EventPhase } from './events';
+import {
+  computeEventTimeline,
+  computeQuotaState,
+  type EventPhase,
+} from '@/features/events/lib/events';
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 

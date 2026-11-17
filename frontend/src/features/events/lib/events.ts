@@ -208,3 +208,43 @@ export const TONE_BAR_CLASSES: Record<EventTone, string> = {
   rose: 'bg-rose-500',
   amber: 'bg-amber-500',
 };
+
+const DAY_IN_MS = 86_400_000;
+
+/** True when the event date falls within the next/previous 7 days. */
+export function isThisWeek(eventDate: string, now = Date.now()): boolean {
+  const timestamp = new Date(eventDate).getTime();
+  if (Number.isNaN(timestamp)) return false;
+  return Math.abs(timestamp - now) <= 7 * DAY_IN_MS;
+}
+
+export type ServerEventState = Pick<
+  EventTimeline,
+  'phase' | 'label' | 'isRegistrationOpen' | 'isAutoClosed' | 'closedReason'
+>;
+
+/**
+ * Server-evaluated timeline (auto-close route) wins over local computation;
+ * quota counters always come from the current event payload.
+ */
+export function resolveEventState(
+  event: EventLike,
+  serverState?: ServerEventState | null
+) {
+  const local = computeEventTimeline(event);
+  const timeline: EventTimeline = serverState
+    ? {
+        ...local,
+        phase: serverState.phase,
+        label: serverState.label,
+        isRegistrationOpen: serverState.isRegistrationOpen,
+        isAutoClosed: serverState.isAutoClosed,
+        closedReason: serverState.closedReason,
+      }
+    : local;
+
+  return {
+    timeline,
+    quota: computeQuotaState(event.quota, event.registeredCount),
+  };
+}

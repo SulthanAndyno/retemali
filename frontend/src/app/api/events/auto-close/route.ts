@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
-import { computeEventTimeline, computeQuotaState } from '@/lib/events';
+import { computeEventTimeline, computeQuotaState } from '@/features/events/lib/events';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

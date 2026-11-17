@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { jsonError, jsonOk, upstreamRequest } from '@/lib/serverUpstream';
 import { resolveRequestToken } from '@/features/auth/lib/session';
-import { computeEventTimeline } from '@/lib/events';
+import { computeEventTimeline } from '@/features/events/lib/events';
 import { formatDateId } from '@/lib/reports';
 import type { ActivityNotification } from '@/lib/notifications';
 
