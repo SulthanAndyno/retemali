@@ -1,228 +1,293 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
-import { useAuth } from '@/features/auth';
-import { useCatalogBooks } from '../hooks/use-catalog-books';
-import { useBookMutations } from '../hooks/use-book-mutations';
-import { useBookForm } from '../hooks/use-book-form';
-import {
-  canCreateBook,
-  canDeleteBook,
-  canManageBook,
-} from '../lib/catalog-permissions';
-import { resolveCatalogTab } from '../lib/catalog-query';
-import type { CatalogBook } from '../types/catalog.types';
-import { CatalogBanner } from '../components/catalog-banner';
-import { CatalogToolbar } from '../components/catalog-toolbar';
-import { CategoryFilterPills } from '../components/category-filter-pills';
-import { BookGrid } from '../components/book-grid';
-import { CatalogPagination } from '../components/catalog-pagination';
-import { QuickScanBar } from '../components/quick-scan-bar';
-import { CatalogToast } from '../components/catalog-toast';
-import { BookDetailSheet } from '../components/book-detail-sheet';
-import { BookFormModal } from '../components/book-form-modal';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { BookOpen, CheckCircle2, SearchX } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, SectionTitle } from '@/components/ui/card';
+import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category';
+import { usePublicCatalog } from '../hooks/use-public-catalog';
+import type { PublicBookSort } from '../api/books.api';
+import { PublicBookCard } from '../components/public-book-card';
+import { PublicEmptyState } from '../components/public-empty-state';
 
 interface CatalogPageProps {
   initialSearch?: string;
   initialCategory?: string;
+  initialAvailableOnly?: boolean;
+  initialSort?: PublicBookSort;
+  initialPage?: number;
 }
 
-type Notification = { message: string; type: 'success' | 'error' } | null;
+const SORT_OPTIONS: { value: PublicBookSort; label: string }[] = [
+  { value: 'title-asc', label: 'Judul A–Z' },
+  { value: 'title-desc', label: 'Judul Z–A' },
+  { value: 'newest', label: 'Terbaru ditambahkan' },
+  { value: 'popular', label: 'Terpopuler' },
+  { value: 'rating', label: 'Rating tertinggi' },
+];
+
+const fieldClasses =
+  'w-full rounded-field border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20';
+
+const chipBase =
+  'rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors';
+const chipIdle =
+  'border-surface-soft bg-white text-ink-soft hover:border-primary/50';
+const chipActive = 'border-primary bg-primary text-white';
 
 export function CatalogPage({
   initialSearch = '',
   initialCategory = 'ALL',
+  initialAvailableOnly = false,
+  initialSort = 'title-asc',
+  initialPage = 1,
 }: CatalogPageProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const pathname = usePathname();
 
-  const catalog = useCatalogBooks(initialSearch, resolveCatalogTab(initialCategory));
-  const mutations = useBookMutations();
-
-  const [selectedBook, setSelectedBook] = useState<CatalogBook | null>(null);
-  const [notification, setNotification] = useState<Notification>(null);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const form = useBookForm({
-    canCreate: canCreateBook(user?.role),
-    onSaved: catalog.refresh,
-  });
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    setNotification({ message, type });
-    toastTimerRef.current = setTimeout(() => setNotification(null), 3500);
-  };
+  const [term, setTerm] = useState(initialSearch);
+  const [search, setSearch] = useState(initialSearch);
+  const [category, setCategory] = useState(initialCategory);
+  const [availableOnly, setAvailableOnly] = useState(initialAvailableOnly);
+  const [sortBy, setSortBy] = useState<PublicBookSort>(initialSort);
+  const [page, setPage] = useState(initialPage);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearch(term), 350);
     return () => {
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, []);
+  }, [term]);
 
-  const requireLogin = () => {
-    router.push('/login');
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('cari', search);
+    if (category !== 'ALL') params.set('kategori', category);
+    if (availableOnly) params.set('tersedia', '1');
+    if (sortBy !== 'title-asc') params.set('urut', sortBy);
+    if (page > 1) params.set('hal', String(page));
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [availableOnly, category, page, pathname, router, search, sortBy]);
+
+  const catalog = usePublicCatalog({
+    search,
+    category,
+    availableOnly,
+    sortBy,
+    page,
+  });
+
+  const resetFilters = () => {
+    setTerm('');
+    setSearch('');
+    setCategory('ALL');
+    setAvailableOnly(false);
+    setSortBy('title-asc');
+    setPage(1);
   };
-
-  const handleBookmark = async (book: CatalogBook) => {
-    if (!user) {
-      requireLogin();
-      return;
-    }
-
-    const result = await mutations.toggleBookmark(book);
-    if (result.ok && result.bookmarked !== undefined) {
-      catalog.updateBookmark(book.id, result.bookmarked);
-      setSelectedBook((current) =>
-        current?.id === book.id
-          ? { ...current, isBookmarked: result.bookmarked }
-          : current
-      );
-    }
-    showToast(result.message, result.ok ? 'success' : 'error');
-  };
-
-  const handleReserve = async (book: CatalogBook) => {
-    if (!user) {
-      requireLogin();
-      return;
-    }
-
-    const result = await mutations.reserve(book);
-    showToast(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) {
-      setSelectedBook(null);
-      await catalog.refresh();
-    }
-  };
-
-  const handleDelete = async (book: CatalogBook) => {
-    if (
-      !confirm(
-        `Hapus buku "${book.title}" (${book.bookCode}) secara permanen dari sistem?`
-      )
-    ) {
-      return;
-    }
-
-    const result = await mutations.remove(book);
-    showToast(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) {
-      setSelectedBook(null);
-      await catalog.refresh();
-    }
-  };
-
-  const handleSubmit = async () => {
-    const result = await form.submit();
-    showToast(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) setSelectedBook(null);
-  };
-
-  const handleResetFilters = () => {
-    catalog.setActiveTab('ALL');
-    catalog.setSearchQuery('');
-  };
-
-  const canManage = canManageBook(user?.role);
-  const canDelete = canDeleteBook(user?.role);
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-blue-50/50 pb-24 text-slate-800">
-      <CatalogToast notification={notification} />
-      <Header />
-
-      <main className="px-4 pt-3 space-y-4">
-        <CatalogBanner
-          totalBooks={catalog.totalBooks}
-          canCreate={canCreateBook(user?.role)}
-          onCreate={form.openCreate}
-        />
-
-        <CatalogToolbar
-          searchQuery={catalog.searchQuery}
-          sortBy={catalog.sortBy}
-          onSearchChange={catalog.setSearchQuery}
-          onCycleSort={catalog.cycleSort}
-          onReset={handleResetFilters}
-        />
-
-        <CategoryFilterPills
-          activeTab={catalog.activeTab}
-          onSelect={catalog.setActiveTab}
-        />
-
-        {catalog.error && !catalog.loading ? (
-          <div className="flex items-center justify-between gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl">
-            <p className="text-xs text-rose-700">{catalog.error}</p>
-            <button
-              type="button"
-              onClick={() => void catalog.refresh()}
-              className="text-[10px] font-bold text-rose-700 hover:underline shrink-0"
-            >
-              Coba Lagi
-            </button>
-          </div>
-        ) : (
-          <BookGrid
-            loading={catalog.loading}
-            books={catalog.books}
-            canManage={canManage}
-            canDelete={canDelete}
-            deletingId={mutations.deletingId}
-            onOpen={setSelectedBook}
-            onBookmark={handleBookmark}
-            onEdit={form.openEdit}
-            onDelete={handleDelete}
-          />
-        )}
-
-        <QuickScanBar onScan={() => router.push('/volunteer/operasional')} />
-
-        <CatalogPagination
-          page={catalog.page}
-          totalPages={catalog.totalPages}
-          totalBooks={catalog.totalBooks}
-          loadedCount={catalog.books.length}
-          loading={catalog.loadingMore}
-          onLoadMore={catalog.loadMore}
-        />
-      </main>
-
-      {selectedBook && (
-        <BookDetailSheet
-          book={selectedBook}
-          loggedIn={Boolean(user)}
-          actionLoading={mutations.actionLoading}
-          canManage={canManage}
-          canDelete={canDelete}
-          deleting={mutations.deletingId === selectedBook.id}
-          onClose={() => setSelectedBook(null)}
-          onBookmark={() => void handleBookmark(selectedBook)}
-          onReserve={() => void handleReserve(selectedBook)}
-          onLogin={requireLogin}
-          onEdit={() => form.openEdit(selectedBook)}
-          onDelete={() => void handleDelete(selectedBook)}
-        />
-      )}
-
-      <BookFormModal
-        open={form.formOpen}
-        editingBook={form.editingBook}
-        form={form.form}
-        coverPreview={form.coverPreview}
-        submitting={form.submitting}
-        role={user?.role}
-        onChange={form.setField}
-        onCoverChange={form.selectCover}
-        onClose={form.close}
-        onSubmit={() => void handleSubmit()}
+    <div className="space-y-6">
+      <SectionTitle
+        title="Katalog Koleksi Buku"
+        description="Jelajahi koleksi Taman Baca ReteMali — cari berdasarkan judul, penulis, atau kategori, lalu saring sesuai kebutuhan."
       />
 
-      <BottomNav />
+      <section
+        aria-label="Pencarian dan filter katalog"
+        className="rounded-card border border-surface-soft bg-white p-4 shadow-card"
+      >
+        <div className="relative">
+          <span
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft"
+            aria-hidden
+          >
+            <BookOpen className="h-4 w-4" />
+          </span>
+          <input
+            id="katalog-cari"
+            type="search"
+            aria-label="Cari judul buku, penulis, atau kategori"
+            placeholder="Cari judul buku, penulis, atau kategori…"
+            className={`${fieldClasses} pl-10`}
+            value={term}
+            onChange={(event) => {
+              setTerm(event.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        <div
+          className="mt-3 flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filter kategori"
+        >
+          <button
+            type="button"
+            aria-pressed={category === 'ALL'}
+            onClick={() => {
+              setCategory('ALL');
+              setPage(1);
+            }}
+            className={`${chipBase} ${category === 'ALL' ? chipActive : chipIdle}`}
+          >
+            Semua
+          </button>
+          {BOOK_CATEGORY_OPTIONS.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              aria-pressed={category === item.value}
+              onClick={() => {
+                setCategory(item.value);
+                setPage(1);
+              }}
+              className={`${chipBase} ${
+                category === item.value ? chipActive : chipIdle
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            aria-pressed={availableOnly}
+            onClick={() => {
+              setAvailableOnly((current) => !current);
+              setPage(1);
+            }}
+            className={`${chipBase} ${
+              availableOnly
+                ? 'border-success bg-green-50 text-success'
+                : chipIdle
+            }`}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              Tersedia saja
+            </span>
+          </button>
+          <label
+            htmlFor="katalog-urut"
+            className="flex items-center gap-2 text-xs font-semibold text-ink-soft"
+          >
+            Urutkan
+            <select
+              id="katalog-urut"
+              value={sortBy}
+              onChange={(event) => {
+                setSortBy(event.target.value as PublicBookSort);
+                setPage(1);
+              }}
+              className="rounded-field border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <p
+          className="mt-3 border-t border-surface-soft pt-3 text-xs text-ink-soft"
+          role="status"
+          aria-live="polite"
+        >
+          {catalog.loading
+            ? 'Memperbarui hasil…'
+            : `Menampilkan ${catalog.books.length} dari ${catalog.total} koleksi`}
+        </p>
+      </section>
+
+      {catalog.error ? (
+        <div className="flex items-center justify-between gap-3 rounded-card border border-red-200 bg-red-50 p-3">
+          <p className="text-sm text-danger">{catalog.error}</p>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void catalog.reload()}
+          >
+            Coba Lagi
+          </Button>
+        </div>
+      ) : catalog.loading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-64 animate-pulse rounded-card bg-white"
+            />
+          ))}
+        </div>
+      ) : catalog.books.length === 0 ? (
+        <PublicEmptyState
+          icon={<SearchX aria-hidden />}
+          title="Tidak ada buku yang cocok"
+          description="Tidak ditemukan koleksi dengan kombinasi pencarian/filter tersebut. Coba ubah kata kunci atau atur ulang filter."
+          action={
+            <Button variant="secondary" size="sm" onClick={resetFilters}>
+              Atur ulang filter
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {catalog.books.map((book) => (
+            <PublicBookCard
+              key={book.id}
+              book={book}
+              href={`/katalog/${book.id}`}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center justify-center gap-3">
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={page <= 1 || catalog.loading}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+        >
+          Koleksi sebelumnya
+        </Button>
+        <span className="text-xs text-ink-soft">
+          Hal. {page} / {Math.max(1, catalog.totalPages)}
+        </span>
+        <Button
+          size="sm"
+          disabled={page >= catalog.totalPages || catalog.loading}
+          onClick={() => setPage((current) => current + 1)}
+        >
+          Muat lebih banyak koleksi…
+        </Button>
+      </div>
+
+      <Card className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-ink-soft">
+          Ingin meminjam koleksi di atas? Peminjaman penuh tersedia untuk member
+          terverifikasi.
+        </p>
+        <Link
+          href="/register"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-deep underline-offset-4 hover:underline"
+        >
+          <BookOpen className="h-4 w-4" aria-hidden />
+          Daftar member baru
+        </Link>
+      </Card>
     </div>
   );
 }

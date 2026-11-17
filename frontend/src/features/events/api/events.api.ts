@@ -11,6 +11,10 @@ export function getEvents(limit = 100) {
   return get<ApiEnvelope<EventItem[]>>(`/events?limit=${limit}`);
 }
 
+export function getEventById(identifier: string) {
+  return get<ApiEnvelope<EventItem>>(`/events/${encodeURIComponent(identifier)}`);
+}
+
 export function getMyTickets() {
   return get<ApiEnvelope<EventTicket[]>>('/events/tickets/me');
 }

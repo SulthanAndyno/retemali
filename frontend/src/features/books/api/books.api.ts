@@ -11,6 +11,46 @@ import type {
 } from '../types/catalog.types';
 
 const PAGE_SIZE = 10;
+const PUBLIC_PAGE_SIZE = 12;
+
+export type PublicBookSort =
+  | CatalogSort
+  | 'title-asc'
+  | 'title-desc';
+
+export interface PublicBookListParams {
+  page: number;
+  search?: string;
+  category?: string;
+  availableOnly?: boolean;
+  sortBy?: PublicBookSort;
+}
+
+export function getPublicBooks({
+  page,
+  search,
+  category,
+  availableOnly,
+  sortBy = 'newest',
+}: PublicBookListParams) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(PUBLIC_PAGE_SIZE),
+    sortBy: sortBy === 'title-asc' || sortBy === 'title-desc' ? 'newest' : sortBy,
+  });
+
+  if (search?.trim()) query.set('search', search.trim());
+  if (category && category !== 'ALL') query.set('category', category);
+  if (availableOnly) query.set('status', 'AVAILABLE');
+
+  return get<ApiEnvelope<CatalogBook[]> & { meta?: PaginatedMeta }>(
+    `/books?${query.toString()}`
+  );
+}
+
+export function getBookById(identifier: string) {
+  return get<ApiEnvelope<Book>>(`/books/${encodeURIComponent(identifier)}`);
+}
 
 export interface BookListParams {
   page: number;

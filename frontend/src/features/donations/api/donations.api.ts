@@ -4,6 +4,7 @@ import type {
   BookDonationInput,
   DonationSummary,
   FinancialDonationInput,
+  FinancialDonationReceipt,
   FinancialDonationRecord,
   PaymentAccount,
   PhysicalBookDonationRecord,
@@ -11,6 +12,12 @@ import type {
 
 export function getDonationSummary() {
   return get<ApiEnvelope<DonationSummary>>('/donations/summary');
+}
+
+export function getFinancialReceipt(code: string) {
+  return get<ApiEnvelope<FinancialDonationReceipt>>(
+    `/donations/financial/${encodeURIComponent(code)}`
+  );
 }
 
 export function getPaymentAccounts() {

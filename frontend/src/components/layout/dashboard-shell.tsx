@@ -7,7 +7,7 @@ import { ChevronDown, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/logo';
 import NotificationBell from '@/components/layout/NotificationBell';
-import { useAuth } from '@/features/auth';
+import { useAuth, type User } from '@/features/auth';
 
 export interface DashboardNavItem {
   label: string;
@@ -19,10 +19,11 @@ interface DashboardShellProps {
   items: DashboardNavItem[];
   brandHref: string;
   titleFallback: string;
-  roleLabel: string;
+  roleLabel: string | ((role: User['role']) => string);
   profileHref: string;
   profileLabel?: string;
   footerText: string;
+  guestAction?: boolean;
   children: ReactNode;
 }
 
@@ -98,6 +99,7 @@ export function DashboardShell({
   profileHref,
   profileLabel = 'Profil Saya',
   footerText,
+  guestAction = false,
   children,
 }: DashboardShellProps) {
   const pathname = usePathname();
@@ -139,6 +141,12 @@ export function DashboardShell({
 
   const displayName = user?.name ?? 'Pengguna';
   const initial = displayName.charAt(0).toUpperCase();
+  const roleText =
+    typeof roleLabel === 'function'
+      ? user
+        ? roleLabel(user.role)
+        : ''
+      : roleLabel;
 
   return (
     <div className="min-h-dvh">
@@ -246,7 +254,7 @@ export function DashboardShell({
                       {displayName}
                     </p>
                     <Badge tone="info" className="mt-1">
-                      {roleLabel}
+                      {roleText}
                     </Badge>
                   </div>
                   <Link
@@ -272,6 +280,13 @@ export function DashboardShell({
                 </div>
               ) : null}
             </div>
+          ) : guestAction ? (
+            <Link
+              href={`/login?next=${encodeURIComponent(pathname)}`}
+              className="rounded-field bg-primary px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
+            >
+              Masuk
+            </Link>
           ) : null}
         </header>
 

@@ -28,6 +28,21 @@ export interface PhysicalBookDonationRecord {
   createdAt?: string;
 }
 
+export interface FinancialDonationReceipt {
+  id: string;
+  receiptCode: string;
+  donorName: string;
+  donorEmail?: string | null;
+  isAnonymous: boolean;
+  amount: string | number;
+  purposeLabel: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  createdAt: string;
+  verifiedAt?: string | null;
+  campaign?: DonationCampaign | null;
+}
+
 export interface DonationSummary {
   campaign: DonationCampaign | null;
   sahabatLiterasiMembers: number;
