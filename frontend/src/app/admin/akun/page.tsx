@@ -1,5 +1,7 @@
-import { AdminPlaceholder } from '@/features/admin/components/admin-placeholder';
+import { AdminAccountPage } from '@/features/admin/account/pages/admin-account-page';
+
 export const metadata = { title: 'Pengaturan Akun — Rete Mali' };
+
 export default function Page() {
-  return <AdminPlaceholder title="Pengaturan Akun" description="Ganti kata sandi administrator." />;
+  return <AdminAccountPage />;
 }
