@@ -17,3 +17,19 @@ export interface User {
 export type SafeUser = User & {
   literacyBadge: string;
 };
+
+export type AccessMode = 'NON_MEMBER' | 'MEMBER' | 'VOLUNTEER' | 'ADMIN';
+
+export interface LoginFormValues {
+  email: string;
+  password: string;
+}
+
+export interface RegisterFormValues {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phone: string;
+  rtRw: string;
+}
