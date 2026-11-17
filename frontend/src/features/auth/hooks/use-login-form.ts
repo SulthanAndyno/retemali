@@ -70,8 +70,8 @@ export function useLoginForm(): UseLoginFormResult {
     setError('');
 
     try {
-      await login(email, password);
-      router.push('/portal');
+      const loggedUser = await login(email, password);
+      router.push(loggedUser.role === 'ADMIN' ? '/admin' : '/portal');
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Login gagal. Periksa email & password.';

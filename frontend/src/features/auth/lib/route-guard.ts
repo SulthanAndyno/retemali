@@ -11,13 +11,21 @@ export type GuardDecision =
   | { type: 'redirect'; to: string; preserveNext?: boolean };
 
 const RULES: { prefix: string; roles: Role[] }[] = [
+  { prefix: '/admin', roles: ['ADMIN'] },
   { prefix: '/dashboard/admin', roles: ['ADMIN'] },
+  { prefix: '/volunteer', roles: ['VOLUNTEER'] },
   { prefix: '/dashboard/volunteer', roles: ['VOLUNTEER'] },
+  { prefix: '/member', roles: ['MEMBER', 'DONOR'] },
   { prefix: '/dashboard/member', roles: ['MEMBER', 'DONOR'] },
   { prefix: '/portal', roles: ['MEMBER', 'VOLUNTEER', 'DONOR', 'ADMIN'] },
 ];
 
-const AUTH_PAGES = ['/login', '/register'];
+const AUTH_PAGES = [
+  '/login',
+  '/login/daftar',
+  '/login/lupa-password',
+  '/register',
+];
 
 function matchesPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);

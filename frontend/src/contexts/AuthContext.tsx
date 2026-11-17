@@ -16,7 +16,7 @@ export type { User } from '@/features/auth/types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(payload.data.user);
+    return payload.data.user;
   }, []);
 
   const logout = useCallback(() => {

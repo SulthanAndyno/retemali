@@ -9,8 +9,30 @@ import {
   type Role,
 } from '@/features/auth/lib/route-guard';
 
+const LEGACY_ADMIN_REDIRECTS: Record<string, string> = {
+  '/dashboard/admin': '/admin',
+  '/dashboard/admin/borrowings': '/admin/peminjaman',
+  '/dashboard/admin/reports/attendance': '/admin/laporan/presensi',
+  '/dashboard/admin/reports/cash': '/admin/laporan/kas',
+};
+
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  const legacyTarget = LEGACY_ADMIN_REDIRECTS[pathname];
+  if (legacyTarget) {
+    const url = request.nextUrl.clone();
+    url.pathname = legacyTarget;
+    url.search = '';
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (pathname.startsWith('/dashboard/admin/')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin';
+    url.search = '';
+    return NextResponse.redirect(url, 308);
+  }
 
   const isAuthenticated = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
   const role = request.cookies.get(ROLE_COOKIE)?.value as Role | undefined;
