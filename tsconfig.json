@@ -8,12 +8,12 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@modules/*": ["./src/modules/*"],
-      "@middlewares/*": ["./src/middlewares/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@routes/*": ["./src/routes/*"]
+      "@/*": ["./src/*", "./dist/*"],
+      "@modules/*": ["./src/modules/*", "./dist/modules/*"],
+      "@middlewares/*": ["./src/middlewares/*", "./dist/middlewares/*"],
+      "@utils/*": ["./src/utils/*", "./dist/utils/*"],
+      "@lib/*": ["./src/lib/*", "./dist/lib/*"],
+      "@routes/*": ["./src/routes/*", "./dist/routes/*"]
     },
 
     "outDir": "./dist",
