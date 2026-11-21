@@ -7,6 +7,7 @@ import {
   createEventSchema,
   eventQuerySchema,
   eventRegistrationsQuerySchema,
+  registerEventSchema,
   submitEventReportSchema,
   updateEventSchema,
   verifyRegistrationPaymentSchema,
@@ -152,16 +153,19 @@ export class EventController {
   ): Promise<void> => {
     try {
       const eventId = req.params["id"] as string;
+      const bodyInput = registerEventSchema.parse(req.body ?? {});
       const ticket = await this.eventService.registerParticipant(
         eventId,
         req.userId as string,
         req.file,
+        bodyInput,
       );
 
       successResponse({
         res,
         statusCode: 201,
-        message: "Berhasil mendaftar kegiatan. E-Tiket QR telah diterbitkan",
+        message:
+          "Berhasil mendaftar kegiatan. Kredensial E-Tiket QR telah diterbitkan",
         data: ticket,
       });
     } catch (error) {
@@ -181,8 +185,28 @@ export class EventController {
 
       successResponse({
         res,
-        message: "Berhasil mengambil daftar tiket kegiatan saya",
+        message: "Berhasil mengambil daftar kredensial tiket kegiatan saya",
         data: tickets,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTicketCredential = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const ticketCode = req.params["ticketCode"] as string;
+      const ticket = await this.eventService.getTicketCredential(ticketCode);
+
+      successResponse({
+        res,
+        message:
+          "Berhasil mengambil detail kredensial tiket dan status bukti pembayaran",
+        data: ticket,
       });
     } catch (error) {
       next(error);
@@ -329,7 +353,8 @@ export class EventController {
 
       successResponse({
         res,
-        message: "Berhasil mengevaluasi status timeline dan kuota kegiatan",
+        message:
+          "Berhasil mengevaluasi status timeline (penutupan otomatis H-3 WIB) dan kuota kegiatan",
         data: evaluations,
       });
     } catch (error) {

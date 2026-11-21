@@ -11,6 +11,7 @@ import {
   QuickCheckoutInput,
   QuickReturnInput,
 } from "./circulation.validation";
+import { formatDateWib } from "../../utils/date-wib";
 
 interface FindAllLoanOptions {
   skip: number;
@@ -233,7 +234,7 @@ export class CirculationRepository {
         data: {
           actorId: processedById,
           title: "Peminjaman Buku (Quick Checkout)",
-          description: `Buku "${book.title}" (${book.bookCode}) dipinjam oleh ${member.name} (${member.memberCode}). Jatuh tempo: ${dueDate.toLocaleDateString("id-ID")}.`,
+          description: `Buku "${book.title}" (${book.bookCode}) dipinjam oleh ${member.name} (${member.memberCode}). Jatuh tempo: ${formatDateWib(dueDate)} WIB.`,
           category: "CIRCULATION",
         },
       });
@@ -462,7 +463,7 @@ export class CirculationRepository {
         data: {
           actorId: userId,
           title: "Perpanjangan Masa Pinjam Buku",
-          description: `Buku "${loan.book.title}" (${loan.loanCode}) diperpanjang +7 hari hingga ${newDueDate.toLocaleDateString("id-ID")}.`,
+          description: `Buku "${loan.book.title}" (${loan.loanCode}) diperpanjang +7 hari hingga ${formatDateWib(newDueDate)} WIB.`,
           category: "CIRCULATION",
         },
       });
@@ -506,7 +507,7 @@ export class CirculationRepository {
 
     const phone = loan.user.phone?.replace(/^0/, "62") ?? "6281200000000";
     const text = encodeURIComponent(
-      `Halo Kak ${loan.user.name}, pengingat ramah dari Taman Baca Rete Mali: buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${loan.dueDate.toLocaleDateString("id-ID")}. Terima kasih!`,
+      `Halo Kak ${loan.user.name}, pengingat ramah dari Taman Baca Rete Mali: buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${formatDateWib(loan.dueDate)} WIB. Terima kasih!`,
     );
 
     return {

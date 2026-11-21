@@ -1,4 +1,11 @@
 import { PrismaClient } from "../../../generated/prisma";
+import {
+  combineEventDateTimeWib,
+  EVENT_CLOSE_DAYS_BEFORE,
+  formatDateTimeWib,
+  formatDateWib,
+  getEventRegistrationCutoffWib,
+} from "../../utils/date-wib";
 
 export interface ActivityNotificationItem {
   id: string;
@@ -76,52 +83,69 @@ export class NotificationRepository {
       });
     }
 
-    // 2. Notifikasi Event Baru & Event Selesai
+    // 2. Notifikasi Event Baru & Penutupan Event H-3 (WIB)
     for (const ev of recentEvents) {
+      const eventStartWib = combineEventDateTimeWib(ev.eventDate, ev.startTime);
+      const cutoffH3Wib = getEventRegistrationCutoffWib(
+        ev.eventDate,
+        ev.startTime,
+        EVENT_CLOSE_DAYS_BEFORE,
+      );
+
       items.push({
         id: `event-${ev.id}`,
         kind: "EVENT",
         title: `Kegiatan Baru: ${ev.title}`,
-        description: `Dilaksanakan pada ${new Date(ev.eventDate).toLocaleDateString("id-ID")} pukul ${ev.startTime}-${ev.endTime} WIB. Kuota: ${ev.registeredCount}/${ev.quota} peserta.`,
+        description: `Dilaksanakan pada ${formatDateWib(ev.eventDate)} pukul ${ev.startTime}-${ev.endTime} WIB. Penutupan pendaftaran H-3: ${formatDateTimeWib(cutoffH3Wib)}. Kuota: ${ev.registeredCount}/${ev.quota} peserta.`,
         createdAt: ev.createdAt,
         severity: "info",
         href: `/kegiatan`,
       });
 
-      if (new Date(ev.eventDate) < now) {
+      if (now >= eventStartWib) {
         items.push({
           id: `event-closed-${ev.id}`,
           kind: "EVENT_CLOSED",
           title: `Kegiatan Telah Selesai: ${ev.title}`,
           description:
-            "Waktu kegiatan telah lewat. Pendaftaran otomatis ditutup.",
+            "Waktu pelaksanaan kegiatan telah lewat (WIB). Pendaftaran ditutup otomatis.",
           createdAt: ev.eventDate,
+          severity: "warning",
+          href: `/kegiatan`,
+        });
+      } else if (now >= cutoffH3Wib) {
+        items.push({
+          id: `event-closed-h3-${ev.id}`,
+          kind: "EVENT_CLOSED",
+          title: `Pendaftaran Ditutup Otomatis (H-3): ${ev.title}`,
+          description: `Batas pendaftaran H-3 (${formatDateTimeWib(cutoffH3Wib)}) telah terlewati. Pendaftaran kegiatan ditutup otomatis.`,
+          createdAt: cutoffH3Wib,
           severity: "warning",
           href: `/kegiatan`,
         });
       }
     }
 
-    // 3. Notifikasi Pinjaman Mendekati Jatuh Tempo
+    // 3. Notifikasi Pinjaman Mendekati Jatuh Tempo (WIB)
     for (const loan of userLoans) {
       items.push({
         id: `loan-due-${loan.id}`,
         kind: "LOAN_DUE",
         title: `Pengingat Pengembalian Buku: ${loan.book.title}`,
-        description: `Buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${new Date(loan.dueDate).toLocaleDateString("id-ID")}.`,
+        description: `Buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${formatDateWib(loan.dueDate)} WIB.`,
         createdAt: loan.borrowedAt,
         severity: "warning",
         href: `/dashboard/member`,
       });
     }
 
-    // 4. Notifikasi Reservasi Siap Diambil
+    // 4. Notifikasi Peminjaman / Reservasi Siap Diambil
     for (const res of userReservations) {
       items.push({
         id: `res-pickup-${res.id}`,
         kind: "RESERVATION_PICKUP",
-        title: `Reservasi Siap Diambil: ${res.book.title}`,
-        description: `Buku reservasi siap diambil di meja perpustakaan dengan kode #${res.reservationCode}. Batas waktu 48 jam.`,
+        title: `Pengajuan Peminjaman Siap Diambil: ${res.book.title}`,
+        description: `Buku siap diambil di meja sirkulasi dengan kode #${res.reservationCode}. Batas waktu pengambilan 48 jam (${formatDateTimeWib(res.expiresAt)}).`,
         createdAt: res.createdAt,
         severity: "success",
         href: `/dashboard/member`,

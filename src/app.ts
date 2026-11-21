@@ -1,4 +1,6 @@
 import "dotenv/config";
+process.env.TZ = process.env.TZ || "Asia/Jakarta";
+
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -6,6 +8,7 @@ import morgan from "morgan";
 import path from "path";
 import routes from "./routes/index";
 import { errorHandler } from "./middlewares/error.middleware";
+import { formatDateTimeWib, toWibIsoString, WIB_TIMEZONE } from "./utils/date-wib";
 
 const app: Application = express();
 
@@ -56,10 +59,14 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api", routes);
 
 app.get("/health", (_req: Request, res: Response) => {
+  const now = new Date();
   res.status(200).json({
     status: "ok",
     message: "Taman Baca Rete Mali Backend Server is running",
     env: process.env.NODE_ENV ?? "development",
+    timezone: WIB_TIMEZONE,
+    serverTimeWib: formatDateTimeWib(now),
+    timestampWib: toWibIsoString(now),
   });
 });
 

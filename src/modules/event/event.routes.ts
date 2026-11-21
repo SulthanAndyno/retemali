@@ -23,7 +23,7 @@ router.get("/", eventController.getAll);
 
 /**
  * @route   GET /api/events/auto-close
- * @desc    Evaluasi timeline kegiatan (apakah ditutup otomatis karena lewat jam/kuota)
+ * @desc    Evaluasi timeline kegiatan (ditutup otomatis pada H-3 WIB atau jika kuota penuh)
  * @access  Public
  */
 router.get("/auto-close", eventController.getAutoCloseEvaluations);
@@ -66,10 +66,21 @@ router.patch(
 
 /**
  * @route   GET /api/events/tickets/me
- * @desc    Mengambil daftar E-Tiket kegiatan milik sendiri
+ * @desc    Mengambil daftar kredensial E-Tiket kegiatan milik sendiri
  * @access  Private (Member)
  */
 router.get("/tickets/me", authenticate, eventController.getMyTickets);
+
+/**
+ * @route   GET /api/events/tickets/:ticketCode
+ * @desc    Mengambil detail satu kredensial E-Tiket & status bukti pembayaran
+ * @access  Private (Authenticated User)
+ */
+router.get(
+  "/tickets/:ticketCode",
+  authenticate,
+  eventController.getTicketCredential,
+);
 
 /**
  * @route   POST /api/events/check-in
@@ -142,7 +153,7 @@ router.delete(
 
 /**
  * @route   POST /api/events/:id/register
- * @desc    Mendaftar kegiatan & menerbitkan E-Tiket QR (RETEMALI-EV-XXX) + upload bukti pembayaran jika berbayar
+ * @desc    Mendaftar kegiatan & menerbitkan kredensial E-Tiket QR (RETEMALI-EV-XXX) + wajib bukti pembayaran jika berbayar
  * @access  Private (Member)
  */
 router.post(

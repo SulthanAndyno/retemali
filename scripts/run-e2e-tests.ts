@@ -339,16 +339,59 @@ async function runTests() {
   const createdEventId = createEvent.data?.data?.id;
   const createdEventSlug = createEvent.data?.data?.slug;
 
+  // Try registering to Paid Event WITHOUT payment proof -> Should fail 400
+  const regNoProof = await request(
+    "POST",
+    `/api/events/${createdEventSlug}/register`,
+    {},
+    memberToken,
+  );
+  record("POST /api/events/:id/register (Wajib Bukti Pembayaran Event Berbayar 400)", regNoProof.status, 400, regNoProof.data);
+
   // Register to Future Event (with payment proof URL)
   const regEvent = await request(
     "POST",
     `/api/events/${createdEventSlug}/register`,
-    { paymentProofUrl: "https://retemali.id/uploads/proof-test.jpg" },
+    { paymentProofUrl: "https://drive.google.com/file/d/1PaymentProofDriveId1234567890/view?usp=sharing" },
     memberToken,
   );
-  record("POST /api/events/:id/register (Daftar Event Masa Depan)", regEvent.status, 201, regEvent.data);
+  record("POST /api/events/:id/register (Daftar Event + Bukti Pembayaran & Kredensial Tiket)", regEvent.status, 201, regEvent.data);
   const ticketCode = regEvent.data?.data?.ticketCode;
   const registrationId = regEvent.data?.data?.id;
+
+  if (ticketCode) {
+    const ticketDetail = await request("GET", `/api/events/tickets/${ticketCode}`, undefined, memberToken);
+    record("GET /api/events/tickets/:ticketCode (Detail Kredensial Tiket & Bukti Bayar)", ticketDetail.status, 200, ticketDetail.data);
+  }
+
+  // Test H-3 Auto-Close Rule: Create event 2 days from now (H-2) -> Registration must be closed (400)
+  const h2Date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const h2Event = await request(
+    "POST",
+    "/api/events",
+    {
+      title: `Kegiatan H-2 Sudah Tutup H-3 ${Date.now()}`,
+      category: "UMUM",
+      description: "Pengujian penutupan otomatis H-3 sebelum kegiatan.",
+      facilitatorName: "Kak Andi",
+      location: "Pendopo Rete Mali",
+      eventDate: h2Date,
+      startTime: "09:00",
+      endTime: "11:00",
+      quota: 20,
+      feeType: "FREE",
+    },
+    adminToken,
+  );
+  const h2EventId = h2Event.data?.data?.id;
+  const h2EventSlug = h2Event.data?.data?.slug;
+  if (h2EventSlug) {
+    const regH2 = await request("POST", `/api/events/${h2EventSlug}/register`, undefined, memberToken);
+    record("POST /api/events/:slug/register (Penutupan Otomatis H-3 Ditolak 400)", regH2.status, 400, regH2.data);
+  }
+  if (h2EventId) {
+    await request("DELETE", `/api/events/${h2EventId}`, undefined, adminToken);
+  }
 
   // Test Quota Limit Protection: create event with quota = 1
   const limitedEvent = await request(
@@ -583,12 +626,29 @@ async function runTests() {
   record("POST /api/gallery (Unggah Foto Galeri Google Maps)", addPhoto.status, 201, addPhoto.data);
   const photoId = addPhoto.data?.data?.id;
 
+  const addDrivePhoto = await request(
+    "POST",
+    "/api/gallery/google-drive",
+    {
+      driveUrl: "https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9I0J1K2L3M4N5O6P/view?usp=sharing",
+      title: "Dokumentasi Kegiatan dari Google Drive",
+      category: "KEGIATAN",
+      isFeatured: true,
+    },
+    adminToken,
+  );
+  record("POST /api/gallery/google-drive (Input & Sinkron Foto dari Google Drive)", addDrivePhoto.status, 201, addDrivePhoto.data);
+  const drivePhotoId = addDrivePhoto.data?.data?.photos?.[0]?.id;
+
   const getGallery = await request("GET", "/api/gallery?category=KEGIATAN");
   record("GET /api/gallery?category=KEGIATAN (Filter Kategori Galeri)", getGallery.status, 200, getGallery.data);
 
   if (photoId) {
     const delPhoto = await request("DELETE", `/api/gallery/${photoId}`, undefined, adminToken);
     record("DELETE /api/gallery/:id (Hapus Foto Galeri)", delPhoto.status, 200, delPhoto.data);
+  }
+  if (drivePhotoId) {
+    await request("DELETE", `/api/gallery/${drivePhotoId}`, undefined, adminToken);
   }
 
   // 12. Notifications Module
