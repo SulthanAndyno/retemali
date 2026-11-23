@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/features/auth';
-import { RoleProvider } from '@/features/auth';
 import { NotificationsProvider } from '@/features/notifications';
 
 export const metadata: Metadata = {
@@ -19,9 +18,7 @@ export default function RootLayout({
     <html lang="id">
       <body className="antialiased font-sans">
         <AuthProvider>
-          <RoleProvider>
-            <NotificationsProvider>{children}</NotificationsProvider>
-          </RoleProvider>
+          <NotificationsProvider>{children}</NotificationsProvider>
         </AuthProvider>
       </body>
     </html>

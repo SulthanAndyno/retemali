@@ -1,4 +1,4 @@
-import { QrCode } from 'lucide-react';
+import { IdCard } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 
@@ -32,7 +32,7 @@ export function MemberProfileCard({
           </p>
           {typeof points === 'number' && typeof readingTarget === 'number' ? (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-soft">
-              <QrCode className="h-3.5 w-3.5" aria-hidden />
+              <IdCard className="h-3.5 w-3.5" aria-hidden />
               {points} poin • target baca {readingTarget} buku
             </p>
           ) : null}

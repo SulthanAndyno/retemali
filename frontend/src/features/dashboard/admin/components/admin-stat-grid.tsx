@@ -1,8 +1,8 @@
 import {
   BookOpen,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
-  QrCode,
   Receipt,
   ShieldCheck,
   UserRound,
@@ -87,7 +87,7 @@ export function AdminStatGrid({
         <StatCard
           label="Check-in Tercatat"
           value={attendedTotal}
-          icon={<QrCode className="h-5 w-5" aria-hidden />}
+          icon={<ClipboardCheck className="h-5 w-5" aria-hidden />}
           hint="Dari 5 kegiatan terakhir"
         />
       </div>

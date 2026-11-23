@@ -110,7 +110,7 @@ export function AdminRegistrationsPage({
                   <p className="text-xs text-ink-soft">{row.user.memberCode}</p>
                 </TD>
                 <TD className="font-mono text-xs">{row.ticketCode}</TD>
-                <TD>{formatRupiah(Number(row.event.infaqAmount ?? 0))}</TD>
+                <TD>{formatRupiah(Number(row.event.ticketPrice ?? 0))}</TD>
                 <TD>
                   <Badge
                     tone={

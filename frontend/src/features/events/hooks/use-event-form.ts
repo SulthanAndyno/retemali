@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/shared/lib/api';
 import { getImageUrl } from '@/shared/lib/utils';
+import { normalizeCloseOffsetDays } from '@/shared/lib/event-timeline';
 import { createEvent, deleteEvent, updateEvent } from '../api/events.api';
 import { DEFAULT_EVENT_LOCATION } from '../lib/event-options';
 import type { EventActionResult, EventFormValues, EventItem } from '../types/event.types';
@@ -19,7 +20,8 @@ function emptyForm(): EventFormValues {
     endTime: '11:30',
     quota: 30,
     feeType: 'FREE',
-    infaqAmount: 0,
+    ticketPrice: 0,
+    registrationCloseOffsetDays: 1,
   };
 }
 
@@ -106,7 +108,10 @@ export function useEventForm({
       endTime: event.endTime ?? '11:30',
       quota: event.quota || 30,
       feeType: event.feeType ?? 'FREE',
-      infaqAmount: Number(event.infaqAmount ?? 0),
+      ticketPrice: Number(event.ticketPrice ?? 0),
+      registrationCloseOffsetDays: normalizeCloseOffsetDays(
+        event.registrationCloseOffsetDays
+      ) as EventFormValues['registrationCloseOffsetDays'],
     });
     setBannerFile(null);
     setBannerPreview(event.bannerImage ? getImageUrl(event.bannerImage) : null);

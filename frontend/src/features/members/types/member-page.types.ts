@@ -36,7 +36,7 @@ export interface MemberEvent {
   location: string;
   status: string;
   feeType: string;
-  infaqAmount: string;
+  ticketPrice: string;
   category?: string;
   description?: string;
   bannerImage?: string | null;

@@ -15,7 +15,7 @@ type EventFilter = 'semua' | 'gratis' | 'berbayar' | 'selesai';
 const FILTER_OPTIONS: { value: EventFilter; label: string }[] = [
   { value: 'semua', label: 'Semua' },
   { value: 'gratis', label: 'Gratis' },
-  { value: 'berbayar', label: 'Berbayar' },
+  { value: 'berbayar', label: 'Tiket Masuk' },
   { value: 'selesai', label: 'Selesai' },
 ];
 
@@ -43,7 +43,7 @@ export function EventsPage({ initialFilter }: { initialFilter?: string }) {
 
   const visible = events.events.filter((event) => {
     if (filter === 'gratis') return event.feeType === 'FREE';
-    if (filter === 'berbayar') return event.feeType === 'INFAQ';
+    if (filter === 'berbayar') return event.feeType === 'PAID';
     if (filter === 'selesai') return event.status === 'COMPLETED';
     return true;
   });
@@ -52,7 +52,7 @@ export function EventsPage({ initialFilter }: { initialFilter?: string }) {
     <div className="space-y-6">
       <SectionTitle
         title="Kegiatan Komunitas"
-        description="Temukan kegiatan literasi ReteMali — daftar gratis langsung tanpa biaya, atau ikuti kelas berbayar dengan bukti pembayaran."
+        description="Temukan kegiatan literasi ReteMali — kegiatan gratis bisa langsung didaftarkan, kegiatan dengan Pembayaran Tiket Masuk memerlukan bukti transfer sebelum E-Tiket aktif."
       />
 
       <nav

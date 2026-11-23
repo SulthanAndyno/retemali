@@ -3,6 +3,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import type { MemberTicket } from '../types/member-page.types';
+import { TicketCredentialButton } from './ticket-credential-button';
 
 function paymentBadge(ticket: MemberTicket): {
   label: string;
@@ -22,7 +23,7 @@ function paymentBadge(ticket: MemberTicket): {
 
 export function TicketCard({ ticket }: { ticket: MemberTicket }) {
   const payment = paymentBadge(ticket);
-  const fee = Number(ticket.event.infaqAmount ?? 0);
+  const fee = Number(ticket.event.ticketPrice ?? 0);
 
   return (
     <Card className="space-y-2">
@@ -49,7 +50,7 @@ export function TicketCard({ ticket }: { ticket: MemberTicket }) {
         </span>
         <span>
           {fee > 0
-            ? `Infaq ${formatRupiah(fee)}`
+            ? `Tiket Masuk ${formatRupiah(fee)}`
             : 'Tidak memerlukan pembayaran.'}
         </span>
       </div>
@@ -65,6 +66,12 @@ export function TicketCard({ ticket }: { ticket: MemberTicket }) {
           Catatan admin: {ticket.paymentNote}
         </p>
       ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-soft pt-2">
+        <p className="text-[11px] text-ink-soft">
+          Bukti pembayaran &amp; kredensial masuk kegiatan.
+        </p>
+        <TicketCredentialButton ticketCode={ticket.ticketCode} />
+      </div>
     </Card>
   );
 }

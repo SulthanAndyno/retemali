@@ -70,7 +70,7 @@ export function MemberOperationsPage() {
   const handleCancelReservation = async (reservationId: string) => {
     const result = await actions.cancelReservation(reservationId);
     showToast(
-      result.ok ? 'Reservasi berhasil dibatalkan' : result.message,
+      result.ok ? 'Peminjaman berhasil dibatalkan' : result.message,
       result.ok ? 'success' : 'error'
     );
   };
@@ -125,9 +125,9 @@ export function MemberOperationsPage() {
 
           <MemberSection
             icon={<Clock size={16} className="text-amber-500" />}
-            title="Reservasi Siap Ambil"
+            title="Peminjaman Siap Ambil"
             badge={{
-              text: `${data?.activitySummary.readyPickupCount ?? 0} Reservasi`,
+              text: `${data?.activitySummary.readyPickupCount ?? 0} Peminjaman`,
               className: 'text-amber-700 bg-amber-50',
             }}
           >

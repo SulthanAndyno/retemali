@@ -1,6 +1,6 @@
 'use client';
 
-import { QrCode, ScrollText } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { LinkButton } from '@/shared/components/ui/button';
 import { Card, SectionTitle, StatCard } from '@/shared/components/ui/card';
@@ -89,10 +89,6 @@ export function VolunteerHomePage() {
           <LinkButton href="/volunteer/kegiatan" variant="secondary" size="sm">
             Menu Kegiatan Saya
           </LinkButton>
-          <LinkButton href="/volunteer/qr-absensi" variant="ghost" size="sm">
-            <QrCode className="h-4 w-4" aria-hidden />
-            QR Absensi
-          </LinkButton>
         </div>
       </section>
 
@@ -104,7 +100,7 @@ export function VolunteerHomePage() {
         {VOLUNTEER_ATTENDANCE.length === 0 ? (
           <EmptyState
             title="Belum ada catatan kehadiran"
-            description="Kehadiran tercatat saat QR Absensi dipindai petugas."
+            description="Kehadiran tercatat saat kode E-Tiket Anda diverifikasi petugas."
           />
         ) : (
           <>

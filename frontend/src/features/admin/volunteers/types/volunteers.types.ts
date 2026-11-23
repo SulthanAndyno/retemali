@@ -12,5 +12,6 @@ export interface AdminVolunteerApplication {
     id: string;
     name: string;
     email: string;
+    role: 'MEMBER' | 'VOLUNTEER' | 'ADMIN';
   };
 }

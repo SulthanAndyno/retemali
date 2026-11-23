@@ -24,11 +24,14 @@ import { useEventRegistration } from '../hooks/use-event-registration';
 import {
   computeEventTimeline,
   computeQuotaState,
+  formatWibDateTime,
   getRegistrationGate,
 } from '@/shared/lib/event-timeline';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { EventRegisterButton } from '../components/event-register-button';
 import { PaidRegistrationModal } from '../components/paid-registration-modal';
+import { TicketCredentialModal } from '../components/ticket-credential-modal';
+import { getTicketPrice, isPaidEvent } from '../lib/event-options';
 
 export function EventDetailPage({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -81,7 +84,7 @@ export function EventDetailPage({ eventId }: { eventId: string }) {
   const timeline = computeEventTimeline(detailEvent);
   const quota = computeQuotaState(event.quota, event.registeredCount);
   const gate = getRegistrationGate(detailEvent);
-  const paid = event.feeType === 'INFAQ';
+  const paid = isPaidEvent(event);
 
   const handleRegister = async () => {
     const result = await registration.register(detailEvent);
@@ -122,7 +125,7 @@ export function EventDetailPage({ eventId }: { eventId: string }) {
         <div className="space-y-3 p-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={paid ? 'warning' : 'success'}>
-              {paid ? 'Berbayar' : 'Gratis'}
+              {paid ? 'Tiket Masuk Berbayar' : 'Gratis'}
             </Badge>
             <Badge tone={timeline.isRegistrationOpen ? 'info' : 'neutral'}>
               {timeline.label}
@@ -180,10 +183,29 @@ export function EventDetailPage({ eventId }: { eventId: string }) {
             {event.description}
           </p>
 
-          {paid ? (
-            <p className="rounded-field border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-[#8a5807]">
-              Infaq kegiatan: <strong>{formatRupiah(Number(event.infaqAmount))}</strong>.
-              Bukti pembayaran diunggah setelah menekan tombol daftar.
+          <p
+            className={`rounded-field border px-3 py-2 text-sm ${
+              paid
+                ? 'border-amber-200 bg-amber-50 text-[#8a5807]'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+            }`}
+          >
+            {paid ? (
+              <>
+                Tiket Masuk: <strong>{formatRupiah(getTicketPrice(event))}</strong> per
+                peserta. Unggah bukti transfer setelah menekan tombol daftar; E-Tiket
+                aktif setelah admin memverifikasi pembayaran.
+              </>
+            ) : (
+              <>Kegiatan ini gratis — tidak ada Pembayaran Tiket Masuk.</>
+            )}
+          </p>
+
+          {timeline.registrationCloseAt ? (
+            <p className="text-xs text-ink-soft">
+              Pendaftaran ditutup otomatis{' '}
+              <strong className="text-primary-deep">{timeline.closeRule}</strong> sebelum
+              kegiatan: {formatWibDateTime(timeline.registrationCloseAt)}
             </p>
           ) : null}
 
@@ -223,6 +245,13 @@ export function EventDetailPage({ eventId }: { eventId: string }) {
         onSelectProof={registration.selectProof}
         onClose={registration.closeModal}
         onSubmit={() => void handleSubmitPaid()}
+      />
+
+      <TicketCredentialModal
+        open={Boolean(registration.credential)}
+        credential={registration.credential}
+        onClose={registration.closeCredential}
+        onCopyCode={(code) => toast(`Kode E-Tiket ${code} disalin.`, 'success')}
       />
     </div>
   );

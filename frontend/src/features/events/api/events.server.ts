@@ -3,6 +3,7 @@ import { upstreamRequest } from '@/shared/lib/server-upstream';
 import {
   computeEventTimeline,
   computeQuotaState,
+  formatWibDateTime,
 } from '@/shared/lib/event-timeline';
 
 interface UpstreamEvent {
@@ -14,6 +15,7 @@ interface UpstreamEvent {
   quota: number;
   registeredCount: number;
   status: string;
+  registrationCloseOffsetDays?: number;
 }
 
 export interface AutoCloseResult {
@@ -37,6 +39,9 @@ export interface AutoCloseResult {
       seatsLeft: number;
       isQuotaFull: boolean;
       quotaPercent: number;
+      registrationCloseAtWib: string | null;
+      closeRule: string;
+      closeOffsetDays: number;
     }>;
   } | null;
 }
@@ -79,6 +84,11 @@ export async function loadAutoCloseStates(
       seatsLeft: quota.seatsLeft,
       isQuotaFull: quota.isFull,
       quotaPercent: quota.percent,
+      registrationCloseAtWib: timeline.registrationCloseAt
+        ? formatWibDateTime(timeline.registrationCloseAt)
+        : null,
+      closeRule: timeline.closeRule,
+      closeOffsetDays: timeline.closeOffsetDays,
     };
   });
 

@@ -28,8 +28,8 @@ export interface FeaturedEvent {
   endTime: string;
   quota: number;
   registeredCount: number;
-  feeType: 'FREE' | 'INFAQ';
-  infaqAmount: string | number;
+  feeType: 'FREE' | 'PAID';
+  ticketPrice: string | number;
   bannerImage?: string | null;
   isFeatured: boolean;
   status: string;

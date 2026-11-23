@@ -24,8 +24,8 @@ export function PortalGuestPanel({
   onDonate,
 }: PortalGuestPanelProps) {
   return (
-    <>
-      <section className="space-y-3 rounded-2xl border border-blue-100/70 bg-white p-5 text-center shadow-sm">
+    <div className="space-y-3 md:grid md:grid-cols-2 md:items-start md:gap-4 md:space-y-0">
+      <section className="space-y-3 rounded-2xl border border-blue-100/70 bg-white p-5 text-center shadow-sm md:p-6">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
           <User size={28} />
         </div>
@@ -97,6 +97,6 @@ export function PortalGuestPanel({
           <ChevronRight size={14} className="text-slate-400" />
         </button>
       </section>
-    </>
+    </div>
   );
 }

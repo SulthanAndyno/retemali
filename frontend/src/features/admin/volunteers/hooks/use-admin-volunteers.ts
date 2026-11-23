@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError } from '@/shared/lib/api';
 import {
+  changeVolunteerRole,
   getVolunteerApplications,
   reviewVolunteerApplication,
 } from '../api/volunteers.api';
@@ -15,6 +16,7 @@ export interface UseAdminVolunteersResult {
   pendingId: string | null;
   reload: () => Promise<void>;
   review: (id: string, status: 'APPROVED' | 'REJECTED', note?: string) => Promise<string>;
+  demote: (userId: string, name: string) => Promise<string>;
 }
 
 export function useAdminVolunteers(): UseAdminVolunteersResult {
@@ -67,5 +69,23 @@ export function useAdminVolunteers(): UseAdminVolunteersResult {
     }
   };
 
-  return { applications, loading, error, pendingId, reload: load, review };
+  const demote = async (userId: string, name: string) => {
+    setPendingId(userId);
+    try {
+      const response = await changeVolunteerRole(userId);
+      await load();
+      return (
+        response.data?.note ??
+        `Peran ${name} berhasil diubah menjadi Anggota (MEMBER).`
+      );
+    } catch (demoteError) {
+      return demoteError instanceof ApiError
+        ? demoteError.message
+        : 'Gagal mengubah peran relawan.';
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  return { applications, loading, error, pendingId, reload: load, review, demote };
 }

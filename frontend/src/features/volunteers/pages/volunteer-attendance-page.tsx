@@ -1,4 +1,4 @@
-import { History, QrCode } from 'lucide-react';
+import { ClipboardCheck, History } from 'lucide-react';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
@@ -19,14 +19,14 @@ export function VolunteerAttendancePage() {
         <EmptyState
           icon={<History aria-hidden />}
           title="Belum ada catatan kehadiran"
-          description="Kehadiran tercatat ketika QR Absensi Anda dipindai petugas pada kegiatan."
+          description="Kehadiran tercatat ketika kode E-Tiket Anda diverifikasi petugas pada kegiatan."
         />
       ) : (
         <Table>
           <THead>
             <TR>
               <TH>Kegiatan</TH>
-              <TH>Waktu Scan</TH>
+              <TH>Waktu Check-in</TH>
               <TH>Status Personel</TH>
             </TR>
           </THead>
@@ -53,7 +53,7 @@ export function VolunteerAttendancePage() {
       )}
 
       <Card className="flex items-start gap-3 bg-surface-blue/50">
-        <QrCode
+        <ClipboardCheck
           className="mt-0.5 h-5 w-5 shrink-0 text-primary-deep"
           aria-hidden
         />

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowLeftRight, LogIn, Menu } from 'lucide-react';
+import { ArrowLeft, Home, LogIn, Menu } from 'lucide-react';
 import Image from 'next/image';
-import { useAuth, useRole } from '@/features/auth';
+import { useAuth } from '@/features/auth';
 import { NotificationBell } from '@/features/notifications';
 import { getImageUrl } from '@/shared/lib/utils';
 import { PortalDrawer } from './portal-drawer';
@@ -15,8 +16,6 @@ interface HeaderProps {
   showBack?: boolean;
 }
 
-type RoleToast = { message: string; type: 'success' | 'error' } | null;
-
 export function MobileHeader({
   title,
   subtitle,
@@ -24,65 +23,12 @@ export function MobileHeader({
 }: HeaderProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const {
-    activeRole,
-    isVolunteerMode,
-    canSwitchVolunteer,
-    switching,
-    switchRole,
-  } = useRole();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [memberNotice, setMemberNotice] = useState(false);
-  const [roleToast, setRoleToast] = useState<RoleToast>(null);
-
-  const handleMemberClick = () => {
-    setMemberNotice(true);
-    window.setTimeout(() => setMemberNotice(false), 3000);
-  };
-
-  const handleToggleVolunteer = async () => {
-    try {
-      const result = await switchRole(
-        isVolunteerMode ? 'MEMBER' : 'VOLUNTEER'
-      );
-      setRoleToast({
-        message: result?.note ?? 'Mode peran berhasil diubah.',
-        type: 'success',
-      });
-    } catch (error) {
-      setRoleToast({
-        message:
-          error instanceof Error ? error.message : 'Gagal mengganti peran.',
-        type: 'error',
-      });
-    } finally {
-      window.setTimeout(() => setRoleToast(null), 3500);
-    }
-  };
 
   return (
     <>
-      {memberNotice ? (
-        <div className="fixed left-1/2 top-4 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
-          <span>
-            Dashboard Member sedang dalam tahap pengembangan (On Progress).
-          </span>
-        </div>
-      ) : null}
-
-      {roleToast ? (
-        <div
-          className={`fixed left-1/2 top-16 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white shadow-lg ${
-            roleToast.type === 'success' ? 'bg-teal-700' : 'bg-rose-600'
-          }`}
-        >
-          <ArrowLeftRight size={14} />
-          <span>{roleToast.message}</span>
-        </div>
-      ) : null}
-
-      <header className="sticky top-0 z-40 bg-white shadow-xs">
-        <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
+      <header className="sticky top-0 z-40 w-full border-b border-blue-100/80 bg-white shadow-xs">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between px-4 py-3 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-6xl lg:px-8 xl:max-w-7xl">
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setDrawerOpen(true)}
@@ -106,21 +52,21 @@ export function MobileHeader({
             <div>
               {title ? (
                 <>
-                  <h1 className="max-w-[170px] truncate text-sm font-bold leading-tight text-slate-900">
+                  <h1 className="max-w-[170px] truncate text-sm font-bold leading-tight text-slate-900 md:max-w-none md:text-base">
                     {title}
                   </h1>
                   {subtitle ? (
-                    <p className="max-w-[170px] truncate text-[10px] leading-tight text-slate-500">
+                    <p className="max-w-[170px] truncate text-[10px] leading-tight text-slate-500 md:max-w-none md:text-xs">
                       {subtitle}
                     </p>
                   ) : null}
                 </>
               ) : (
                 <>
-                  <h1 className="text-sm font-extrabold leading-tight tracking-wide text-blue-700">
+                  <h1 className="text-sm font-extrabold leading-tight tracking-wide text-blue-700 md:text-base">
                     Rete Mali
                   </h1>
-                  <p className="text-[10px] leading-tight text-slate-500">
+                  <p className="text-[10px] leading-tight text-slate-500 md:text-xs">
                     Taman Baca &amp; Komunitas
                   </p>
                 </>
@@ -129,6 +75,16 @@ export function MobileHeader({
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              aria-label="Kembali ke beranda"
+              title="Kembali ke Beranda"
+              className="flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-white px-2.5 text-[11px] font-bold text-blue-700 shadow-xs transition-colors hover:bg-blue-50 sm:h-9 sm:min-w-0"
+            >
+              <Home size={15} />
+              <span className="hidden sm:inline">Beranda</span>
+            </Link>
+
             {user ? (
               <>
                 <NotificationBell />
@@ -168,13 +124,11 @@ export function MobileHeader({
       <PortalDrawer
         open={drawerOpen}
         user={user}
-        activeRole={activeRole}
-        isVolunteerMode={isVolunteerMode}
-        canSwitchVolunteer={canSwitchVolunteer}
-        roleSwitching={switching}
         onClose={() => setDrawerOpen(false)}
-        onMemberClick={handleMemberClick}
-        onToggleVolunteer={() => void handleToggleVolunteer()}
+        onMemberClick={() => {
+          setDrawerOpen(false);
+          router.push('/member');
+        }}
         onLogout={logout}
       />
     </>

@@ -45,12 +45,12 @@ export function PaidRegistrationModal({
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs space-y-1">
           <p className="font-bold text-amber-900 flex items-center gap-1.5">
             <Ticket size={14} />
-            Infaq Peserta: {formatCurrency(Number(event.infaqAmount ?? 0))}
+            Pembayaran Tiket Masuk: {formatCurrency(Number(event.ticketPrice ?? 0))}
           </p>
           <p className="text-[11px] text-amber-800 leading-snug">
             Silakan transfer ke rekening/QRIS resmi Rete Mali (lihat halaman Donasi),
-            lalu unggah bukti pembayaran di bawah ini. Pendaftaran akan aktif setelah
-            admin memverifikasi bukti tersebut.
+            lalu unggah bukti pembayaran di bawah ini. E-Tiket aktif setelah admin
+            memverifikasi bukti tersebut.
           </p>
         </div>
 

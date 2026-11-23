@@ -11,7 +11,7 @@ import { useAdminVolunteers } from '../hooks/use-admin-volunteers';
 
 export function AdminVolunteersPage() {
   const { toast } = useToast();
-  const { applications, loading, error, pendingId, reload, review } =
+  const { applications, loading, error, pendingId, reload, review, demote } =
     useAdminVolunteers();
 
   const handleApprove = async (id: string) => {
@@ -23,6 +23,15 @@ export function AdminVolunteersPage() {
     const note = window.prompt('Alasan penolakan (opsional):') ?? undefined;
     const message = await review(id, 'REJECTED', note);
     toast(message, 'error');
+  };
+
+  const handleDemote = async (userId: string, name: string) => {
+    const confirmed = window.confirm(
+      `Ubah peran ${name} dari Relawan menjadi Anggota (MEMBER)? Akses portal relawan akan langsung dicabut.`
+    );
+    if (!confirmed) return;
+    const message = await demote(userId, name);
+    toast(message, message.toLowerCase().includes('gagal') ? 'error' : 'success');
   };
 
   return (
@@ -50,6 +59,7 @@ export function AdminVolunteersPage() {
               <TH>Nama</TH>
               <TH>Email</TH>
               <TH>Divisi</TH>
+              <TH>Peran</TH>
               <TH>Status</TH>
               <TH>Tanggal</TH>
               <TH>Aksi</TH>
@@ -61,6 +71,19 @@ export function AdminVolunteersPage() {
                 <TD className="font-medium">{application.user.name}</TD>
                 <TD>{application.user.email}</TD>
                 <TD>{application.division}</TD>
+                <TD>
+                  <Badge
+                    tone={
+                      application.user.role === 'VOLUNTEER'
+                        ? 'info'
+                        : application.user.role === 'ADMIN'
+                          ? 'warning'
+                          : 'neutral'
+                    }
+                  >
+                    {application.user.role}
+                  </Badge>
+                </TD>
                 <TD>
                   <Badge
                     tone={
@@ -96,7 +119,25 @@ export function AdminVolunteersPage() {
                       </Button>
                     </div>
                   ) : (
-                    <span className="text-xs text-ink-soft">-</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-ink-soft">-</span>
+                      {application.status === 'APPROVED' &&
+                      application.user.role === 'VOLUNTEER' ? (
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          disabled={pendingId === application.user.id}
+                          onClick={() =>
+                            void handleDemote(
+                              application.user.id,
+                              application.user.name
+                            )
+                          }
+                        >
+                          Jadikan Anggota
+                        </Button>
+                      ) : null}
+                    </div>
                   )}
                 </TD>
               </TR>

@@ -120,7 +120,7 @@ export interface EventPaymentRegistration {
     title: string;
     eventDate: string;
     feeType: string;
-    infaqAmount: string | number;
+    ticketPrice: string | number;
   };
   user: AdminDashboardUser & {
     email?: string | null;
@@ -144,8 +144,8 @@ export interface AdminEventSnapshot {
   title: string;
   eventDate: string;
   status: string;
-  feeType: 'FREE' | 'INFAQ';
-  infaqAmount: string | number;
+  feeType: 'FREE' | 'PAID';
+  ticketPrice: string | number;
   quota: number;
   registeredCount: number;
 }
@@ -160,7 +160,7 @@ export interface AdminRegistrationSnapshot {
   event: {
     id: string;
     title: string;
-    infaqAmount: string | number;
+    ticketPrice: string | number;
   };
   user: {
     id: string;

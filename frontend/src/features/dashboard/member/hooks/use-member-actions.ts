@@ -56,7 +56,7 @@ export function useMemberActions(onSuccess: () => void | Promise<void>): UseMemb
       run(
         reservationId,
         () => cancelReservationRequest(reservationId),
-        'Gagal membatalkan reservasi.'
+        'Gagal membatalkan peminjaman.'
       ),
     [run]
   );

@@ -104,7 +104,7 @@ export function BookCard({
             onClick={onOpen}
             className="w-full py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
           >
-            Reservasi
+            Ajukan Peminjaman
           </button>
         )}
 

@@ -126,7 +126,7 @@ export interface CashFilters {
 
 export type CashCategory =
   | 'DONASI_FINANSIAL'
-  | 'INFAQ_KEGIATAN'
+  | 'TIKET_KEGIATAN'
   | 'DENDA_SIRKULASI';
 
 export interface CashEntry {
@@ -149,7 +149,7 @@ export interface CashReport {
     totalExpense: number;
     netCashFlow: number;
     donationIncome: number;
-    eventInfaqIncome: number;
+    eventTicketIncome: number;
     fineIncome: number;
     transactionCount: number;
   };
@@ -168,7 +168,7 @@ export interface CashReport {
 
 export interface UpstreamCashTransaction {
   id: string;
-  source: 'DONATION' | 'EVENT_INFAQ' | 'CIRCULATION_FINE';
+  source: 'DONATION' | 'EVENT_TICKET' | 'CIRCULATION_FINE';
   title: string;
   payerOrDonor: string;
   amount: string | number;
@@ -182,7 +182,7 @@ export interface UpstreamCashReport {
   summary?: {
     totalIncome?: string | number;
     totalDonations?: string | number;
-    totalEventInfaq?: string | number;
+    totalEventTicket?: string | number;
     totalFines?: string | number;
     totalTransactions?: string | number;
   };

@@ -126,8 +126,8 @@ export function DetailHeaderCard({ book }: DetailHeaderCardProps) {
             Durasi peminjaman standar: <strong>7 hari kalender</strong>.
           </li>
           <li>Dapat diperpanjang 1 kali (+7 hari) melalui dashboard.</li>
-          <li>Ambil buku di Loket Sirkulasi dengan menunjukkan QR/Kode anggota.</li>
-          <li>Reservasi berlaku 48 jam sebelum dialihkan ke antrean berikutnya.</li>
+          <li>Ambil buku di Loket Sirkulasi dengan menunjukkan Kode anggota.</li>
+          <li>Peminjaman berlaku 48 jam sebelum dialihkan ke antrean berikutnya.</li>
         </ul>
       </div>
     </>

@@ -4,6 +4,7 @@ import type {
   AutoCloseState,
   EventFormValues,
   EventItem,
+  EventRegistrationRecord,
   EventTicket,
 } from '../types/event.types';
 
@@ -41,14 +42,21 @@ export async function getAutoCloseStates() {
 
 export function registerEvent(id: string, proof?: File | null) {
   if (!proof) {
-    return post<ApiEnvelope<{ paymentStatus?: string | null }>>(`/events/${id}/register`);
+    return post<ApiEnvelope<EventRegistrationRecord>>(`/events/${id}/register`);
   }
 
   const body = new FormData();
   body.append('paymentProof', proof);
-  return post<ApiEnvelope<{ paymentStatus?: string | null }>>(
+  return post<ApiEnvelope<EventRegistrationRecord>>(
     `/events/${id}/register`,
     body
+  );
+}
+
+/** Kredensial E-Tiket tunggal berdasarkan kode tiket. */
+export function getTicketCredential(ticketCode: string) {
+  return get<ApiEnvelope<EventRegistrationRecord>>(
+    `/events/tickets/${encodeURIComponent(ticketCode)}`
   );
 }
 
@@ -65,9 +73,10 @@ function buildEventFormData(values: EventFormValues, bannerFile: File | null) {
   body.append('quota', String(values.quota));
   body.append('feeType', values.feeType);
   body.append(
-    'infaqAmount',
-    String(values.feeType === 'INFAQ' ? values.infaqAmount : 0)
+    'ticketPrice',
+    String(values.feeType === 'PAID' ? values.ticketPrice : 0)
   );
+  body.append('registrationCloseOffsetDays', String(values.registrationCloseOffsetDays));
   if (bannerFile) body.append('bannerImage', bannerFile);
   return body;
 }

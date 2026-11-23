@@ -4,17 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/shared/lib/api';
 import { registerEvent } from '../api/events.api';
 import { isPaidEvent } from '../lib/event-options';
-import type { EventActionResult, EventItem } from '../types/event.types';
+import type {
+  EventActionResult,
+  EventItem,
+  TicketCredential,
+} from '../types/event.types';
 
 export interface UseEventRegistrationResult {
   registerTarget: EventItem | null;
   proofFile: File | null;
   proofPreview: string | null;
   registeringId: string | null;
+  /** Kredensial E-Tiket hasil pendaftaran, untuk modal bukti pembayaran. */
+  credential: TicketCredential | null;
   register: (event: EventItem) => Promise<EventActionResult | null>;
   submitPaid: () => Promise<EventActionResult | null>;
   selectProof: (file: File | null) => void;
   closeModal: () => void;
+  closeCredential: () => void;
 }
 
 interface UseEventRegistrationOptions {
@@ -38,6 +45,7 @@ export function useEventRegistration({
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [registeringId, setRegisteringId] = useState<string | null>(null);
+  const [credential, setCredential] = useState<TicketCredential | null>(null);
   const objectUrlRef = useRef<string | null>(null);
 
   const revokePreview = () => {
@@ -61,17 +69,19 @@ export function useEventRegistration({
     try {
       const response = await registerEvent(event.id, proof);
       const isPending = response.data?.paymentStatus === 'PENDING';
+      const createdCredential = response.data?.ticketCredential ?? null;
       onRegistered(event.id);
       setRegisterTarget(null);
       revokePreview();
       setProofFile(null);
       setProofPreview(null);
+      if (createdCredential) setCredential(createdCredential);
 
       return {
         ok: true,
         message: isPending
-          ? `Pendaftaran "${event.title}" diterima. Bukti pembayaran menunggu verifikasi admin.`
-          : `Pendaftaran acara "${event.title}" BERHASIL! E-Tiket diterbitkan.`,
+          ? `Pendaftaran "${event.title}" diterima. E-Tiket ${createdCredential?.ticketCode ?? ''} terbit dan menunggu verifikasi Pembayaran Tiket Masuk.`
+          : `Pendaftaran acara "${event.title}" BERHASIL! E-Tiket ${createdCredential?.ticketCode ?? ''} diterbitkan.`,
       };
     } catch (error) {
       return { ok: false, message: errorMessage(error) };
@@ -126,9 +136,11 @@ export function useEventRegistration({
     proofFile,
     proofPreview,
     registeringId,
+    credential,
     register,
     submitPaid,
     selectProof,
     closeModal,
+    closeCredential: () => setCredential(null),
   };
 }

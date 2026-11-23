@@ -11,7 +11,7 @@ export function ReportSourceWarnings({ dataSources }: ReportSourceWarningsProps)
     <>
       {!dataSources.events && (
         <p className="text-[10px] text-amber-700 text-center">
-          Data infaq kegiatan tidak dapat dimuat — laporan ditampilkan tanpa komponen
+          Data tiket masuk kegiatan tidak dapat dimuat — laporan ditampilkan tanpa komponen
           tersebut.
         </p>
       )}

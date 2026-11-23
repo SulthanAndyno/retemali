@@ -9,7 +9,7 @@ export function CashCategoryIcon({ category }: CashCategoryIconProps) {
   if (category === 'DONASI_FINANSIAL') {
     return <Heart size={14} className="text-blue-600" />;
   }
-  if (category === 'INFAQ_KEGIATAN') {
+  if (category === 'TIKET_KEGIATAN') {
     return <Ticket size={14} className="text-emerald-600" />;
   }
   if (category === 'DENDA_SIRKULASI') {

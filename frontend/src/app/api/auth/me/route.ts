@@ -1,5 +1,9 @@
 import { meUpstream } from '@/features/auth/api/auth';
-import { clearSession, getSessionToken } from '@/features/auth/lib/session';
+import {
+  clearSession,
+  getSessionToken,
+  setSession,
+} from '@/features/auth/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +35,13 @@ export async function GET() {
       { status: 'error', message: result.error ?? 'Gagal mengambil profil.' },
       { status: result.status || 502 },
     );
+  }
+
+  // Peran akun bisa berubah di server (mis. relawan diturunkan menjadi anggota
+  // oleh Admin). Segarkan cookie peran dari database agar guard rute memakai
+  // nilai terbaru pada navigasi berikutnya.
+  if (user.role) {
+    await setSession(token, user.role);
   }
 
   return Response.json({ status: 'success', data: { user } });

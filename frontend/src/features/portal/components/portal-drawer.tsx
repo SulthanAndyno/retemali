@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  ArrowLeftRight,
   BookOpen,
   Calendar,
   ChevronRight,
@@ -15,31 +14,21 @@ import {
   UserCheck,
   X,
 } from 'lucide-react';
-import type { ActiveRole, User } from '@/features/auth';
+import type { User } from '@/features/auth';
 
 interface PortalDrawerProps {
   open: boolean;
   user: User | null;
-  activeRole: ActiveRole;
-  isVolunteerMode: boolean;
-  canSwitchVolunteer: boolean;
-  roleSwitching: boolean;
   onClose: () => void;
   onMemberClick: () => void;
-  onToggleVolunteer: () => void;
   onLogout: () => void;
 }
 
 export function PortalDrawer({
   open,
   user,
-  activeRole,
-  isVolunteerMode,
-  canSwitchVolunteer,
-  roleSwitching,
   onClose,
   onMemberClick,
-  onToggleVolunteer,
   onLogout,
 }: PortalDrawerProps) {
   const router = useRouter();
@@ -54,7 +43,7 @@ export function PortalDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex bg-black/50 backdrop-blur-xs">
-      <div className="flex h-full w-4/5 max-w-xs flex-col justify-between bg-white p-5 shadow-2xl">
+      <div className="flex h-full w-4/5 max-w-xs flex-col justify-between bg-white p-5 shadow-2xl md:max-w-sm md:p-6">
         <div className="max-h-[calc(100vh-140px)] space-y-5 overflow-y-auto pr-1">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
@@ -169,52 +158,14 @@ export function PortalDrawer({
               {user.role === 'MEMBER' || user.role === 'DONOR' ? (
                 <button
                   onClick={onMemberClick}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-amber-50/80"
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-blue-50"
                 >
                   <span className="flex items-center gap-2.5">
                     <UserCheck size={16} className="text-blue-600" />
                     <span>Dashboard Member</span>
                   </span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">
-                    On Progress
-                  </span>
+                  <ChevronRight size={14} className="text-slate-400" />
                 </button>
-              ) : null}
-
-              {canSwitchVolunteer ? (
-                <div className="mt-2 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <ArrowLeftRight
-                        size={13}
-                        className="text-blue-600"
-                      />
-                      <span className="text-[11px] font-bold text-slate-800">
-                        Mode Peran Aktif
-                      </span>
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                        isVolunteerMode
-                          ? 'bg-teal-100 text-teal-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}
-                    >
-                      {activeRole}
-                    </span>
-                  </div>
-                  <button
-                    onClick={onToggleVolunteer}
-                    disabled={roleSwitching}
-                    className="w-full rounded-lg border border-teal-300 bg-white py-2 text-[11px] font-bold text-teal-700 transition-colors hover:bg-teal-50 disabled:opacity-60"
-                  >
-                    {roleSwitching
-                      ? 'Mengalihkan...'
-                      : isVolunteerMode
-                        ? 'Keluar dari Mode Relawan'
-                        : 'Masuk Mode Relawan'}
-                  </button>
-                </div>
               ) : null}
             </div>
           ) : null}

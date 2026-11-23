@@ -1,114 +1,62 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowLeftRight, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { MobileHeader } from '../components/mobile-header';
 import { BottomNav } from '../components/bottom-nav';
 import { PortalProfileCard } from '../components/portal-profile-card';
 import { PortalAccessSection } from '../components/portal-access-section';
-import { PortalRoleSwitch } from '../components/portal-role-switch';
+import { PortalQuickLinks } from '../components/portal-quick-links';
 import { PortalGuestPanel } from '../components/portal-guest-panel';
-import { useAuth, useRole } from '@/features/auth';
-
-type RoleToast = { message: string; type: 'success' | 'error' } | null;
+import { useAuth } from '@/features/auth';
 
 export function PortalPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const {
-    activeRole,
-    isVolunteerMode,
-    canSwitchVolunteer,
-    switching,
-    switchRole,
-  } = useRole();
-  const [progressOpen, setProgressOpen] = useState(false);
-  const [roleToast, setRoleToast] = useState<RoleToast>(null);
-
-  const handleMemberClick = () => {
-    setProgressOpen(true);
-    window.setTimeout(() => setProgressOpen(false), 3000);
-  };
-
-  const handleToggleRole = async () => {
-    try {
-      const result = await switchRole(
-        isVolunteerMode ? 'MEMBER' : 'VOLUNTEER'
-      );
-      setRoleToast({
-        message: result?.note ?? 'Mode peran diperbarui.',
-        type: 'success',
-      });
-    } catch (error) {
-      setRoleToast({
-        message:
-          error instanceof Error ? error.message : 'Gagal mengganti peran.',
-        type: 'error',
-      });
-    } finally {
-      window.setTimeout(() => setRoleToast(null), 3500);
-    }
-  };
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-blue-50/50 pb-24 text-slate-800">
-      {progressOpen ? (
-        <div className="fixed left-1/2 top-4 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
-          <AlertCircle size={15} />
-          <span>
-            Dashboard Member sedang dalam tahap pengembangan (On Progress).
-          </span>
-        </div>
-      ) : null}
-
-      {roleToast ? (
-        <div
-          className={`fixed left-1/2 top-16 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white shadow-lg ${
-            roleToast.type === 'success' ? 'bg-teal-700' : 'bg-rose-600'
-          }`}
-        >
-          <ArrowLeftRight size={14} />
-          <span>{roleToast.message}</span>
-        </div>
-      ) : null}
-
+    <div className="min-h-dvh w-full bg-blue-50/50 pb-24 text-slate-800 lg:pb-10">
       <MobileHeader title="Portal Peran" subtitle="Pusat Navigasi & Akun" />
 
-      <main className="space-y-4 px-4 pt-3">
+      <main className="mx-auto w-full max-w-md space-y-4 px-4 pt-3 sm:max-w-2xl md:grid md:max-w-4xl md:grid-cols-2 md:gap-4 md:space-y-0 md:px-6 md:pt-5 lg:max-w-6xl lg:grid-cols-3 lg:gap-5 lg:px-8 lg:pt-6 xl:max-w-7xl">
         {user ? (
           <>
-            <PortalProfileCard user={user} />
-            <PortalAccessSection
-              role={user.role}
-              onAdmin={() => router.push('/admin')}
-              onOperations={() => router.push('/volunteer/operasional')}
-              onMember={handleMemberClick}
-            />
-            {canSwitchVolunteer ? (
-              <PortalRoleSwitch
-                activeRole={activeRole}
-                isVolunteerMode={isVolunteerMode}
-                switching={switching}
-                onToggle={() => void handleToggleRole()}
+            <div className="md:col-span-1 lg:col-start-1 lg:row-start-1">
+              <PortalProfileCard user={user} />
+            </div>
+            <div className="md:col-span-1 lg:col-span-2 lg:col-start-2 lg:row-start-1">
+              <PortalAccessSection
+                role={user.role}
+                onAdmin={() => router.push('/admin')}
+                onOperations={() => router.push('/volunteer/operasional')}
+                onMember={() => router.push('/member')}
               />
-            ) : null}
+            </div>
             <button
               onClick={logout}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white py-3 text-xs font-bold text-rose-600 shadow-xs transition-colors hover:bg-rose-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white py-3 text-xs font-bold text-rose-600 shadow-xs transition-colors hover:bg-rose-50 md:col-span-2 md:mx-auto md:max-w-sm lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-none lg:self-start"
             >
               <LogOut size={16} />
               <span>Keluar dari Akun</span>
             </button>
+            <div className="hidden md:col-span-2 md:block lg:col-span-2 lg:col-start-2 lg:row-start-2">
+              <PortalQuickLinks
+                onCatalog={() => router.push('/katalog')}
+                onEvents={() => router.push('/kegiatan')}
+                onDonate={() => router.push('/donasi')}
+              />
+            </div>
           </>
         ) : (
-          <PortalGuestPanel
-            onLogin={() => router.push('/login')}
-            onRegister={() => router.push('/login/daftar')}
-            onCatalog={() => router.push('/katalog')}
-            onEvents={() => router.push('/kegiatan')}
-            onDonate={() => router.push('/donasi')}
-          />
+          <div className="md:col-span-2 lg:col-span-3">
+            <PortalGuestPanel
+              onLogin={() => router.push('/login')}
+              onRegister={() => router.push('/login/daftar')}
+              onCatalog={() => router.push('/katalog')}
+              onEvents={() => router.push('/kegiatan')}
+              onDonate={() => router.push('/donasi')}
+            />
+          </div>
         )}
       </main>
 

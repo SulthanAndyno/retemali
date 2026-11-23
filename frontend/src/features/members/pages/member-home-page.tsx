@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, MapPin, QrCode, Wallet } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, MapPin, Wallet } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button, LinkButton } from '@/shared/components/ui/button';
 import { Card, SectionTitle, StatCard } from '@/shared/components/ui/card';
@@ -122,8 +122,8 @@ export function MemberHomePage() {
         <StatCard
           label="Kehadiran tercatat"
           value={MEMBER_ATTENDANCE.length}
-          icon={<QrCode className="h-5 w-5" aria-hidden />}
-          hint="Check-in QR kegiatan"
+          icon={<ClipboardCheck className="h-5 w-5" aria-hidden />}
+          hint="Check-in E-Tiket kegiatan"
         />
         <StatCard
           label="Notifikasi belum dibaca"
@@ -145,9 +145,9 @@ export function MemberHomePage() {
       ) : null}
 
       <div className="flex flex-wrap gap-3">
-        <LinkButton href="/member/qr-absensi" variant="secondary" size="sm">
-          <QrCode className="h-4 w-4" aria-hidden />
-          Buka QR Absensi
+        <LinkButton href="/member/kegiatan" variant="secondary" size="sm">
+          <CalendarDays className="h-4 w-4" aria-hidden />
+          Lihat E-Tiket Kegiatan
         </LinkButton>
         <LinkButton href="/member/notifikasi" variant="ghost" size="sm">
           Buka Notifikasi
@@ -273,8 +273,8 @@ export function MemberHomePage() {
                 </p>
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-primary-deep">
                   <Wallet className="h-3.5 w-3.5" aria-hidden />
-                  {Number(event.infaqAmount) > 0
-                    ? `Infaq ${formatRupiah(Number(event.infaqAmount))}`
+                  {Number(event.ticketPrice) > 0
+                    ? `Tiket Masuk ${formatRupiah(Number(event.ticketPrice))}`
                     : 'Gratis'}
                 </p>
                 <Link

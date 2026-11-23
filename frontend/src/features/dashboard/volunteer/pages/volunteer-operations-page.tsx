@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useRole } from '@/features/auth';
 import { useVolunteerDashboard } from '../hooks/use-volunteer-dashboard';
 import { useShiftClock } from '../hooks/use-shift-clock';
 import { useQuickCirculation } from '../hooks/use-quick-circulation';
 import { useTicketCheckIn } from '../hooks/use-ticket-check-in';
 import { useDonationVerification } from '../hooks/use-donation-verification';
 import { useHandoverNote } from '../hooks/use-handover-note';
-import { RoleSwitchCard } from '../components/role-switch-card';
 import { ActiveShiftCard } from '../components/active-shift-card';
 import { MetricGrid } from '../components/metric-grid';
 import { QuickCirculationCard } from '../components/quick-circulation-card';
@@ -17,6 +15,7 @@ import { AttendanceCard } from '../components/attendance-card';
 import { PendingDonationsCard } from '../components/pending-donations-card';
 import { HandoverNoteCard } from '../components/handover-note-card';
 import { VolunteerToast } from '../components/volunteer-toast';
+import { TicketCredentialModal } from '@/features/events';
 import { VolunteerDashboardLoading } from '../components/volunteer-dashboard-loading';
 import { VolunteerDashboardError } from '../components/volunteer-dashboard-error';
 import { DEFAULT_SHIFT_LOCATION, DEFAULT_SHIFT_TYPE } from '../lib/volunteer-constants';
@@ -35,13 +34,6 @@ const EMPTY_METRICS: TodayMetrics = {
 
 export function VolunteerOperationsPage() {
   const router = useRouter();
-  const {
-    activeRole,
-    isVolunteerMode,
-    canSwitchVolunteer,
-    switching: roleSwitching,
-    switchRole,
-  } = useRole();
 
   const { data, loading, error, reload, refresh } = useVolunteerDashboard();
 
@@ -77,18 +69,6 @@ export function VolunteerOperationsPage() {
   const ticket = useTicketCheckIn(refresh);
   const donations = useDonationVerification(refresh);
   const note = useHandoverNote(activeShift?.shiftType ?? DEFAULT_SHIFT_TYPE);
-
-  const handleToggleRole = async () => {
-    try {
-      const result = await switchRole(isVolunteerMode ? 'MEMBER' : 'VOLUNTEER');
-      showToast(result?.note ?? 'Mode peran diperbarui.');
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Gagal mengganti peran.',
-        'error'
-      );
-    }
-  };
 
   const handleToggleClock = async () => {
     const wasClockedIn = clock.isClockedIn;
@@ -165,20 +145,19 @@ export function VolunteerOperationsPage() {
     <div className="space-y-3.5 text-slate-800">
       <VolunteerToast toast={toast} />
 
+      <TicketCredentialModal
+        open={Boolean(ticket.credential)}
+        credential={ticket.credential}
+        onClose={ticket.closeCredential}
+        onCopyCode={(code) => showToast(`Kode ${code} disalin.`, 'success')}
+      />
+
       {loading || isRedirecting ? (
         <VolunteerDashboardLoading />
       ) : error && !data ? (
         <VolunteerDashboardError message={error.message} onRetry={() => void reload()} />
       ) : (
         <div className="space-y-3.5">
-          <RoleSwitchCard
-            activeRole={activeRole}
-            isVolunteerMode={isVolunteerMode}
-            canSwitch={canSwitchVolunteer}
-            switching={roleSwitching}
-            onToggle={handleToggleRole}
-          />
-
           <ActiveShiftCard
             shiftLabel={shiftLabel(activeShift?.shiftType)}
             location={activeShift?.location ?? DEFAULT_SHIFT_LOCATION}

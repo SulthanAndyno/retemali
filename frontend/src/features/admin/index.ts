@@ -16,6 +16,4 @@ export {
   DUMMY_DONATIONS,
   DUMMY_MEMBERS,
   DUMMY_PENDING_PAYMENTS,
-  DUMMY_QR_TOKENS,
-  DUMMY_SITE_SETTINGS,
 } from './fixtures/admin-dummy';

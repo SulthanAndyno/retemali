@@ -12,7 +12,9 @@ export function HomeFeaturedEvent({ event, onViewEvents }: HomeFeaturedEventProp
   if (!event) return null;
 
   const feeLabel =
-    event.feeType === 'FREE' ? 'Gratis' : formatCurrency(Number(event.infaqAmount ?? 0));
+    event.feeType === 'FREE'
+      ? 'Gratis'
+      : `Tiket ${formatCurrency(Number(event.ticketPrice ?? 0))}`;
 
   return (
     <section className="space-y-3">

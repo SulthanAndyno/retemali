@@ -7,15 +7,8 @@
  * Provider berada di `features/auth/providers`; barrel ini menjadi public API.
  */
 export { AuthProvider, useAuth } from './providers/auth-provider';
-export { RoleProvider, useRole } from './providers/role-provider';
 export { LoginPage } from './pages/login-page';
 export { RegisterPage } from './pages/register-page';
 export { ForgotPasswordPage } from './pages/forgot-password-page';
 
-export type {
-  ActiveRole,
-  RoleMode,
-  RoleSwitchResult,
-  SwitchableRole,
-} from './providers/role-provider';
 export type { Role, SafeUser, User } from './types';

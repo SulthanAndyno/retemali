@@ -46,7 +46,7 @@ export function labelPaymentMethod(method: string): string {
 }
 
 function toCategory(source: UpstreamCashTransaction['source']): CashCategory {
-  if (source === 'EVENT_INFAQ') return 'INFAQ_KEGIATAN';
+  if (source === 'EVENT_TICKET') return 'TIKET_KEGIATAN';
   if (source === 'CIRCULATION_FINE') return 'DENDA_SIRKULASI';
   return 'DONASI_FINANSIAL';
 }
@@ -91,15 +91,15 @@ export function buildCashReport(
   const donationIncome = summary?.totalDonations
     ? toNumber(summary.totalDonations)
     : sumBy('DONASI_FINANSIAL');
-  const eventInfaqIncome = summary?.totalEventInfaq
-    ? toNumber(summary.totalEventInfaq)
-    : sumBy('INFAQ_KEGIATAN');
+  const eventTicketIncome = summary?.totalEventTicket
+      ? toNumber(summary.totalEventTicket)
+      : sumBy('TIKET_KEGIATAN');
   const fineIncome = summary?.totalFines
     ? toNumber(summary.totalFines)
     : sumBy('DENDA_SIRKULASI');
   const totalIncome = summary?.totalIncome
     ? toNumber(summary.totalIncome)
-    : fallbackTotal || donationIncome + eventInfaqIncome + fineIncome;
+    : fallbackTotal || donationIncome + eventTicketIncome + fineIncome;
 
   const byCategory = CASH_CATEGORY_ORDER.map((category) => {
     const subset = entries.filter((entry) => entry.category === category);
@@ -154,7 +154,7 @@ export function buildCashReport(
       totalExpense: 0,
       netCashFlow: totalIncome,
       donationIncome,
-      eventInfaqIncome,
+      eventTicketIncome,
       fineIncome,
       transactionCount: summary?.totalTransactions
         ? toNumber(summary.totalTransactions)

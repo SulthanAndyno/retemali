@@ -1,9 +1,9 @@
 export { MemberShell } from './shell/member-shell';
+export { TicketCredentialButton } from './components/ticket-credential-button';
 export { MemberHomePage } from './pages/member-home-page';
 export { MemberLoansPage } from './pages/member-loans-page';
 export { MemberLoanDetailPage } from './pages/member-loan-detail-page';
 export { MemberActivitiesPage } from './pages/member-activities-page';
-export { MemberQrPage } from './pages/member-qr-page';
 export { MemberNotificationsPage } from './pages/member-notifications-page';
 export { MemberProfilePage } from './pages/member-profile-page';
 export { MemberSettingsPage } from './pages/member-settings-page';

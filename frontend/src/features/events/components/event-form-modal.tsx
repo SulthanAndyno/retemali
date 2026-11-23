@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { X } from 'lucide-react';
-import { EVENT_CATEGORY_OPTIONS } from '../lib/event-options';
+import { EVENT_CATEGORY_OPTIONS, EVENT_CLOSE_OFFSET_OPTIONS } from '../lib/event-options';
+import { computeEventTimeline, formatWibDateTime } from '@/shared/lib/event-timeline';
 import type { EventFormValues, EventItem } from '../types/event.types';
 import { BannerUpload } from './banner-upload';
 
@@ -38,6 +39,22 @@ export function EventFormModal({
     event.preventDefault();
     onSubmit();
   };
+
+  // Pratinjau batas pendaftaran (H-N dalam WIB) langsung di form admin.
+  const closePreview = (() => {
+    if (!form.eventDate || !form.startTime) {
+      return 'Pilih tanggal dan jam mulai untuk melihat batas pendaftaran.';
+    }
+    const timeline = computeEventTimeline({
+      eventDate: `${form.eventDate}T00:00:00+07:00`,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      registrationCloseOffsetDays: form.registrationCloseOffsetDays,
+    });
+    return timeline.registrationCloseAt
+      ? `Pendaftaran ditutup ${timeline.closeRule}: ${formatWibDateTime(timeline.registrationCloseAt)}`
+      : 'Batas pendaftaran belum dapat dihitung.';
+  })();
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -182,7 +199,9 @@ export function EventFormModal({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Biaya Acara</label>
+              <label className="font-semibold text-slate-700 block mb-1">
+                Biaya Kegiatan
+              </label>
               <select
                 value={form.feeType}
                 onChange={(event) =>
@@ -190,24 +209,51 @@ export function EventFormModal({
                 }
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="FREE">Gratis (Free)</option>
-                <option value="INFAQ">Infaq Sukarela</option>
+                <option value="FREE">Gratis (tanpa tiket masuk)</option>
+                <option value="PAID">Pembayaran Tiket Masuk</option>
               </select>
             </div>
-            {form.feeType === 'INFAQ' && (
+            {form.feeType === 'PAID' && (
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  Saran Infaq (Rp)
+                  Harga Tiket Masuk (Rp)
                 </label>
                 <input
                   type="number"
                   min={0}
-                  value={form.infaqAmount}
-                  onChange={(event) => onChange('infaqAmount', Number(event.target.value))}
+                  step={1000}
+                  value={form.ticketPrice}
+                  onChange={(event) => onChange('ticketPrice', Number(event.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Isi 0 untuk kegiatan gratis tanpa tiket masuk.
+                </p>
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">
+              Pendaftaran Ditutup
+            </label>
+            <select
+              value={form.registrationCloseOffsetDays}
+              onChange={(event) =>
+                onChange(
+                  'registrationCloseOffsetDays',
+                  Number(event.target.value) as EventFormValues['registrationCloseOffsetDays']
+                )
+              }
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {EVENT_CLOSE_OFFSET_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} — {option.description}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-500 mt-1">{closePreview}</p>
           </div>
 
           <div>

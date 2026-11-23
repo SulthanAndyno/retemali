@@ -13,8 +13,8 @@ export function AdminAttendancePage() {
   return (
     <div className="space-y-4">
       <SectionTitle
-        title="QR dan Absensi"
-        description="Kehadiran kegiatan; pengelolaan token QR masih menunggu backend."
+        title="Absensi Kegiatan"
+        description="Rekap kehadiran peserta per kegiatan; kelola check-in lewat halaman detail."
       />
 
       {error ? (

@@ -4,14 +4,18 @@ import { useCallback, useState } from 'react';
 import { checkInTicket } from '../api/volunteer.api';
 import { errorMessage } from '../lib/volunteer-error';
 import type { ActionResult } from '../types/volunteer.types';
+import type { TicketCredential } from '@/features/events';
 
 export interface UseTicketCheckInResult {
   showInput: boolean;
   code: string;
   pending: boolean;
+  /** Kredensial peserta yang baru saja check-in, untuk ditunjukkan ke petugas. */
+  credential: TicketCredential | null;
   openInput: () => void;
   setCode: (value: string) => void;
   submit: () => Promise<ActionResult>;
+  closeCredential: () => void;
 }
 
 export function useTicketCheckIn(
@@ -20,6 +24,7 @@ export function useTicketCheckIn(
   const [showInput, setShowInput] = useState(false);
   const [code, setCode] = useState('');
   const [pending, setPending] = useState(false);
+  const [credential, setCredential] = useState<TicketCredential | null>(null);
 
   const openInput = useCallback(() => setShowInput(true), []);
 
@@ -31,9 +36,12 @@ export function useTicketCheckIn(
 
     setPending(true);
     try {
-      await checkInTicket(cleanCode);
+      const response = await checkInTicket(cleanCode);
       setCode('');
       setShowInput(false);
+      if (response.data?.ticketCredential) {
+        setCredential(response.data.ticketCredential);
+      }
       await onSuccess();
       return { ok: true };
     } catch (err) {
@@ -46,5 +54,14 @@ export function useTicketCheckIn(
     }
   }, [code, onSuccess]);
 
-  return { showInput, code, pending, openInput, setCode, submit };
+  return {
+    showInput,
+    code,
+    pending,
+    credential,
+    openInput,
+    setCode,
+    submit,
+    closeCredential: () => setCredential(null),
+  };
 }

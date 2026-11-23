@@ -78,7 +78,7 @@ export function EventPaymentVerificationCard({
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-[10px] font-bold text-emerald-700">
-                    {formatCurrency(Number(row.event.infaqAmount ?? 0))}
+                    {formatCurrency(Number(row.event.ticketPrice ?? 0))}
                   </p>
                   <span
                     className={`inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${

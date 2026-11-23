@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown, LogOut, type LucideIcon } from 'lucide-react';
+import { ChevronDown, Home, LogOut, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Logo } from '@/shared/components/ui/logo';
 import { DashboardBottomNav } from '@/shared/components/layout/dashboard-bottom-nav';
@@ -190,6 +190,16 @@ export function DashboardShell({
         }`}
       >
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-surface-soft bg-white/90 px-4 backdrop-blur lg:px-6">
+          <Link
+            href="/"
+            aria-label="Kembali ke beranda"
+            title="Kembali ke Beranda"
+            className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-field border border-surface-soft px-2.5 text-sm font-semibold text-ink-soft transition-colors hover:border-primary/30 hover:bg-surface-blue hover:text-primary-deep focus-visible:ring-2 focus-visible:ring-primary/40 lg:h-9 lg:min-w-0 lg:px-3"
+          >
+            <Home className="h-4 w-4" aria-hidden />
+            <span className="hidden lg:inline">Beranda</span>
+          </Link>
+
           <h1 className="min-w-0 flex-1 truncate text-base font-bold text-primary-deep lg:text-lg">
             {findActiveTitle(pathname, items, brandHref, titleFallback)}
           </h1>

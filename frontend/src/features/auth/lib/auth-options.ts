@@ -17,7 +17,7 @@ export const ACCESS_MODES: readonly AccessModeOption[] = [
   {
     key: 'MEMBER',
     label: 'Member',
-    desc: 'Akses peminjaman, kegiatan, QR absensi, dan profil.',
+    desc: 'Akses peminjaman, kegiatan, E-Tiket, dan profil.',
   },
   {
     key: 'VOLUNTEER',

@@ -67,7 +67,7 @@ export function buildCashWorkbook(report: CashReport): Buffer {
     ['Total pengeluaran', report.summary.totalExpense],
     ['Arus kas bersih', report.summary.netCashFlow],
     ['Donasi finansial terverifikasi', report.summary.donationIncome],
-    ['Infaq kegiatan', report.summary.eventInfaqIncome],
+    ['Tiket masuk kegiatan', report.summary.eventTicketIncome],
     ['Denda sirkulasi', report.summary.fineIncome],
     ['Jumlah transaksi', report.summary.transactionCount],
     [],

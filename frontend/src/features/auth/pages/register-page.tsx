@@ -26,7 +26,7 @@ export function RegisterPage() {
               Registrasi Member Baru
             </h1>
             <p className="mt-1 text-sm text-ink-soft">
-              Daftar sekarang untuk meminjam buku, reservasi kegiatan komunitas,
+              Daftar sekarang untuk meminjam buku, mendaftar kegiatan komunitas,
               dan menikmati fasilitas digital ReteMali.
             </p>
           </>

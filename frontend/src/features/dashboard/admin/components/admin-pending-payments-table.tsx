@@ -28,7 +28,7 @@ export function AdminPendingPaymentsTable({
   const realRows: PaymentRow[] = rows.map((row) => ({
     id: row.id,
     label: `${row.user.name} • ${row.event.title}`,
-    amount: Number(row.event.infaqAmount ?? 0),
+    amount: Number(row.event.ticketPrice ?? 0),
     method: '-',
     createdAt: row.createdAt,
     dummy: false,
