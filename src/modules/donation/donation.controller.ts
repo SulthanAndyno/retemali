@@ -6,7 +6,9 @@ import {
   createBookDonationSchema,
   createFinancialDonationSchema,
   donationQuerySchema,
+  paymentAccountSchema,
   paymentWebhookSchema,
+  updatePaymentAccountSchema,
   verifyBookDonationSchema,
 } from "./donation.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
@@ -216,6 +218,89 @@ export class DonationController {
         res,
         message: "Berhasil mengambil data pengaturan rekening pembayaran",
         data: setting,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAdminPaymentAccounts = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const accounts = await this.donationService.getAdminPaymentAccounts();
+      successResponse({
+        res,
+        message: "Berhasil mengambil seluruh kanal pembayaran",
+        data: accounts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createPaymentAccount = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const data = paymentAccountSchema.parse(req.body);
+      const account = await this.donationService.createPaymentAccount(
+        data,
+        req.file,
+      );
+
+      successResponse({
+        res,
+        statusCode: 201,
+        message: "Kanal pembayaran berhasil ditambahkan",
+        data: account,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updatePaymentAccount = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const data = updatePaymentAccountSchema.parse(req.body);
+      const account = await this.donationService.updatePaymentAccount(
+        String(req.params.id),
+        data,
+        req.file,
+      );
+
+      successResponse({
+        res,
+        message: "Kanal pembayaran berhasil diperbarui",
+        data: account,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deletePaymentAccount = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const account = await this.donationService.deletePaymentAccount(
+        String(req.params.id),
+      );
+
+      successResponse({
+        res,
+        message: "Kanal pembayaran berhasil dihapus",
+        data: account,
       });
     } catch (error) {
       next(error);

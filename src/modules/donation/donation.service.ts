@@ -8,7 +8,9 @@ import {
   CreateBookDonationInput,
   CreateFinancialDonationInput,
   DonationQueryInput,
+  PaymentAccountInput,
   PaymentWebhookInput,
+  UpdatePaymentAccountInput,
   VerifyBookDonationInput,
 } from "./donation.validation";
 
@@ -90,5 +92,49 @@ export class DonationService {
 
   async getPaymentSetting() {
     return this.donationRepository.getPaymentSetting();
+  }
+
+  async getAdminPaymentAccounts() {
+    return this.donationRepository.getAdminPaymentAccounts();
+  }
+
+  async createPaymentAccount(
+    input: PaymentAccountInput,
+    file?: Express.Multer.File,
+  ) {
+    const qrisImageUrl = file
+      ? `uploads/payment-accounts/${file.filename}`
+      : undefined;
+
+    if (input.type === "QRIS" && !qrisImageUrl && !input.qrisNmid) {
+      throw new AppError(
+        "Kanal QRIS membutuhkan gambar QR atau NMID sebagai identitas pembayaran",
+        400,
+      );
+    }
+
+    return this.donationRepository.createPaymentAccount({
+      ...input,
+      qrisImageUrl,
+    });
+  }
+
+  async updatePaymentAccount(
+    id: string,
+    input: UpdatePaymentAccountInput,
+    file?: Express.Multer.File,
+  ) {
+    const qrisImageUrl = file
+      ? `uploads/payment-accounts/${file.filename}`
+      : undefined;
+
+    return this.donationRepository.updatePaymentAccount(id, {
+      ...input,
+      qrisImageUrl,
+    });
+  }
+
+  async deletePaymentAccount(id: string) {
+    return this.donationRepository.deletePaymentAccount(id);
   }
 }

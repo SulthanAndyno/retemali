@@ -20,6 +20,7 @@ export class DashboardRepository {
       featuredEvents,
       activeCampaign,
       galleryPhotos,
+      siteSetting,
     ] = await this.prisma.$transaction([
       this.prisma.book.aggregate({
         _sum: {
@@ -51,6 +52,7 @@ export class DashboardRepository {
           { createdAt: "desc" },
         ],
       }),
+      this.prisma.siteSetting.findUnique({ where: { id: "default" } }),
     ]);
 
     const totalStock = totalBooksAgg._sum.totalStock ?? 0;
@@ -61,10 +63,15 @@ export class DashboardRepository {
 
     return {
       communityInfo: {
-        name: "Taman Baca Rete Mali",
-        area: "RT 05 RW 14 Kelurahan Jatirangga",
-        openDays: "Selasa - Minggu",
-        openHours: "09:00 - 18:00 WIB",
+        name: siteSetting?.siteName ?? "Taman Baca Rete Mali",
+        tagline: siteSetting?.tagline ?? "Ruang belajar & literasi warga",
+        area: siteSetting?.address ?? "RT 05 RW 14 Kelurahan Jatirangga",
+        phone: siteSetting?.phone ?? null,
+        email: siteSetting?.email ?? null,
+        mapsUrl: siteSetting?.mapsUrl ?? null,
+        instagramUrl: siteSetting?.instagramUrl ?? null,
+        openDays: siteSetting?.openDays ?? "Selasa - Minggu",
+        openHours: siteSetting?.openHours ?? "09:00 - 18:00 WIB",
         timezone: WIB_TIMEZONE,
       },
       metrics: {

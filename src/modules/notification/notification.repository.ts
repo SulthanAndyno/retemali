@@ -1,10 +1,11 @@
 import { PrismaClient } from "../../../generated/prisma";
 import {
   combineEventDateTimeWib,
-  EVENT_CLOSE_DAYS_BEFORE,
+  formatCloseRule,
   formatDateTimeWib,
   formatDateWib,
   getEventRegistrationCutoffWib,
+  normalizeCloseOffsetDays,
 } from "../../utils/date-wib";
 
 export interface ActivityNotificationItem {
@@ -83,20 +84,24 @@ export class NotificationRepository {
       });
     }
 
-    // 2. Notifikasi Event Baru & Penutupan Event H-3 (WIB)
+    // 2. Notifikasi Event Baru & Penutupan Pendaftaran (H-N, WIB)
     for (const ev of recentEvents) {
       const eventStartWib = combineEventDateTimeWib(ev.eventDate, ev.startTime);
-      const cutoffH3Wib = getEventRegistrationCutoffWib(
+      const closeOffsetDays = normalizeCloseOffsetDays(
+        ev.registrationCloseOffsetDays,
+      );
+      const closeRule = formatCloseRule(closeOffsetDays);
+      const cutoffWib = getEventRegistrationCutoffWib(
         ev.eventDate,
         ev.startTime,
-        EVENT_CLOSE_DAYS_BEFORE,
+        closeOffsetDays,
       );
 
       items.push({
         id: `event-${ev.id}`,
         kind: "EVENT",
         title: `Kegiatan Baru: ${ev.title}`,
-        description: `Dilaksanakan pada ${formatDateWib(ev.eventDate)} pukul ${ev.startTime}-${ev.endTime} WIB. Penutupan pendaftaran H-3: ${formatDateTimeWib(cutoffH3Wib)}. Kuota: ${ev.registeredCount}/${ev.quota} peserta.`,
+        description: `Dilaksanakan pada ${formatDateWib(ev.eventDate)} pukul ${ev.startTime}-${ev.endTime} WIB. Penutupan pendaftaran ${closeRule}: ${formatDateTimeWib(cutoffWib)}. Kuota: ${ev.registeredCount}/${ev.quota} peserta.`,
         createdAt: ev.createdAt,
         severity: "info",
         href: `/kegiatan`,
@@ -113,13 +118,13 @@ export class NotificationRepository {
           severity: "warning",
           href: `/kegiatan`,
         });
-      } else if (now >= cutoffH3Wib) {
+      } else if (now >= cutoffWib) {
         items.push({
-          id: `event-closed-h3-${ev.id}`,
+          id: `event-closed-cutoff-${ev.id}`,
           kind: "EVENT_CLOSED",
-          title: `Pendaftaran Ditutup Otomatis (H-3): ${ev.title}`,
-          description: `Batas pendaftaran H-3 (${formatDateTimeWib(cutoffH3Wib)}) telah terlewati. Pendaftaran kegiatan ditutup otomatis.`,
-          createdAt: cutoffH3Wib,
+          title: `Pendaftaran Ditutup Otomatis (${closeRule}): ${ev.title}`,
+          description: `Batas pendaftaran ${closeRule} (${formatDateTimeWib(cutoffWib)}) telah terlewati. Pendaftaran kegiatan ditutup otomatis.`,
+          createdAt: cutoffWib,
           severity: "warning",
           href: `/kegiatan`,
         });
@@ -139,7 +144,7 @@ export class NotificationRepository {
       });
     }
 
-    // 4. Notifikasi Peminjaman / Reservasi Siap Diambil
+    // 4. Notifikasi Peminjaman Siap Diambil
     for (const res of userReservations) {
       items.push({
         id: `res-pickup-${res.id}`,

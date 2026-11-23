@@ -165,7 +165,7 @@ export class EventController {
         res,
         statusCode: 201,
         message:
-          "Berhasil mendaftar kegiatan. Kredensial E-Tiket QR telah diterbitkan",
+          "Berhasil mendaftar kegiatan. Kredensial E-Tiket telah diterbitkan",
         data: ticket,
       });
     } catch (error) {

@@ -11,7 +11,11 @@ import {
   QuickCheckoutInput,
   QuickReturnInput,
 } from "./circulation.validation";
-import { formatDateWib } from "../../utils/date-wib";
+import {
+  addDaysEndOfDayWib,
+  formatDateWib,
+  getWibYear,
+} from "../../utils/date-wib";
 
 interface FindAllLoanOptions {
   skip: number;
@@ -33,14 +37,14 @@ export class CirculationRepository {
   }
 
   private async generateLoanCode(): Promise<string> {
-    const year = new Date().getFullYear();
+    const year = getWibYear();
     const count = await this.prisma.bookLoan.count();
     const seq = String(count + 1).padStart(4, "0");
     return `LN-${year}-${seq}`;
   }
 
   /**
-   * Membuat reservasi buku baru (tahan stok selama 48 jam di Loket Sirkulasi).
+   * Mengajukan peminjaman buku baru (tahan stok selama 48 jam di Loket Sirkulasi).
    */
   async createReservation(
     userId: string,
@@ -73,7 +77,7 @@ export class CirculationRepository {
     });
 
     if (existingActive) {
-      throw new AppError("Anda sudah mereservasi buku ini", 400);
+      throw new AppError("Anda sudah mengajukan peminjaman buku ini", 400);
     }
 
     const reservationCode = await this.generateReservationCode();
@@ -106,7 +110,7 @@ export class CirculationRepository {
   }
 
   /**
-   * Mengambil daftar reservasi buku milik user tertentu.
+   * Mengambil daftar peminjaman buku milik user tertentu.
    */
   async findReservationsByUser(userId: string): Promise<BookReservation[]> {
     return this.prisma.bookReservation.findMany({
@@ -117,7 +121,7 @@ export class CirculationRepository {
   }
 
   /**
-   * Membatalkan reservasi buku dan mengembalikan stok tersedia.
+   * Membatalkan peminjaman buku dan mengembalikan stok tersedia.
    */
   async cancelReservation(id: string): Promise<BookReservation> {
     const reservation = await this.prisma.bookReservation.findUnique({
@@ -126,11 +130,11 @@ export class CirculationRepository {
     });
 
     if (!reservation) {
-      throw new AppError("Data reservasi tidak ditemukan", 404);
+      throw new AppError("Data peminjaman tidak ditemukan", 404);
     }
 
     if (reservation.status !== "READY_FOR_PICKUP") {
-      throw new AppError("Reservasi ini sudah tidak aktif", 400);
+      throw new AppError("Peminjaman ini sudah tidak aktif", 400);
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -206,7 +210,8 @@ export class CirculationRepository {
 
     const loanCode = await this.generateLoanCode();
     const durationDays = data.durationDays ?? 14;
-    const dueDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    // Tenggat selalu jatuh pada 23:59:59 WIB di hari ke-N, bukan jam peminjaman.
+    const dueDate = addDaysEndOfDayWib(new Date(), durationDays);
 
     return this.prisma.$transaction(async (tx) => {
       if (activeReservation) {
@@ -447,7 +452,7 @@ export class CirculationRepository {
       );
     }
 
-    const newDueDate = new Date(loan.dueDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const newDueDate = addDaysEndOfDayWib(loan.dueDate, 7);
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.bookLoan.update({

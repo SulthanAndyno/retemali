@@ -17,9 +17,10 @@ import {
 import {
   combineEventDateTimeWib,
   DAY_IN_MS,
-  EVENT_CLOSE_DAYS_BEFORE,
+  formatCloseRule,
   formatDateTimeWib,
   getEventRegistrationCutoffWib,
+  normalizeCloseOffsetDays,
   toWibIsoString,
   WIB_TIMEZONE,
 } from "../../utils/date-wib";
@@ -42,14 +43,32 @@ export class EventRepository {
     this.prisma = prisma;
   }
 
+  /**
+   * Menerbitkan kode E-Tiket unik berformat `TKT-XXXXXX`.
+   * Kode diperiksa ke database dan diulang bila bentrok, karena kolom
+   * `ticketCode` bersifat unik — pola lama (angka acak + jumlah baris) bisa
+   * menghasilkan duplikat dan menggagalkan pendaftaran.
+   */
   private async generateTicketCode(): Promise<string> {
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const count = await this.prisma.eventRegistration.count();
-    return `RETEMALI-EV-${randomNum + count}`;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const candidate = `TKT-${random}`;
+      const existing = await this.prisma.eventRegistration.findUnique({
+        where: { ticketCode: candidate },
+        select: { id: true },
+      });
+      if (!existing) return candidate;
+    }
+    throw new AppError(
+      "Gagal menerbitkan kode tiket unik. Silakan coba lagi.",
+      503,
+    );
   }
 
   /**
-   * Menghitung status penutupan otomatis H-3 dalam zona waktu WIB (Asia/Jakarta).
+   * Menghitung status penutupan otomatis pendaftaran dalam zona waktu WIB
+   * (Asia/Jakarta). Offset H-N diambil dari `registrationCloseOffsetDays`
+   * milik kegiatan (1, 2, atau 3 hari sebelum pelaksanaan).
    */
   private evaluateEventTimelineWib(
     event: CommunityEvent,
@@ -64,16 +83,22 @@ export class EventRepository {
       endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
     }
 
+    const closeOffsetDays = normalizeCloseOffsetDays(
+      event.registrationCloseOffsetDays,
+    );
+    const closeRule = formatCloseRule(closeOffsetDays);
+
     const registrationCloseAt = getEventRegistrationCutoffWib(
       event.eventDate,
       event.startTime,
-      EVENT_CLOSE_DAYS_BEFORE,
+      closeOffsetDays,
     );
 
     const isEventEnded = now.getTime() >= endsAt.getTime();
     const isEventOngoing =
       now.getTime() >= startsAt.getTime() && now.getTime() < endsAt.getTime();
-    const isHMinus3Closed = now.getTime() >= registrationCloseAt.getTime();
+    const isRegistrationCutoffPassed =
+      now.getTime() >= registrationCloseAt.getTime();
     const isQuotaFull = event.registeredCount >= event.quota;
     const seatsLeft = Math.max(0, event.quota - event.registeredCount);
 
@@ -100,20 +125,19 @@ export class EventRepository {
         "Waktu pelaksanaan kegiatan telah berakhir — pendaftaran ditutup otomatis.";
     } else if (isEventOngoing) {
       phase = "ONGOING";
-      label = "Sedang Berlangsung • Pendaftaran Ditutup (H-3)";
-      closedReason =
-        "Kegiatan sedang berlangsung dan pendaftaran telah ditutup sejak H-3.";
-    } else if (isHMinus3Closed) {
+      label = `Sedang Berlangsung • Pendaftaran Ditutup (${closeRule})`;
+      closedReason = `Kegiatan sedang berlangsung dan pendaftaran telah ditutup sejak ${closeRule}.`;
+    } else if (isRegistrationCutoffPassed) {
       phase = "ENDED";
-      label = "Pendaftaran Ditutup Otomatis (H-3)";
-      closedReason = `Pendaftaran ditutup otomatis pada H-3 sebelum pelaksanaan (${formatDateTimeWib(registrationCloseAt)}).`;
+      label = `Pendaftaran Ditutup Otomatis (${closeRule})`;
+      closedReason = `Pendaftaran ditutup otomatis pada ${closeRule} sebelum pelaksanaan (${formatDateTimeWib(registrationCloseAt)}).`;
     } else if (isQuotaFull) {
       phase = "QUOTA_FULL";
       label = "Kuota Penuh";
       closedReason = "Kuota peserta sudah penuh.";
     }
 
-    const isAutoClosed = isHMinus3Closed || isEventEnded;
+    const isAutoClosed = isRegistrationCutoffPassed || isEventEnded;
     const isRegistrationOpen =
       !isAutoClosed && !isQuotaFull && event.status === "PUBLISHED";
 
@@ -121,8 +145,10 @@ export class EventRepository {
       startsAt,
       endsAt,
       registrationCloseAt,
+      closeOffsetDays,
+      closeRule,
       isEventEnded,
-      isHMinus3Closed,
+      isRegistrationCutoffPassed,
       isQuotaFull,
       seatsLeft,
       isAutoClosed,
@@ -130,13 +156,13 @@ export class EventRepository {
       phase,
       label,
       closedReason,
-      closeRule: `H-${EVENT_CLOSE_DAYS_BEFORE}`,
       timezone: WIB_TIMEZONE,
     };
   }
 
   /**
-   * Memperkaya objek registrasi/tiket dengan informasi kredensial tiket & bukti pembayaran.
+   * Memperkaya objek registrasi/tiket dengan informasi kredensial tiket,
+   * harga tiket masuk, dan bukti pembayaran yang siap dicetak.
    */
   private enrichTicketCredential<
     T extends EventRegistration & {
@@ -151,8 +177,8 @@ export class EventRepository {
     },
   >(registration: T) {
     const isPaidEvent =
-      registration.event?.feeType === "INFAQ" &&
-      Number(registration.event?.infaqAmount ?? 0) > 0;
+      registration.event?.feeType === "PAID" &&
+      Number(registration.event?.ticketPrice ?? 0) > 0;
 
     const credentialStatus =
       registration.status === "CANCELLED" ||
@@ -164,25 +190,59 @@ export class EventRepository {
             ? "USED_CHECKED_IN"
             : "ACTIVE_VALID";
 
+    /**
+     * Label status pembayaran yang dipakai di bukti pembayaran & E-Tiket.
+     * Kegiatan gratis tidak pernah menunggu verifikasi: statusnya langsung
+     * TERVERIFIKASI (tanpa pembayaran).
+     */
+    const paymentStatusLabel = !isPaidEvent
+      ? "GRATIS — TERVERIFIKASI"
+      : registration.paymentStatus === "VERIFIED"
+        ? "LUNAS / TERVERIFIKASI"
+        : registration.paymentStatus === "FAILED"
+          ? "PEMBAYARAN DITOLAK"
+          : "MENUNGGU VERIFIKASI";
+
+    const eventStart = registration.event
+      ? combineEventDateTimeWib(
+          registration.event.eventDate,
+          registration.event.startTime,
+        )
+      : null;
+
     return {
       ...registration,
       ticketCredential: {
         ticketCode: registration.ticketCode,
-        qrPayload: `RETEMALI_TICKET:${registration.ticketCode}:${registration.eventId}:${registration.userId}`,
         credentialStatus,
         isPaymentRequired: isPaidEvent,
+        ticketPrice: Number(registration.event?.ticketPrice ?? 0),
         hasPaymentProof: Boolean(registration.paymentProofUrl),
         paymentProofUrl: registration.paymentProofUrl,
         paymentStatus: isPaidEvent
           ? (registration.paymentStatus ?? "PENDING")
           : "FREE_VERIFIED",
+        paymentStatusLabel,
         paymentNote: registration.paymentNote ?? null,
         verifiedAt: registration.verifiedAt
           ? toWibIsoString(registration.verifiedAt)
           : null,
+        verifiedAtWib: registration.verifiedAt
+          ? formatDateTimeWib(registration.verifiedAt)
+          : null,
         issuedAtWib: formatDateTimeWib(registration.createdAt),
         checkedInAtWib: registration.checkedInAt
           ? formatDateTimeWib(registration.checkedInAt)
+          : null,
+        participantName: registration.user?.name ?? null,
+        participantCode: registration.user?.memberCode ?? null,
+        eventTitle: registration.event?.title ?? null,
+        eventScheduleWib: registration.event
+          ? `${formatDateTimeWib(eventStart ?? registration.event.eventDate)} – ${registration.event.endTime} WIB`
+          : null,
+        eventLocation: registration.event?.location ?? null,
+        eventDateWib: registration.event
+          ? formatDateTimeWib(registration.event.eventDate)
           : null,
       },
     };
@@ -208,7 +268,9 @@ export class EventRepository {
       }),
     };
 
-    const [data, total] = await this.prisma.$transaction([
+    // Read-only list + count: Promise.all instead of $transaction so a
+    // transaction-mode connection pooler cannot fail the request with P2028.
+    const [data, total] = await Promise.all([
       this.prisma.communityEvent.findMany({
         where,
         skip,
@@ -275,7 +337,8 @@ export class EventRepository {
           endTime: data.endTime,
           quota: data.quota,
           feeType: data.feeType,
-          infaqAmount: data.infaqAmount ?? 0,
+          ticketPrice: data.ticketPrice ?? data.infaqAmount ?? 0,
+          registrationCloseOffsetDays: data.registrationCloseOffsetDays ?? 1,
           materialsNote: data.materialsNote ?? null,
           bannerImage: bannerImagePath ?? null,
           isFeatured: data.isFeatured ?? false,
@@ -315,8 +378,12 @@ export class EventRepository {
     if (data.endTime !== undefined) updateData.endTime = data.endTime;
     if (data.quota !== undefined) updateData.quota = data.quota;
     if (data.feeType !== undefined) updateData.feeType = data.feeType;
-    if (data.infaqAmount !== undefined)
-      updateData.infaqAmount = data.infaqAmount;
+    if (data.ticketPrice !== undefined) updateData.ticketPrice = data.ticketPrice;
+    else if (data.infaqAmount !== undefined)
+      updateData.ticketPrice = data.infaqAmount;
+    if (data.registrationCloseOffsetDays !== undefined)
+      updateData.registrationCloseOffsetDays =
+        normalizeCloseOffsetDays(data.registrationCloseOffsetDays);
     if (data.materialsNote !== undefined)
       updateData.materialsNote = data.materialsNote;
     if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
@@ -380,9 +447,9 @@ export class EventRepository {
       );
     }
 
-    if (timeline.isHMinus3Closed) {
+    if (timeline.isRegistrationCutoffPassed) {
       throw new AppError(
-        `Pendaftaran kegiatan telah ditutup otomatis pada H-3 sebelum hari pelaksanaan (Batas akhir: ${formatDateTimeWib(timeline.registrationCloseAt)}).`,
+        `Pendaftaran kegiatan telah ditutup otomatis pada ${timeline.closeRule} sebelum hari pelaksanaan (Batas akhir: ${formatDateTimeWib(timeline.registrationCloseAt)}).`,
         400,
       );
     }
@@ -413,9 +480,9 @@ export class EventRepository {
       throw new AppError("Anda sudah terdaftar pada kegiatan ini", 400);
     }
 
-    // 3. Guard: Wajib Bukti Hasil Pembayaran untuk Kegiatan Berbayar / Infaq
+    // 3. Guard: wajib bukti pembayaran untuk kegiatan dengan tiket masuk berbayar
     const isPaidEvent =
-      event.feeType === "INFAQ" && Number(event.infaqAmount) > 0;
+      event.feeType === "PAID" && Number(event.ticketPrice) > 0;
 
     const normalizedProofUrl = paymentProofUrl
       ? normalizeGalleryImageUrl(paymentProofUrl)
@@ -423,7 +490,7 @@ export class EventRepository {
 
     if (isPaidEvent && !normalizedProofUrl) {
       throw new AppError(
-        "Kegiatan ini berbayar/infaq. Wajib melampirkan bukti hasil pembayaran (unggah file paymentProof atau sertakan paymentProofUrl) untuk menerbitkan kredensial tiket.",
+        "Kegiatan ini memerlukan Pembayaran Tiket Masuk. Wajib melampirkan bukti transfer (unggah file paymentProof atau sertakan paymentProofUrl) untuk menerbitkan kredensial E-Tiket.",
         400,
       );
     }
@@ -524,6 +591,16 @@ export class EventRepository {
     if (ticket.status === "CANCELLED" || ticket.paymentStatus === "FAILED") {
       throw new AppError(
         "Tiket ini telah dibatalkan atau bukti pembayarannya ditolak",
+        400,
+      );
+    }
+
+    // Kegiatan berbayar: E-Tiket hanya sah setelah tiket masuk lunas diverifikasi.
+    const requiresPayment =
+      ticket.event.feeType === "PAID" && Number(ticket.event.ticketPrice) > 0;
+    if (requiresPayment && ticket.paymentStatus !== "VERIFIED") {
+      throw new AppError(
+        "Tiket belum lunas. Verifikasi Pembayaran Tiket Masuk terlebih dahulu sebelum melakukan check-in.",
         400,
       );
     }
@@ -829,6 +906,9 @@ export class EventRepository {
         eventDate: event.eventDate,
         startTime: event.startTime,
         endTime: event.endTime,
+        feeType: event.feeType,
+        ticketPrice: Number(event.ticketPrice),
+        closeOffsetDays: timeline.closeOffsetDays,
         registrationCloseAt: toWibIsoString(timeline.registrationCloseAt),
         registrationCloseAtWib: formatDateTimeWib(timeline.registrationCloseAt),
         closeRule: timeline.closeRule,
@@ -838,7 +918,7 @@ export class EventRepository {
         registeredCount: event.registeredCount,
         seatsLeft: timeline.seatsLeft,
         isQuotaFull: timeline.isQuotaFull,
-        isHMinus3Closed: timeline.isHMinus3Closed,
+        isRegistrationCutoffPassed: timeline.isRegistrationCutoffPassed,
         isAutoClosed: timeline.isAutoClosed,
         isRegistrationOpen: timeline.isRegistrationOpen,
         phase: timeline.phase,

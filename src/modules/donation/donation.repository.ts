@@ -7,7 +7,9 @@ import {
 import {
   CreateBookDonationInput,
   CreateFinancialDonationInput,
+  PaymentAccountInput,
   PaymentWebhookInput,
+  UpdatePaymentAccountInput,
   VerifyBookDonationInput,
 } from "./donation.validation";
 
@@ -297,7 +299,7 @@ export class DonationRepository {
           },
           include: {
             event: {
-              select: { title: true, infaqAmount: true, feeType: true },
+              select: { title: true, ticketPrice: true, feeType: true },
             },
             user: { select: { name: true } },
           },
@@ -330,7 +332,7 @@ export class DonationRepository {
 
     const transactions: Array<{
       id: string;
-      source: "DONATION" | "EVENT_INFAQ" | "CIRCULATION_FINE";
+      source: "DONATION" | "EVENT_TICKET" | "CIRCULATION_FINE";
       title: string;
       payerOrDonor: string;
       amount: number;
@@ -356,16 +358,16 @@ export class DonationRepository {
       });
     }
 
-    let totalEventInfaq = 0;
+    let totalEventTicket = 0;
     for (const reg of paidEventRegistrations) {
-      const amt = Number(reg.event.infaqAmount || 0);
-      totalEventInfaq += amt;
+      const amt = Number(reg.event.ticketPrice || 0);
+      totalEventTicket += amt;
       methodTotals["BANK_TRANSFER"] = (methodTotals["BANK_TRANSFER"] || 0) + amt;
 
       transactions.push({
         id: reg.id,
-        source: "EVENT_INFAQ",
-        title: `Infaq Tiket Kegiatan: ${reg.event.title}`,
+        source: "EVENT_TICKET",
+        title: `Tiket Masuk Kegiatan: ${reg.event.title}`,
         payerOrDonor: reg.user.name,
         amount: amt,
         paymentMethod: "BANK_TRANSFER",
@@ -395,7 +397,7 @@ export class DonationRepository {
     // Urutkan transaksi gabungan berdasarkan tanggal terbaru
     transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-    const totalIncome = totalDonations + totalEventInfaq + totalFines;
+    const totalIncome = totalDonations + totalEventTicket + totalFines;
 
     return {
       period: {
@@ -405,7 +407,7 @@ export class DonationRepository {
       summary: {
         totalIncome,
         totalDonations,
-        totalEventInfaq,
+        totalEventTicket,
         totalFines,
         totalTransactions: transactions.length,
       },
@@ -422,6 +424,75 @@ export class DonationRepository {
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
     });
+  }
+
+  /**
+   * Mengambil seluruh kanal pembayaran (termasuk nonaktif) untuk admin.
+   */
+  async getAdminPaymentAccounts() {
+    return this.prisma.paymentAccount.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+  }
+
+  async createPaymentAccount(
+    input: PaymentAccountInput & { qrisImageUrl?: string },
+  ) {
+    return this.prisma.paymentAccount.create({
+      data: {
+        type: input.type,
+        providerName: input.providerName,
+        accountNumber: input.accountNumber || null,
+        accountName: input.accountName || null,
+        qrisNmid: input.qrisNmid || null,
+        qrisImageUrl: input.qrisImageUrl,
+        isActive: input.isActive ?? true,
+        sortOrder: input.sortOrder ?? 0,
+      },
+    });
+  }
+
+  async updatePaymentAccount(
+    id: string,
+    input: UpdatePaymentAccountInput & { qrisImageUrl?: string },
+  ) {
+    const existing = await this.prisma.paymentAccount.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new AppError("Kanal pembayaran tidak ditemukan", 404);
+    }
+
+    return this.prisma.paymentAccount.update({
+      where: { id },
+      data: {
+        type: input.type,
+        providerName: input.providerName,
+        accountNumber:
+          input.accountNumber === undefined
+            ? undefined
+            : input.accountNumber || null,
+        accountName:
+          input.accountName === undefined ? undefined : input.accountName || null,
+        qrisNmid: input.qrisNmid === undefined ? undefined : input.qrisNmid || null,
+        qrisImageUrl: input.qrisImageUrl,
+        isActive: input.isActive,
+        sortOrder: input.sortOrder,
+      },
+    });
+  }
+
+  async deletePaymentAccount(id: string) {
+    const existing = await this.prisma.paymentAccount.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new AppError("Kanal pembayaran tidak ditemukan", 404);
+    }
+
+    return this.prisma.paymentAccount.delete({ where: { id } });
   }
 
   /**

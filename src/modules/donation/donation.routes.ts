@@ -7,6 +7,7 @@ import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
 import { createUpload } from "@/middlewares/upload.middleware";
 
 const upload = createUpload("donations", "donation");
+const paymentUpload = createUpload("payment-accounts", "qris");
 
 const router: Router = Router();
 
@@ -16,7 +17,7 @@ const donationController = new DonationController(donationService);
 
 /**
  * @route   GET /api/donations/cash-report
- * @desc    Mengambil rekap laporan kas terpadu (donasi, infaq event, denda)
+ * @desc    Mengambil rekap laporan kas terpadu (donasi, tiket masuk kegiatan, denda)
  * @access  Private (Admin)
  */
 router.get(
@@ -24,6 +25,56 @@ router.get(
   authenticate,
   authorizeRoles("ADMIN"),
   donationController.getCashReport,
+);
+
+/**
+ * @route   GET /api/donations/payment-accounts/admin
+ * @desc    Mengambil seluruh kanal pembayaran (termasuk nonaktif) untuk admin
+ * @access  Private (Admin)
+ */
+router.get(
+  "/payment-accounts/admin",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.getAdminPaymentAccounts,
+);
+
+/**
+ * @route   POST /api/donations/payment-accounts
+ * @desc    Menambah kanal pembayaran (bank transfer / QRIS + gambar QR)
+ * @access  Private (Admin)
+ */
+router.post(
+  "/payment-accounts",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  paymentUpload.single("qrisImage"),
+  donationController.createPaymentAccount,
+);
+
+/**
+ * @route   PATCH /api/donations/payment-accounts/:id
+ * @desc    Memperbarui kanal pembayaran (termasuk status aktif & urutan)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/payment-accounts/:id",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  paymentUpload.single("qrisImage"),
+  donationController.updatePaymentAccount,
+);
+
+/**
+ * @route   DELETE /api/donations/payment-accounts/:id
+ * @desc    Menghapus kanal pembayaran
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/payment-accounts/:id",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.deletePaymentAccount,
 );
 
 /**

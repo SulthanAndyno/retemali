@@ -84,7 +84,7 @@ router.get(
 
 /**
  * @route   POST /api/events/check-in
- * @desc    Presensi Kegiatan Warga via scan QR E-Tiket peserta
+ * @desc    Presensi Kegiatan Warga via kode E-Tiket peserta
  * @access  Private (Volunteer / Admin)
  */
 router.post(
@@ -153,7 +153,7 @@ router.delete(
 
 /**
  * @route   POST /api/events/:id/register
- * @desc    Mendaftar kegiatan & menerbitkan kredensial E-Tiket QR (RETEMALI-EV-XXX) + wajib bukti pembayaran jika berbayar
+ * @desc    Mendaftar kegiatan & menerbitkan kredensial E-Tiket (TKT-XXXXXX) + wajib bukti pembayaran jika berbayar
  * @access  Private (Member)
  */
 router.post(

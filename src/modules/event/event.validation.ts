@@ -11,7 +11,7 @@ export enum EventCategory {
 
 export enum EventFeeType {
   FREE = "FREE",
-  INFAQ = "INFAQ",
+  PAID = "PAID",
 }
 
 export enum EventStatus {
@@ -72,6 +72,23 @@ export const createEventSchema = z.object({
 
   feeType: z.nativeEnum(EventFeeType).default(EventFeeType.FREE),
 
+  /**
+   * Harga tiket masuk (Rp). 0 / kosong berarti kegiatan gratis.
+   */
+  ticketPrice: z
+    .union([
+      z
+        .string()
+        .regex(/^\d+(\.\d{1,2})?$/, "Harga tiket masuk harus berupa angka")
+        .transform((val) => parseFloat(val)),
+      z.number().min(0),
+    ])
+    .optional(),
+
+  /**
+   * Alias lama untuk `ticketPrice` (kolom sebelumnya bernama `infaqAmount`).
+   * Dipertahankan agar klien lama tidak langsung rusak; nilai baru menang.
+   */
   infaqAmount: z
     .union([
       z
@@ -80,8 +97,21 @@ export const createEventSchema = z.object({
         .transform((val) => parseFloat(val)),
       z.number().min(0),
     ])
+    .optional(),
+
+  /**
+   * Berapa hari sebelum pelaksanaan pendaftaran ditutup otomatis: H-3, H-2, H-1.
+   */
+  registrationCloseOffsetDays: z
+    .union([
+      z
+        .string()
+        .regex(/^[123]$/, "Batas pendaftaran harus H-3, H-2, atau H-1")
+        .transform((val) => parseInt(val, 10)),
+      z.number().int().min(1).max(3),
+    ])
     .optional()
-    .default(0),
+    .default(1),
 
   materialsNote: z.string().max(100).trim().optional(),
 
@@ -117,7 +147,7 @@ export const registerEventSchema = z.object({
 export const checkInTicketSchema = z.object({
   ticketCode: z
     .string()
-    .min(1, "Kode QR Tiket peserta wajib diisi (contoh: RETEMALI-EV-882)")
+    .min(1, "Kode Tiket peserta wajib diisi (contoh: TKT-882901)")
     .trim(),
 });
 

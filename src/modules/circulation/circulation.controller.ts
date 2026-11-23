@@ -31,7 +31,7 @@ export class CirculationController {
       successResponse({
         res,
         statusCode: 201,
-        message: "Reservasi buku berhasil dibuat (Batas ambil 48 jam)",
+        message: "Peminjaman buku berhasil diajukan (Batas ambil 48 jam)",
         data: reservation,
       });
     } catch (error) {
@@ -51,7 +51,7 @@ export class CirculationController {
 
       successResponse({
         res,
-        message: "Berhasil mengambil daftar reservasi buku",
+        message: "Berhasil mengambil daftar peminjaman buku",
         data: reservations,
       });
     } catch (error) {
@@ -70,7 +70,7 @@ export class CirculationController {
 
       successResponse({
         res,
-        message: "Reservasi buku berhasil dibatalkan",
+        message: "Peminjaman buku berhasil dibatalkan",
         data: reservation,
       });
     } catch (error) {
