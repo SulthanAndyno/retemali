@@ -4,6 +4,7 @@ export { AdminAttendancePage } from './attendance/pages/admin-attendance-page';
 export { AdminAttendanceDetailPage } from './attendance/pages/admin-attendance-detail-page';
 export { AdminDonationsPage } from './donations/pages/admin-donations-page';
 export { AdminEventDetailPage } from './events/pages/admin-event-detail-page';
+export { AdminGalleryPage } from '../gallery/pages/admin-gallery-page';
 export { AdminMembersPage } from './members/pages/admin-members-page';
 export { AdminNotificationsPage } from './notifications/pages/admin-notifications-page';
 export { AdminPaymentsPage } from './payments/pages/admin-payments-page';
