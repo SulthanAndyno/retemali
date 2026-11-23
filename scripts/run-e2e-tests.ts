@@ -330,8 +330,8 @@ async function runTests() {
       startTime: "10:00",
       endTime: "12:00",
       quota: 10,
-      feeType: "INFAQ",
-      infaqAmount: 25000,
+      feeType: "PAID",
+      ticketPrice: 25000,
     },
     adminToken,
   );
@@ -459,7 +459,7 @@ async function runTests() {
     const verifyReg = await request(
       "PATCH",
       `/api/events/registrations/${registrationId}/verify`,
-      { status: "VERIFIED", adminNotes: "Bukti transfer valid dan sesuai nominal infaq." },
+      { status: "VERIFIED", adminNotes: "Bukti transfer valid dan sesuai nominal tiket masuk." },
       adminToken,
     );
     record("PATCH /api/events/registrations/:id/verify (Verifikasi Pembayaran Tiket)", verifyReg.status, 200, verifyReg.data);
