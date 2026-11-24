@@ -155,11 +155,14 @@ CRON_SECRET="retemali-cron-secret-2026"
 
 ### 4. Sinkronisasi Database & Seed Data
 ```bash
-# Push schema Prisma ke database PostgreSQL
-npx prisma db push
+# Jalankan migrasi Prisma ke database PostgreSQL
+npx prisma migrate deploy
 
-# Jalankan seeder akun default dan master data
+# Jalankan seeder 6 akun Admin Rete Mali & SiteSetting default
 npm run prisma:seed
+
+# (Opsional / Dev & Testing) Seed data contoh buku, kegiatan, donasi & akun demo
+npm run prisma:seed:demo
 ```
 
 ### 5. Jalankan Server Development
@@ -170,9 +173,10 @@ Server akan aktif di `http://localhost:2000` (API endpoint di `http://localhost:
 
 ---
 
-## 🔑 Akun Demo Testing (Default Seed)
+## 🔑 Akun Seed & Demo Testing
 
-Data akun bawaan yang digenerate oleh `prisma/seed.ts` dan digunakan pada rangkaian automated test:
+1. **Seeder Utama (`prisma/seed.ts` / `npm run prisma:seed`)**: mengisi 6 akun Admin pengurus Rete Mali (`retemali.tanti@gmail.com`, `umi.naffisah13@gmail.com`, `aninda.zulfa89@gmail.com`, `yhayaz_annisa@yahoo.com`, `virginaniac@gmail.com`, `anniskarulika@gmail.com`) beserta pengaturan awal situs (`SiteSetting`). Segera ubah kata sandi awal masing-masing melalui menu **Ganti Kata Sandi** di portal admin setelah deployment pertama.
+2. **Seeder Demo / E2E (`prisma/seed-demo.ts` / `npm run prisma:seed:demo`)**: data akun & katalog contoh khusus untuk automated test:
 
 | Role | Nama Akun | Email | Password | Keterangan |
 |---|---|---|---|---|
