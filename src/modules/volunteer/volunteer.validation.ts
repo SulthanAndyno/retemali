@@ -53,6 +53,16 @@ export const reviewApplicationSchema = z.object({
   rejectionNote: z.string().max(500).trim().optional(),
 });
 
+/**
+ * Perubahan peran oleh Admin. Hanya mendukung penurunan VOLUNTEER -> MEMBER;
+ * kenaikan peran tetap lewat alur persetujuan relawan.
+ */
+export const changeUserRoleSchema = z.object({
+  role: z.enum(["MEMBER"], {
+    error: "Perubahan peran hanya mendukung VOLUNTEER menjadi MEMBER",
+  }),
+});
+
 export const clockInSchema = z.object({
   shiftType: z.nativeEnum(ShiftType, {
     error:
@@ -92,6 +102,7 @@ export const volunteerQuerySchema = z.object({
 
 export type ApplyVolunteerInput = z.infer<typeof applyVolunteerSchema>;
 export type ReviewApplicationInput = z.infer<typeof reviewApplicationSchema>;
+export type ChangeUserRoleInput = z.infer<typeof changeUserRoleSchema>;
 export type ClockInInput = z.infer<typeof clockInSchema>;
 export type ClockOutInput = z.infer<typeof clockOutSchema>;
 export type VolunteerQueryInput = z.infer<typeof volunteerQuerySchema>;

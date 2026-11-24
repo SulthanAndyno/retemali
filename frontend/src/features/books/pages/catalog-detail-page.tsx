@@ -162,13 +162,13 @@ export function CatalogDetailPage({ bookId }: { bookId: string }) {
               loading={mutations.actionLoading}
             >
               <BookOpen className="h-4 w-4" aria-hidden />
-              Reservasi Buku
+              Peminjaman Buku
             </Button>
           </div>
 
           {!user ? (
             <p className="text-xs text-ink-soft">
-              Masuk ke akun member untuk reservasi dan menyimpan bacaan.{' '}
+              Masuk ke akun member untuk peminjaman dan menyimpan bacaan.{' '}
               <Link
                 href={loginHref}
                 className="font-semibold text-primary-deep underline-offset-4 hover:underline"

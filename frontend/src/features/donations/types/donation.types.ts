@@ -65,6 +65,7 @@ export interface PaymentAccount {
 export type DonationType = 'financial' | 'book';
 export type PaymentMethod =
   | 'QRIS'
+  | 'BANK_TRANSFER'
   | 'BANK_MANDIRI'
   | 'BANK_BCA'
   | 'GOPAY'

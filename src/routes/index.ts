@@ -11,6 +11,7 @@ import dashboardRoutes from "../modules/dashboard/dashboard.routes";
 import auditRoutes from "../modules/audit/audit.routes";
 import notificationRoutes from "../modules/notification/notification.routes";
 import galleryRoutes from "../modules/gallery/gallery.routes";
+import settingsRoutes from "../modules/settings/settings.routes";
 
 const router: Router = Router();
 
@@ -26,9 +27,10 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/audit-logs", auditRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/gallery", galleryRoutes);
+router.use("/settings", settingsRoutes);
 
 console.log(
-  "Routes registered: auth, books, bookmarks, circulation, events, volunteers, handover-notes, donations, dashboard, audit-logs, notifications, gallery",
+  "Routes registered: auth, books, bookmarks, circulation, events, volunteers, handover-notes, donations, dashboard, audit-logs, notifications, gallery, settings",
 );
 
 export default router;

@@ -1,4 +1,4 @@
-import { QrCode } from 'lucide-react';
+import { IdCard } from 'lucide-react';
 import type { MemberCard as MemberCardData } from '../types/member.types';
 
 interface MemberCardProps {
@@ -30,7 +30,7 @@ export function MemberCard({ member, fallback }: MemberCardProps) {
         </div>
 
         <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20">
-          <QrCode size={22} className="text-white" />
+          <IdCard size={22} className="text-white" />
         </div>
       </div>
 

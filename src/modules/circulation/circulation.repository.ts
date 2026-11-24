@@ -11,6 +11,11 @@ import {
   QuickCheckoutInput,
   QuickReturnInput,
 } from "./circulation.validation";
+import {
+  addDaysEndOfDayWib,
+  formatDateWib,
+  getWibYear,
+} from "../../utils/date-wib";
 
 interface FindAllLoanOptions {
   skip: number;
@@ -32,14 +37,23 @@ export class CirculationRepository {
   }
 
   private async generateLoanCode(): Promise<string> {
-    const year = new Date().getFullYear();
+    const year = getWibYear();
     const count = await this.prisma.bookLoan.count();
-    const seq = String(count + 1).padStart(4, "0");
-    return `LN-${year}-${seq}`;
+    for (let offset = 1; offset <= 50; offset += 1) {
+      const seq = String(count + offset).padStart(4, "0");
+      const candidate = `LN-${year}-${seq}`;
+      const exists = await this.prisma.bookLoan.findUnique({
+        where: { loanCode: candidate },
+        select: { id: true },
+      });
+      if (!exists) return candidate;
+    }
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `LN-${year}-${random}`;
   }
 
   /**
-   * Membuat reservasi buku baru (tahan stok selama 48 jam di Loket Sirkulasi).
+   * Mengajukan peminjaman buku baru (tahan stok selama 48 jam di Loket Sirkulasi).
    */
   async createReservation(
     userId: string,
@@ -72,7 +86,7 @@ export class CirculationRepository {
     });
 
     if (existingActive) {
-      throw new AppError("Anda sudah mereservasi buku ini", 400);
+      throw new AppError("Anda sudah mengajukan peminjaman buku ini", 400);
     }
 
     const reservationCode = await this.generateReservationCode();
@@ -105,7 +119,7 @@ export class CirculationRepository {
   }
 
   /**
-   * Mengambil daftar reservasi buku milik user tertentu.
+   * Mengambil daftar peminjaman buku milik user tertentu.
    */
   async findReservationsByUser(userId: string): Promise<BookReservation[]> {
     return this.prisma.bookReservation.findMany({
@@ -116,7 +130,7 @@ export class CirculationRepository {
   }
 
   /**
-   * Membatalkan reservasi buku dan mengembalikan stok tersedia.
+   * Membatalkan peminjaman buku dan mengembalikan stok tersedia.
    */
   async cancelReservation(id: string): Promise<BookReservation> {
     const reservation = await this.prisma.bookReservation.findUnique({
@@ -125,11 +139,11 @@ export class CirculationRepository {
     });
 
     if (!reservation) {
-      throw new AppError("Data reservasi tidak ditemukan", 404);
+      throw new AppError("Data peminjaman tidak ditemukan", 404);
     }
 
     if (reservation.status !== "READY_FOR_PICKUP") {
-      throw new AppError("Reservasi ini sudah tidak aktif", 400);
+      throw new AppError("Peminjaman ini sudah tidak aktif", 400);
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -205,7 +219,8 @@ export class CirculationRepository {
 
     const loanCode = await this.generateLoanCode();
     const durationDays = data.durationDays ?? 14;
-    const dueDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    // Tenggat selalu jatuh pada 23:59:59 WIB di hari ke-N, bukan jam peminjaman.
+    const dueDate = addDaysEndOfDayWib(new Date(), durationDays);
 
     return this.prisma.$transaction(async (tx) => {
       if (activeReservation) {
@@ -233,7 +248,7 @@ export class CirculationRepository {
         data: {
           actorId: processedById,
           title: "Peminjaman Buku (Quick Checkout)",
-          description: `Buku "${book.title}" (${book.bookCode}) dipinjam oleh ${member.name} (${member.memberCode}). Jatuh tempo: ${dueDate.toLocaleDateString("id-ID")}.`,
+          description: `Buku "${book.title}" (${book.bookCode}) dipinjam oleh ${member.name} (${member.memberCode}). Jatuh tempo: ${formatDateWib(dueDate)} WIB.`,
           category: "CIRCULATION",
         },
       });
@@ -446,7 +461,7 @@ export class CirculationRepository {
       );
     }
 
-    const newDueDate = new Date(loan.dueDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const newDueDate = addDaysEndOfDayWib(loan.dueDate, 7);
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.bookLoan.update({
@@ -462,7 +477,7 @@ export class CirculationRepository {
         data: {
           actorId: userId,
           title: "Perpanjangan Masa Pinjam Buku",
-          description: `Buku "${loan.book.title}" (${loan.loanCode}) diperpanjang +7 hari hingga ${newDueDate.toLocaleDateString("id-ID")}.`,
+          description: `Buku "${loan.book.title}" (${loan.loanCode}) diperpanjang +7 hari hingga ${formatDateWib(newDueDate)} WIB.`,
           category: "CIRCULATION",
         },
       });
@@ -506,7 +521,7 @@ export class CirculationRepository {
 
     const phone = loan.user.phone?.replace(/^0/, "62") ?? "6281200000000";
     const text = encodeURIComponent(
-      `Halo Kak ${loan.user.name}, pengingat ramah dari Taman Baca Rete Mali: buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${loan.dueDate.toLocaleDateString("id-ID")}. Terima kasih!`,
+      `Halo Kak ${loan.user.name}, pengingat ramah dari Taman Baca Rete Mali: buku "${loan.book.title}" (${loan.book.bookCode}) memiliki tenggat pengembalian pada ${formatDateWib(loan.dueDate)} WIB. Terima kasih!`,
     );
 
     return {

@@ -41,7 +41,7 @@ export function PasswordChangeForm() {
         label="Kata Sandi Baru"
         type="password"
         autoComplete="new-password"
-        hint="Minimal 8 karakter."
+        hint="Minimal 8 karakter, memuat minimal 1 huruf kapital dan 1 angka."
         value={password.form.newPassword}
         onChange={(event) => password.setField('newPassword', event.target.value)}
       />

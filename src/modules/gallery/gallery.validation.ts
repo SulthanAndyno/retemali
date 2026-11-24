@@ -12,16 +12,39 @@ export const createGalleryPhotoSchema = z.object({
     .string()
     .min(3, "Judul foto minimal 3 karakter")
     .max(150, "Judul foto maksimal 150 karakter")
-    .trim(),
+    .trim()
+    .optional()
+    .default("Dokumentasi Kegiatan Rete Mali"),
 
-  category: z.nativeEnum(GalleryCategory, {
-    error:
-      "Kategori galeri tidak valid. Pilih: SUASANA, KEGIATAN, FASILITAS, atau KOLEKSI",
-  }),
+  category: z
+    .nativeEnum(GalleryCategory, {
+      error:
+        "Kategori galeri tidak valid. Pilih: SUASANA, KEGIATAN, FASILITAS, atau KOLEKSI",
+    })
+    .optional()
+    .default(GalleryCategory.KEGIATAN),
 
   imageUrl: z
     .string()
-    .url("Format URL gambar tidak valid")
+    .min(5, "Format URL atau ID gambar tidak valid")
+    .trim()
+    .optional(),
+
+  driveUrl: z
+    .string()
+    .min(5, "Format URL Google Drive tidak valid")
+    .trim()
+    .optional(),
+
+  googleDriveUrl: z
+    .string()
+    .min(5, "Format URL Google Drive tidak valid")
+    .trim()
+    .optional(),
+
+  driveFileId: z
+    .string()
+    .min(10, "Format File ID Google Drive tidak valid")
     .trim()
     .optional(),
 
@@ -56,6 +79,35 @@ export const createGalleryPhotoSchema = z.object({
 
 export const updateGalleryPhotoSchema = createGalleryPhotoSchema.partial();
 
+export const googleDriveGalleryInputSchema = z.object({
+  driveUrl: z.string().trim().optional(),
+  googleDriveUrl: z.string().trim().optional(),
+  folderUrl: z.string().trim().optional(),
+  imageUrl: z.string().trim().optional(),
+  driveUrls: z.array(z.string().trim()).optional(),
+  title: z
+    .string()
+    .max(150)
+    .trim()
+    .optional()
+    .default("Dokumentasi Kegiatan Rete Mali"),
+  category: z
+    .nativeEnum(GalleryCategory)
+    .optional()
+    .default(GalleryCategory.KEGIATAN),
+  caption: z.string().max(1000).trim().optional(),
+  location: z
+    .string()
+    .max(150)
+    .trim()
+    .optional()
+    .default("Saung Baca Rete Mali, Jatirangga"),
+  isFeatured: z
+    .union([z.string().transform((v) => v === "true"), z.boolean()])
+    .optional()
+    .default(true),
+});
+
 export const galleryQuerySchema = z.object({
   page: z.string().regex(/^\d+$/).optional().default("1"),
   limit: z.string().regex(/^\d+$/).optional().default("12"),
@@ -69,4 +121,7 @@ export const galleryQuerySchema = z.object({
 
 export type CreateGalleryPhotoInput = z.infer<typeof createGalleryPhotoSchema>;
 export type UpdateGalleryPhotoInput = z.infer<typeof updateGalleryPhotoSchema>;
+export type GoogleDriveGalleryInput = z.infer<
+  typeof googleDriveGalleryInputSchema
+>;
 export type GalleryQueryInput = z.infer<typeof galleryQuerySchema>;

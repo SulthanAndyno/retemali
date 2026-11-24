@@ -1,5 +1,6 @@
 import { get, patch, post } from '@/shared/lib/api';
 import type { ApiEnvelope } from '@/shared/types/api';
+import type { EventRegistrationRecord } from '@/features/events';
 import type {
   ClockInInput,
   ClockOutInput,
@@ -32,7 +33,9 @@ export function quickReturn(input: QuickReturnInput) {
 }
 
 export function checkInTicket(ticketCode: string) {
-  return post<ApiEnvelope<unknown>>('/events/check-in', { ticketCode });
+  return post<ApiEnvelope<EventRegistrationRecord>>('/events/check-in', {
+    ticketCode,
+  });
 }
 
 export function verifyBookDonation(id: string, input: VerifyBookDonationInput) {

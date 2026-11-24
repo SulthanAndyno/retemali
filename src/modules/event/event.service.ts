@@ -13,6 +13,7 @@ import {
   EventQueryInput,
   EventRegistrationsQueryInput,
   EventStatus,
+  RegisterEventInput,
   UpdateEventInput,
 } from "./event.validation";
 import { AppError } from "@/middlewares/error.middleware";
@@ -111,19 +112,26 @@ export class EventService {
     eventId: string,
     userId: string,
     paymentProofFile?: Express.Multer.File,
+    bodyInput?: RegisterEventInput,
   ): Promise<EventRegistration> {
     const paymentProofUrl = paymentProofFile
       ? `uploads/events/${paymentProofFile.filename}`
-      : undefined;
+      : (bodyInput?.paymentProofUrl ?? bodyInput?.paymentProof);
+
     return this.eventRepository.registerParticipant(
       eventId,
       userId,
       paymentProofUrl,
+      bodyInput?.paymentNote,
     );
   }
 
   async getMyTickets(userId: string): Promise<EventRegistration[]> {
     return this.eventRepository.findTicketsByUser(userId);
+  }
+
+  async getTicketCredential(ticketCode: string): Promise<EventRegistration> {
+    return this.eventRepository.findTicketByCode(ticketCode);
   }
 
   async checkInParticipant(

@@ -3,7 +3,11 @@ import { CirculationController } from "./circulation.controller";
 import { CirculationRepository } from "./circulation.repository";
 import { CirculationService } from "./circulation.service";
 import { prisma } from "@/lib/prisma";
-import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  authorizeRoles,
+  requireSharedSecret,
+} from "@/middlewares/auth.middleware";
 
 const router: Router = Router();
 
@@ -13,7 +17,7 @@ const circulationController = new CirculationController(circulationService);
 
 /**
  * @route   POST /api/circulation/reservations
- * @desc    Membuat reservasi buku online (#RES-XXXX, tahan 48 jam)
+ * @desc    Mengajukan peminjaman buku online (#RES-XXXX, tahan 48 jam)
  * @access  Private (Member)
  */
 router.post(
@@ -24,7 +28,7 @@ router.post(
 
 /**
  * @route   GET /api/circulation/reservations/me
- * @desc    Mengambil daftar reservasi buku milik anggota sendiri
+ * @desc    Mengambil daftar peminjaman buku milik anggota sendiri
  * @access  Private (Member)
  */
 router.get(
@@ -35,7 +39,7 @@ router.get(
 
 /**
  * @route   PATCH /api/circulation/reservations/:id/cancel
- * @desc    Membatalkan reservasi buku
+ * @desc    Membatalkan peminjaman buku
  * @access  Private (Member / Volunteer / Admin)
  */
 router.patch(
@@ -46,7 +50,7 @@ router.patch(
 
 /**
  * @route   POST /api/circulation/quick-checkout
- * @desc    Sirkulasi Cepat (Peminjaman Baru) via scan barcode anggota & buku
+ * @desc    Sirkulasi Cepat (Peminjaman Baru) via kode anggota & kode buku
  * @access  Private (Volunteer / Admin)
  */
 router.post(
@@ -58,7 +62,7 @@ router.post(
 
 /**
  * @route   POST /api/circulation/quick-return
- * @desc    Sirkulasi Cepat (Pengembalian Buku) via scan barcode buku
+ * @desc    Sirkulasi Cepat (Pengembalian Buku) via kode buku
  * @access  Private (Volunteer / Admin)
  */
 router.post(
@@ -125,8 +129,12 @@ router.post(
 /**
  * @route   POST /api/circulation/cron/due-reminders
  * @desc    Endpoint Cron Job untuk cek jatuh tempo H-2 & update status OVERDUE
- * @access  Public / System
+ * @access  System (x-cron-secret / Bearer CRON_SECRET)
  */
-router.post("/cron/due-reminders", circulationController.runCronReminders);
+router.post(
+  "/cron/due-reminders",
+  requireSharedSecret("CRON_SECRET", ["x-cron-secret"], "Cron"),
+  circulationController.runCronReminders,
+);
 
 export default router;

@@ -1,6 +1,18 @@
-import { AppError } from "@/middlewares/error.middleware";
-import { GalleryCategory, GalleryPhoto, PrismaClient } from "../../../generated/prisma";
-import { CreateGalleryPhotoInput, UpdateGalleryPhotoInput } from "./gallery.validation";
+import {
+  GalleryCategory,
+  GalleryPhoto,
+  PrismaClient,
+} from "../../../generated/prisma";
+import {
+  CreateGalleryPhotoInput,
+  UpdateGalleryPhotoInput,
+} from "./gallery.validation";
+import {
+  buildGoogleDriveDirectImageUrl,
+  enrichGalleryPhotoWithDriveMeta,
+  extractGoogleDriveFileId,
+  normalizeGalleryImageUrl,
+} from "../../utils/google-drive";
 
 interface FindAllGalleryOptions {
   skip: number;
@@ -44,16 +56,23 @@ export class GalleryRepository {
             select: { id: true, name: true, memberCode: true, avatar: true },
           },
         },
-        orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+        orderBy: [
+          { isFeatured: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "desc" },
+        ],
       }),
       this.prisma.galleryPhoto.count({ where }),
     ]);
 
-    return { data, total };
+    return {
+      data: data.map((p) => enrichGalleryPhotoWithDriveMeta(p)),
+      total,
+    };
   }
 
   async findById(id: string): Promise<GalleryPhoto | null> {
-    return this.prisma.galleryPhoto.findUnique({
+    const photo = await this.prisma.galleryPhoto.findUnique({
       where: { id },
       include: {
         uploadedBy: {
@@ -61,6 +80,19 @@ export class GalleryRepository {
         },
       },
     });
+
+    return photo ? enrichGalleryPhotoWithDriveMeta(photo) : null;
+  }
+
+  async findByDriveFileId(fileId: string): Promise<GalleryPhoto | null> {
+    const existing = await this.prisma.galleryPhoto.findFirst({
+      where: {
+        imageUrl: {
+          contains: fileId,
+        },
+      },
+    });
+    return existing ? enrichGalleryPhotoWithDriveMeta(existing) : null;
   }
 
   async create(
@@ -68,14 +100,17 @@ export class GalleryRepository {
     imageUrl: string,
     uploadedById?: string,
   ): Promise<GalleryPhoto> {
+    const normalizedUrl = normalizeGalleryImageUrl(imageUrl);
+    const driveFileId = extractGoogleDriveFileId(imageUrl);
+
     return this.prisma.$transaction(async (tx) => {
       const photo = await tx.galleryPhoto.create({
         data: {
-          title: data.title,
-          category: data.category as GalleryCategory,
-          imageUrl,
+          title: data.title || "Dokumentasi Kegiatan Rete Mali",
+          category: (data.category as GalleryCategory) ?? "KEGIATAN",
+          imageUrl: normalizedUrl,
           caption: data.caption ?? null,
-          location: data.location,
+          location: data.location || "Saung Baca Rete Mali, Jatirangga",
           isFeatured: data.isFeatured ?? false,
           sortOrder: data.sortOrder ?? 0,
           uploadedById: uploadedById ?? null,
@@ -90,14 +125,47 @@ export class GalleryRepository {
       await tx.auditLog.create({
         data: {
           actorId: uploadedById ?? null,
-          title: "Penambahan Foto Galeri Baru",
-          description: `Foto "${photo.title}" ditambahkan ke galeri kategori ${photo.category}.`,
+          title: driveFileId
+            ? "Penambahan Foto Galeri via Google Drive"
+            : "Penambahan Foto Galeri Baru",
+          description: `Foto "${photo.title}" ditambahkan ke galeri kategori ${photo.category}${driveFileId ? ` (Google Drive ID: ${driveFileId})` : ""}.`,
           category: "GALLERY",
         },
       });
 
-      return photo;
+      return enrichGalleryPhotoWithDriveMeta(photo);
     });
+  }
+
+  async upsertDrivePhoto(params: {
+    fileId: string;
+    title: string;
+    category: GalleryCategory;
+    caption?: string;
+    location?: string;
+    isFeatured?: boolean;
+    uploadedById?: string;
+  }): Promise<{ photo: GalleryPhoto; isNew: boolean }> {
+    const existing = await this.findByDriveFileId(params.fileId);
+    if (existing) {
+      return { photo: existing, isNew: false };
+    }
+
+    const directUrl = buildGoogleDriveDirectImageUrl(params.fileId);
+    const created = await this.create(
+      {
+        title: params.title,
+        category: params.category as any,
+        caption: params.caption,
+        location: params.location ?? "Saung Baca Rete Mali, Jatirangga",
+        isFeatured: params.isFeatured ?? true,
+        sortOrder: 0,
+      },
+      directUrl,
+      params.uploadedById,
+    );
+
+    return { photo: created, isNew: true };
   }
 
   async update(
@@ -114,12 +182,23 @@ export class GalleryRepository {
     if (data.location !== undefined) updateData.location = data.location;
     if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
     if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
 
-    return this.prisma.galleryPhoto.update({
+    const rawUrl =
+      imageUrl ??
+      data.imageUrl ??
+      data.driveUrl ??
+      data.googleDriveUrl ??
+      data.driveFileId;
+    if (rawUrl !== undefined) {
+      updateData.imageUrl = normalizeGalleryImageUrl(rawUrl);
+    }
+
+    const updated = await this.prisma.galleryPhoto.update({
       where: { id },
       data: updateData,
     });
+
+    return enrichGalleryPhotoWithDriveMeta(updated);
   }
 
   async delete(id: string, actorId?: string): Promise<GalleryPhoto> {
@@ -140,22 +219,36 @@ export class GalleryRepository {
   }
 
   /**
-   * Info Tempat & Lokasi Ala Google Maps Place Profile
+   * Info Tempat & Lokasi Ala Google Maps Place Profile + Preview Foto Kegiatan Terbaru
    */
   async getPlaceProfile() {
     const totalPhotos = await this.prisma.galleryPhoto.count();
-    const [suasanaCount, kegiatanCount, fasilitasCount, koleksiCount] =
-      await Promise.all([
-        this.prisma.galleryPhoto.count({ where: { category: "SUASANA" } }),
-        this.prisma.galleryPhoto.count({ where: { category: "KEGIATAN" } }),
-        this.prisma.galleryPhoto.count({ where: { category: "FASILITAS" } }),
-        this.prisma.galleryPhoto.count({ where: { category: "KOLEKSI" } }),
-      ]);
+    const [
+      suasanaCount,
+      kegiatanCount,
+      fasilitasCount,
+      koleksiCount,
+      recentPhotos,
+    ] = await Promise.all([
+      this.prisma.galleryPhoto.count({ where: { category: "SUASANA" } }),
+      this.prisma.galleryPhoto.count({ where: { category: "KEGIATAN" } }),
+      this.prisma.galleryPhoto.count({ where: { category: "FASILITAS" } }),
+      this.prisma.galleryPhoto.count({ where: { category: "KOLEKSI" } }),
+      this.prisma.galleryPhoto.findMany({
+        take: 12,
+        orderBy: [
+          { isFeatured: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "desc" },
+        ],
+      }),
+    ]);
 
     return {
       placeName: "Taman Baca Masyarakat Rete Mali",
       tagline: "Pojok Literasi & Belajar Ramah Anak Warga Jatirangga",
-      address: "Jl. Rete Mali No. 12, RT.005/RW.014, Kel. Jatirangga, Kec. Jatisampurna, Kota Bekasi, Jawa Barat 17434",
+      address:
+        "Jl. Rete Mali No. 12, RT.005/RW.014, Kel. Jatirangga, Kec. Jatisampurna, Kota Bekasi, Jawa Barat 17434",
       coordinates: {
         latitude: -6.3685,
         longitude: 106.9248,
@@ -183,6 +276,7 @@ export class GalleryRepository {
           KOLEKSI: koleksiCount,
         },
       },
+      recentPhotos: recentPhotos.map((p) => enrichGalleryPhotoWithDriveMeta(p)),
     };
   }
 }

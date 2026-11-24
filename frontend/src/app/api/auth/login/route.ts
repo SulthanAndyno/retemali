@@ -6,7 +6,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as
-    | { email?: string; password?: string }
+    | {
+        email?: string;
+        password?: string;
+        expectedRole?: 'MEMBER' | 'VOLUNTEER' | 'DONOR' | 'ADMIN';
+      }
     | null;
 
   if (!body?.email || !body?.password) {
@@ -16,7 +20,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await loginUpstream(body.email, body.password);
+  const result = await loginUpstream(
+    body.email,
+    body.password,
+    body.expectedRole
+  );
   const data = result.data?.data;
 
   if (!result.ok || !data) {

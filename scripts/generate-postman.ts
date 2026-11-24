@@ -803,7 +803,7 @@ export function generatePostmanCollection() {
             },
           },
           {
-            name: "Verifikasi Pembayaran Tiket Infaq",
+            name: "Verifikasi Pembayaran Tiket Masuk",
             request: {
               method: "PATCH",
               header: [
@@ -818,7 +818,7 @@ export function generatePostmanCollection() {
                 raw: JSON.stringify(
                   {
                     status: "VERIFIED",
-                    adminNotes: "Bukti transfer valid dan sesuai nominal infaq.",
+                    adminNotes: "Bukti transfer valid dan sesuai nominal tiket masuk.",
                   },
                   null,
                   2,
@@ -836,7 +836,7 @@ export function generatePostmanCollection() {
                   "verify",
                 ],
               },
-              description: "Memverifikasi atau menolak bukti pembayaran infaq tiket.",
+              description: "Memverifikasi atau menolak bukti Pembayaran Tiket Masuk.",
             },
           },
         ],
@@ -1139,7 +1139,7 @@ export function generatePostmanCollection() {
                 host: ["{{base_url}}"],
                 path: ["api", "donations", "cash-report"],
               },
-              description: "Melihat laporan agregasi kas masuk (donasi, infaq event, denda sirkulasi).",
+              description: "Melihat laporan agregasi kas masuk (donasi, tiket masuk kegiatan, denda sirkulasi).",
             },
           },
           {

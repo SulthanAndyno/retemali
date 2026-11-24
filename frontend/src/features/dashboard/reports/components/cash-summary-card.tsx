@@ -29,9 +29,9 @@ export function CashSummaryCard({ summary, period, loading }: CashSummaryCardPro
           </p>
         </div>
         <div className="bg-white/10 rounded-xl p-2">
-          <p className="text-[9px] text-blue-200 font-semibold">Infaq</p>
+          <p className="text-[9px] text-blue-200 font-semibold">Tiket Masuk</p>
           <p className="text-[11px] font-bold truncate">
-            {formatRupiah(summary?.eventInfaqIncome ?? 0)}
+            {formatRupiah(summary?.eventTicketIncome ?? 0)}
           </p>
         </div>
         <div className="bg-white/10 rounded-xl p-2">

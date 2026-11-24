@@ -3,10 +3,15 @@ import { DonationController } from "./donation.controller";
 import { DonationRepository } from "./donation.repository";
 import { DonationService } from "./donation.service";
 import { prisma } from "@/lib/prisma";
-import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  authorizeRoles,
+  requireSharedSecret,
+} from "@/middlewares/auth.middleware";
 import { createUpload } from "@/middlewares/upload.middleware";
 
 const upload = createUpload("donations", "donation");
+const paymentUpload = createUpload("payment-accounts", "qris");
 
 const router: Router = Router();
 
@@ -16,7 +21,7 @@ const donationController = new DonationController(donationService);
 
 /**
  * @route   GET /api/donations/cash-report
- * @desc    Mengambil rekap laporan kas terpadu (donasi, infaq event, denda)
+ * @desc    Mengambil rekap laporan kas terpadu (donasi, tiket masuk kegiatan, denda)
  * @access  Private (Admin)
  */
 router.get(
@@ -24,6 +29,56 @@ router.get(
   authenticate,
   authorizeRoles("ADMIN"),
   donationController.getCashReport,
+);
+
+/**
+ * @route   GET /api/donations/payment-accounts/admin
+ * @desc    Mengambil seluruh kanal pembayaran (termasuk nonaktif) untuk admin
+ * @access  Private (Admin)
+ */
+router.get(
+  "/payment-accounts/admin",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.getAdminPaymentAccounts,
+);
+
+/**
+ * @route   POST /api/donations/payment-accounts
+ * @desc    Menambah kanal pembayaran (bank transfer / QRIS + gambar QR)
+ * @access  Private (Admin)
+ */
+router.post(
+  "/payment-accounts",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  paymentUpload.single("qrisImage"),
+  donationController.createPaymentAccount,
+);
+
+/**
+ * @route   PATCH /api/donations/payment-accounts/:id
+ * @desc    Memperbarui kanal pembayaran (termasuk status aktif & urutan)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/payment-accounts/:id",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  paymentUpload.single("qrisImage"),
+  donationController.updatePaymentAccount,
+);
+
+/**
+ * @route   DELETE /api/donations/payment-accounts/:id
+ * @desc    Menghapus kanal pembayaran
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/payment-accounts/:id",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.deletePaymentAccount,
 );
 
 /**
@@ -48,6 +103,18 @@ router.get("/payment-setting", donationController.getPaymentSetting);
 router.get("/summary", donationController.getSummary);
 
 /**
+ * @route   GET /api/donations/financial
+ * @desc    Mengambil daftar transaksi donasi finansial (untuk Admin / Relawan)
+ * @access  Private (Volunteer / Admin)
+ */
+router.get(
+  "/financial",
+  authenticate,
+  authorizeRoles("VOLUNTEER", "ADMIN"),
+  donationController.getAllFinancialDonations,
+);
+
+/**
  * @route   POST /api/donations/financial
  * @desc    Membuat transaksi Donasi Finansial (QRIS / Transfer / Sahabat Literasi)
  * @access  Public
@@ -59,11 +126,31 @@ router.post(
 );
 
 /**
+ * @route   PATCH /api/donations/financial/:id/verify
+ * @desc    Memverifikasi atau menolak donasi finansial oleh Admin
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/financial/:id/verify",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.verifyFinancialDonation,
+);
+
+/**
  * @route   POST /api/donations/webhook
  * @desc    Webhook callback untuk verifikasi otomatis pembayaran donasi
- * @access  Public (Webhook)
+ * @access  System (x-webhook-secret / x-callback-token / Bearer WEBHOOK_SECRET)
  */
-router.post("/webhook", donationController.webhook);
+router.post(
+  "/webhook",
+  requireSharedSecret(
+    "WEBHOOK_SECRET",
+    ["x-webhook-secret", "x-callback-token"],
+    "Webhook",
+  ),
+  donationController.webhook,
+);
 
 /**
  * @route   GET /api/donations/financial/:receiptCode
@@ -94,6 +181,13 @@ router.get(
   authorizeRoles("VOLUNTEER", "ADMIN"),
   donationController.getAllBookDonations,
 );
+
+/**
+ * @route   GET /api/donations/books/:batchCode
+ * @desc    Mengambil detail status paket donasi buku fisik berdasarkan kode batch
+ * @access  Public
+ */
+router.get("/books/:batchCode", donationController.getBookDonationByCode);
 
 /**
  * @route   PATCH /api/donations/books/:id/verify

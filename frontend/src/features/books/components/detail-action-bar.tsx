@@ -47,7 +47,7 @@ export function DetailActionBar({
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             <Clock size={16} />
-            <span>{actionLoading ? 'Memproses Reservasi...' : 'Masuk Antrean Reservasi'}</span>
+            <span>{actionLoading ? 'Memproses Peminjaman...' : 'Ajukan Peminjaman Buku'}</span>
           </button>
         )
       ) : (

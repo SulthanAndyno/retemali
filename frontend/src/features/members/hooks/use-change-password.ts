@@ -43,6 +43,18 @@ export function useChangePassword(): UseChangePasswordResult {
     if (form.newPassword.length < 8) {
       return { ok: false, message: 'Kata sandi baru minimal 8 karakter.' };
     }
+    if (!/[A-Z]/.test(form.newPassword) || !/[0-9]/.test(form.newPassword)) {
+      return {
+        ok: false,
+        message: 'Kata sandi baru harus memuat minimal 1 huruf kapital dan 1 angka.',
+      };
+    }
+    if (form.newPassword === form.currentPassword) {
+      return {
+        ok: false,
+        message: 'Kata sandi baru tidak boleh sama dengan kata sandi saat ini.',
+      };
+    }
     if (form.newPassword !== form.confirmPassword) {
       return { ok: false, message: 'Konfirmasi tidak sama dengan kata sandi baru.' };
     }

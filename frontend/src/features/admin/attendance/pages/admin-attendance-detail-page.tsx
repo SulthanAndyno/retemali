@@ -4,8 +4,6 @@ import { useParams } from 'next/navigation';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
-import { DUMMY_QR_TOKENS } from '@/features/admin/fixtures/admin-dummy';
 import { formatDateId, formatDateTimeId } from '@/shared/lib/format';
 import { useAdminAttendance } from '../hooks/use-admin-attendance';
 
@@ -14,13 +12,12 @@ export function AdminAttendanceDetailPage({ eventId: provided }: { eventId?: str
   const eventId = provided ?? params?.kegiatanId ?? params?.id;
   const { events, loading, error } = useAdminAttendance(eventId);
   const event = events[0];
-  const qr = DUMMY_QR_TOKENS[0];
 
   return (
     <div className="space-y-4">
       <SectionTitle
         title={event?.title ?? 'Detail Absensi'}
-        description="Roster peserta real; token QR masih data contoh."
+        description="Roster peserta dan status check-in E-Tiket."
       />
 
       {loading ? (
@@ -51,19 +48,6 @@ export function AdminAttendanceDetailPage({ eventId: provided }: { eventId?: str
               </p>
             </Card>
           </div>
-
-          <Card className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-bold text-primary-deep">Token QR</h3>
-              <Badge tone="warning">Data contoh</Badge>
-            </div>
-            <p className="text-sm text-ink-soft">
-              Token: <span className="font-mono">{qr.token}</span> • aktif{' '}
-              {qr.active ? 'ya' : 'tidak'} • kedaluwarsa{' '}
-              {formatDateTimeId(qr.expiresAt)}
-            </p>
-            <DummyNotice />
-          </Card>
 
           <Table>
             <THead>

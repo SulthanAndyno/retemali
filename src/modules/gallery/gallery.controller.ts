@@ -4,6 +4,7 @@ import { GalleryService } from "./gallery.service";
 import {
   createGalleryPhotoSchema,
   galleryQuerySchema,
+  googleDriveGalleryInputSchema,
   updateGalleryPhotoSchema,
 } from "./gallery.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
@@ -72,6 +73,30 @@ export class GalleryController {
         statusCode: 201,
         message: "Foto galeri berhasil ditambahkan",
         data: photo,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  importFromGoogleDrive = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const data = googleDriveGalleryInputSchema.parse(req.body);
+      const result = await this.galleryService.importFromGoogleDrive(
+        data,
+        req.userId,
+      );
+
+      successResponse({
+        res,
+        statusCode: 201,
+        message:
+          "Berhasil menginput & menyinkronkan foto kegiatan dari Google Drive ke galeri",
+        data: result,
       });
     } catch (error) {
       next(error);

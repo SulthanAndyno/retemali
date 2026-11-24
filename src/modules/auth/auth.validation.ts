@@ -57,6 +57,8 @@ export const loginSchema = z.object({
     .toLowerCase(),
 
   password: z.string().min(1, "Password wajib diisi"),
+
+  expectedRole: z.enum(["MEMBER", "VOLUNTEER", "DONOR", "ADMIN"]).optional(),
 });
 
 /**
@@ -120,14 +122,44 @@ export const updateProfileSchema = z.object({
     .optional(),
 });
 
-export const roleSwitchSchema = z.object({
-  role: z.enum(["MEMBER", "VOLUNTEER"], {
-    error: "Peran tujuan tidak valid. Pilihan: MEMBER atau VOLUNTEER",
-  }),
+export const userQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).optional().default("1"),
+  limit: z.string().regex(/^\d+$/).optional().default("20"),
+  search: z.string().max(100).trim().optional(),
+  status: z.enum(["ACTIVE", "PENDING", "SUSPENDED"]).optional(),
+  role: z.enum(["MEMBER", "VOLUNTEER", "DONOR", "ADMIN"]).optional(),
 });
+
+export const updateUserStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "PENDING", "SUSPENDED"]).optional(),
+  role: z.enum(["MEMBER", "VOLUNTEER"]).optional(),
+});
+
+export const adminResetCredentialsSchema = z
+  .object({
+    email: z
+      .string()
+      .email("Format email tidak valid")
+      .trim()
+      .toLowerCase()
+      .optional(),
+    newPassword: z
+      .string()
+      .min(8, "Password baru minimal 8 karakter")
+      .regex(/[A-Z]/, "Password harus mengandung minimal 1 huruf kapital")
+      .regex(/[0-9]/, "Password harus mengandung minimal 1 angka")
+      .optional(),
+  })
+  .refine((data) => Boolean(data.email || data.newPassword), {
+    message: "Isi minimal salah satu: email baru atau password baru",
+  });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
-export type RoleSwitchInput = z.infer<typeof roleSwitchSchema>;
+export type UserQueryInput = z.infer<typeof userQuerySchema>;
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export type AdminResetCredentialsInput = z.infer<
+  typeof adminResetCredentialsSchema
+>;

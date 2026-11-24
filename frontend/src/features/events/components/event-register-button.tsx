@@ -1,7 +1,7 @@
 import { CheckCircle2, Ticket } from 'lucide-react';
 import { formatCurrency } from '@/shared/lib/utils';
 import type { EventTimeline, QuotaState } from '@/shared/lib/event-timeline';
-import { isPaidEvent } from '../lib/event-options';
+import { getTicketPrice, isPaidEvent } from '../lib/event-options';
 import type { EventItem } from '../types/event.types';
 
 interface EventRegisterButtonProps {
@@ -49,7 +49,7 @@ export function EventRegisterButton({
                 : quota.isFull
                   ? 'Kuota Habis'
                   : isPaidEvent(event)
-                    ? `Daftar (Infaq ${formatCurrency(Number(event.infaqAmount ?? 0))})`
+                    ? `Daftar (Tiket ${formatCurrency(getTicketPrice(event))})`
                     : 'Daftar Sekarang (Gratis)'}
           </span>
         </>

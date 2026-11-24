@@ -21,7 +21,7 @@ const REPORTS = [
     iconClass: 'bg-emerald-600 text-white',
     cardClass: 'bg-emerald-50/70 hover:bg-emerald-100/80 border-emerald-100',
     title: 'Laporan Kas',
-    description: 'Donasi, infaq & denda sirkulasi',
+    description: 'Donasi, tiket masuk & denda sirkulasi',
   },
   {
     href: '/dashboard/admin/borrowings',

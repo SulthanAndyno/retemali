@@ -1,30 +1,27 @@
 'use client';
 
-import { QrCode, ScrollText } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { LinkButton } from '@/shared/components/ui/button';
 import { Card, SectionTitle, StatCard } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { useNotifications } from '@/features/notifications';
 import { useAuth } from '@/features/auth';
-import {
-  VOLUNTEER_ASSIGNMENTS,
-  VOLUNTEER_ATTENDANCE,
-  VOLUNTEER_UPCOMING_ASSIGNMENTS,
-} from '../fixtures/volunteer-dummy';
 import { AttendanceHistoryList } from '../components/attendance-history-list';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { UpcomingAssignmentCard } from '../components/upcoming-assignment-card';
+import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
 export function VolunteerHomePage() {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  const { assignments, upcomingAssignments, attendance } =
+    useVolunteerPortalData();
 
   if (!user) {
     return <p className="text-sm text-ink-soft">Memuat profil relawan…</p>;
   }
 
-  const upcoming = VOLUNTEER_UPCOMING_ASSIGNMENTS.slice(0, 2);
+  const upcoming = upcomingAssignments.slice(0, 2);
   const approved = user.role === 'VOLUNTEER';
 
   return (
@@ -49,23 +46,25 @@ export function VolunteerHomePage() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
           label="Kegiatan mendatang"
-          value={VOLUNTEER_UPCOMING_ASSIGNMENTS.length}
+          value={upcomingAssignments.length}
         />
-        <StatCard label="Total penugasan" value={VOLUNTEER_ASSIGNMENTS.length} />
-        <StatCard label="Total kehadiran" value={VOLUNTEER_ATTENDANCE.length} />
+        <StatCard label="Total penugasan" value={assignments.length} />
+        <StatCard label="Total kehadiran" value={attendance.length} />
         <StatCard
           label="Notifikasi belum dibaca"
           value={unreadCount}
           hint="Status aplikasi, penugasan, pengingat"
         />
-        <StatCard label="Status relawan" value={approved ? 'Disetujui' : 'Menunggu'} />
+        <StatCard
+          label="Status relawan"
+          value={approved ? 'Disetujui' : 'Menunggu'}
+        />
       </div>
-      <DummyNotice />
 
       <section>
         <SectionTitle
           title="Tugas Mendatang"
-          description="Dua penugasan terdekat dari volunteer_assignments."
+          description="Dua jadwal kegiatan komunitas terdekat."
         />
         {upcoming.length === 0 ? (
           <EmptyState
@@ -89,28 +88,28 @@ export function VolunteerHomePage() {
           <LinkButton href="/volunteer/kegiatan" variant="secondary" size="sm">
             Menu Kegiatan Saya
           </LinkButton>
-          <LinkButton href="/volunteer/qr-absensi" variant="ghost" size="sm">
-            <QrCode className="h-4 w-4" aria-hidden />
-            QR Absensi
-          </LinkButton>
         </div>
       </section>
 
       <section>
         <SectionTitle
           title="Riwayat Kehadiran"
-          description="Catatan terakhir dari attendance_records."
+          description="Catatan kehadiran shift dan kegiatan relawan."
         />
-        {VOLUNTEER_ATTENDANCE.length === 0 ? (
+        {attendance.length === 0 ? (
           <EmptyState
             title="Belum ada catatan kehadiran"
-            description="Kehadiran tercatat saat QR Absensi dipindai petugas."
+            description="Kehadiran tercatat saat shift piket atau E-Tiket kegiatan diverifikasi."
           />
         ) : (
           <>
-            <AttendanceHistoryList records={VOLUNTEER_ATTENDANCE} limit={3} />
+            <AttendanceHistoryList records={attendance} limit={3} />
             <div className="mt-3">
-              <LinkButton href="/volunteer/kehadiran" variant="secondary" size="sm">
+              <LinkButton
+                href="/volunteer/kehadiran"
+                variant="secondary"
+                size="sm"
+              >
                 Riwayat lengkap
               </LinkButton>
             </div>

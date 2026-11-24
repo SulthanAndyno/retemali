@@ -3,7 +3,6 @@ import {
   CalendarDays,
   HeartHandshake,
   LayoutDashboard,
-  QrCode,
   Settings,
   User,
   BellRing,
@@ -20,7 +19,6 @@ export const memberNav: MemberNavItem[] = [
   { label: 'Dashboard', href: '/member', icon: LayoutDashboard },
   { label: 'Peminjaman Saya', href: '/member/peminjaman', icon: BookMarked },
   { label: 'Kegiatan Saya', href: '/member/kegiatan', icon: CalendarDays },
-  { label: 'QR Absensi', href: '/member/qr-absensi', icon: QrCode },
   { label: 'Notifikasi', href: '/member/notifikasi', icon: BellRing },
   { label: 'Profil Saya', href: '/member/profil', icon: User },
   { label: 'Pengaturan Akun', href: '/member/pengaturan', icon: Settings },
@@ -31,5 +29,5 @@ export const memberMobileNav: MemberNavItem[] = [
   { label: 'Dashboard', href: '/member', icon: LayoutDashboard },
   { label: 'Peminjaman', href: '/member/peminjaman', icon: BookMarked },
   { label: 'Kegiatan', href: '/member/kegiatan', icon: CalendarDays },
-  { label: 'QR Absensi', href: '/member/qr-absensi', icon: QrCode },
+  { label: 'Profil', href: '/member/profil', icon: User },
 ];

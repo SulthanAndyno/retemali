@@ -23,10 +23,34 @@ router.get("/", galleryController.getAll);
 
 /**
  * @route   GET /api/gallery/place-info
- * @desc    Mengambil profil lokasi & kartu informasi tempat ala Google Maps
+ * @desc    Mengambil profil lokasi & kartu informasi tempat ala Google Maps + foto terbaru
  * @access  Public
  */
 router.get("/place-info", galleryController.getPlaceProfile);
+
+/**
+ * @route   POST /api/gallery/google-drive
+ * @desc    Input & sinkronisasi otomatis foto hasil kegiatan dari tautan File/Folder Google Drive
+ * @access  Private (Volunteer / Admin)
+ */
+router.post(
+  "/google-drive",
+  authenticate,
+  authorizeRoles("VOLUNTEER", "ADMIN"),
+  galleryController.importFromGoogleDrive,
+);
+
+/**
+ * @route   POST /api/gallery/drive-sync
+ * @desc    Alias sinkronisasi foto galeri dari tautan File/Folder Google Drive
+ * @access  Private (Volunteer / Admin)
+ */
+router.post(
+  "/drive-sync",
+  authenticate,
+  authorizeRoles("VOLUNTEER", "ADMIN"),
+  galleryController.importFromGoogleDrive,
+);
 
 /**
  * @route   GET /api/gallery/:id
@@ -37,7 +61,7 @@ router.get("/:id", galleryController.getById);
 
 /**
  * @route   POST /api/gallery
- * @desc    Mengunggah foto baru ke galeri (+ upload image)
+ * @desc    Mengunggah foto baru ke galeri (+ upload image atau input link Google Drive)
  * @access  Private (Volunteer / Admin)
  */
 router.post(

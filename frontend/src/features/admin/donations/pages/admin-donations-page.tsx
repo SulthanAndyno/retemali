@@ -3,28 +3,43 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { SectionTitle } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { useToast } from '@/shared/components/ui/toast';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
-import { DUMMY_DONATIONS } from '@/features/admin/fixtures/admin-dummy';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useAdminDonations } from '../hooks/use-admin-donations';
 
 export function AdminDonationsPage() {
   const { toast } = useToast();
-  const { donations, loading, error, verifyingId, reload, verify } =
-    useAdminDonations();
+  const {
+    donations,
+    financialDonations,
+    loading,
+    error,
+    verifyingId,
+    reload,
+    verify,
+    verifyFinancial,
+  } = useAdminDonations();
 
   const handleVerify = async (id: string, status: 'ACCEPTED' | 'REJECTED') => {
     const message = await verify(id, status);
     toast(message, status === 'ACCEPTED' ? 'success' : 'error');
   };
 
+  const handleVerifyFinancial = async (
+    id: string,
+    status: 'VERIFIED' | 'FAILED'
+  ) => {
+    const message = await verifyFinancial(id, status);
+    toast(message, status === 'VERIFIED' ? 'success' : 'error');
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <SectionTitle
-        title="Manajemen Donasi"
-        description="Kurasi donasi buku real; donasi finansial masih data contoh."
+        title="Manajemen Donasi Buku Fisik"
+        description="Kurasi dan verifikasi penyerahan paket donasi buku fisik."
       />
 
       {error ? (
@@ -36,6 +51,8 @@ export function AdminDonationsPage() {
         </div>
       ) : loading ? (
         <div className="h-40 animate-pulse rounded-card bg-white" />
+      ) : donations.length === 0 ? (
+        <EmptyState title="Belum ada donasi buku fisik" />
       ) : (
         <Table>
           <THead>
@@ -98,33 +115,81 @@ export function AdminDonationsPage() {
 
       <SectionTitle
         title="Donasi Finansial"
-        description="Data contoh sampai endpoint daftar donasi finansial tersedia."
+        description="Daftar transaksi donasi finansial (QRIS & Transfer Bank) beserta status verifikasinya."
       />
-      <Table>
-        <THead>
-          <TR>
-            <TH>Referensi</TH>
-            <TH>Donatur</TH>
-            <TH>Nominal</TH>
-            <TH>Status</TH>
-          </TR>
-        </THead>
-        <TBody>
-          {DUMMY_DONATIONS.filter((donation) => donation.type === 'financial').map(
-            (donation) => (
+      {loading ? (
+        <div className="h-40 animate-pulse rounded-card bg-white" />
+      ) : financialDonations.length === 0 ? (
+        <EmptyState title="Belum ada transaksi donasi finansial" />
+      ) : (
+        <Table>
+          <THead>
+            <TR>
+              <TH>Referensi</TH>
+              <TH>Donatur</TH>
+              <TH>Peruntukan</TH>
+              <TH>Metode</TH>
+              <TH>Nominal</TH>
+              <TH>Status</TH>
+              <TH>Tanggal</TH>
+              <TH>Aksi</TH>
+            </TR>
+          </THead>
+          <TBody>
+            {financialDonations.map((donation) => (
               <TR key={donation.id}>
-                <TD className="font-mono text-xs">{donation.reference}</TD>
+                <TD className="font-mono text-xs">{donation.receiptCode}</TD>
                 <TD>{donation.donorName}</TD>
-                <TD>{formatRupiah(donation.amount ?? 0)}</TD>
+                <TD>{donation.purposeLabel}</TD>
+                <TD>{donation.paymentMethod}</TD>
+                <TD>{formatRupiah(Number(donation.amount ?? 0))}</TD>
                 <TD>
-                  <Badge tone="warning">{donation.status}</Badge>
+                  <Badge
+                    tone={
+                      donation.paymentStatus === 'VERIFIED'
+                        ? 'success'
+                        : donation.paymentStatus === 'FAILED'
+                          ? 'danger'
+                          : 'warning'
+                    }
+                  >
+                    {donation.paymentStatus}
+                  </Badge>
+                </TD>
+                <TD>{formatDateId(donation.createdAt)}</TD>
+                <TD>
+                  {donation.paymentStatus === 'PENDING' ? (
+                    <div className="flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="success"
+                        disabled={verifyingId === donation.id}
+                        onClick={() =>
+                          void handleVerifyFinancial(donation.id, 'VERIFIED')
+                        }
+                      >
+                        Verifikasi
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        disabled={verifyingId === donation.id}
+                        onClick={() =>
+                          void handleVerifyFinancial(donation.id, 'FAILED')
+                        }
+                      >
+                        Tolak
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-ink-soft">Selesai</span>
+                  )}
                 </TD>
               </TR>
-            )
-          )}
-        </TBody>
-      </Table>
-      <DummyNotice />
+            ))}
+          </TBody>
+        </Table>
+      )}
     </div>
   );
 }

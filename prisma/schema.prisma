@@ -68,7 +68,7 @@ enum EventCategory {
 
 enum EventFeeType {
   FREE
-  INFAQ
+  PAID
 }
 
 enum EventStatus {
@@ -267,7 +267,8 @@ model CommunityEvent {
   quota           Int
   registeredCount Int           @default(0)
   feeType         EventFeeType  @default(FREE)
-  infaqAmount     Decimal       @default(0) @db.Decimal(12, 2)
+  ticketPrice     Decimal       @default(0) @db.Decimal(12, 2)
+  registrationCloseOffsetDays Int @default(1)
   materialsNote   String?
   bannerImage     String?
   isFeatured      Boolean       @default(false)
@@ -458,4 +459,21 @@ model GalleryPhoto {
   updatedAt    DateTime        @updatedAt
 
   uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+}
+
+/// Pengaturan profil komunitas yang ditampilkan di situs publik & portal.
+model SiteSetting {
+  id                   String   @id @default("default")
+  siteName             String   @default("Taman Baca Rete Mali")
+  tagline              String   @default("Ruang belajar & literasi warga")
+  address              String   @default("RT 05 RW 14 Kelurahan Jatirangga")
+  phone                String   @default("+62 812-0000-0000")
+  email                String   @default("halo@retemali.id")
+  mapsUrl              String?
+  instagramUrl         String?
+  openDays             String   @default("Selasa - Minggu")
+  openHours            String   @default("09:00 - 18:00 WIB")
+  donationInstructions String?  @db.Text
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }

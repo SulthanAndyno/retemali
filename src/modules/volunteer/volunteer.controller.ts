@@ -3,6 +3,7 @@ import { paginatedResponse, successResponse } from "../../utils/response";
 import { VolunteerService } from "./volunteer.service";
 import {
   applyVolunteerSchema,
+  changeUserRoleSchema,
   clockInSchema,
   clockOutSchema,
   reviewApplicationSchema,
@@ -82,6 +83,35 @@ export class VolunteerController {
           data.status === "APPROVED"
             ? "Calon relawan berhasil disetujui"
             : "Berkas calon relawan ditolak",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Menurunkan peran akun relawan menjadi anggota biasa (Admin only).
+   */
+  changeUserRole = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const userId = req.params["userId"] as string;
+      const { role } = changeUserRoleSchema.parse(req.body);
+      const result = await this.volunteerService.changeUserRole(
+        userId,
+        role,
+        req.userId as string,
+      );
+
+      successResponse({
+        res,
+        message: result.changed
+          ? `Peran ${result.user.name} berhasil diubah menjadi Anggota (MEMBER)`
+          : result.note,
         data: result,
       });
     } catch (error) {

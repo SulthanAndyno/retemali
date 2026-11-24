@@ -112,6 +112,18 @@ router.patch(
 );
 
 /**
+ * @route   PATCH /api/volunteers/:userId/role
+ * @desc    Mengubah peran relawan menjadi anggota biasa (VOLUNTEER -> MEMBER)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/:userId/role",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  volunteerController.changeUserRole,
+);
+
+/**
  * @route   GET /api/volunteers/handover-notes
  * @desc    Mengambil daftar catatan kendala & logistik piket
  * @access  Private (Volunteer / Admin)

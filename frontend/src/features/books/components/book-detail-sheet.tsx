@@ -76,7 +76,7 @@ export function BookDetailSheet({
                 <p className="font-bold">Perhatian untuk Tamu</p>
                 <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
                   Anda belum masuk ke akun. Silakan tekan tombol di bawah untuk masuk
-                  agar formulir reservasi buku dapat langsung diproses ke loket
+                  agar formulir peminjaman buku dapat langsung diproses ke loket
                   sirkulasi.
                 </p>
               </div>

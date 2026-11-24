@@ -1,7 +1,6 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { formatDateTimeId } from '@/shared/lib/format';
 import type { AdminAuditLogSnapshot } from '../types/admin.types';
 
@@ -15,7 +14,7 @@ export function AdminActivityFeed({ logs, loading }: AdminActivityFeedProps) {
     <section>
       <SectionTitle
         title="Aktivitas Terbaru"
-        description="Audit log sistem; feed pembayaran/donasi finansial menyusul."
+        description="Log aktivitas sistem, donasi, dan operasional terkini."
       />
       {loading ? (
         <div className="h-40 animate-pulse rounded-card bg-white" />
@@ -41,9 +40,6 @@ export function AdminActivityFeed({ logs, loading }: AdminActivityFeedProps) {
           </ul>
         </Card>
       )}
-      <div className="mt-2">
-        <DummyNotice />
-      </div>
     </section>
   );
 }

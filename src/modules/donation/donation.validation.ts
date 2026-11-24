@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export enum PaymentMethod {
   QRIS = "QRIS",
+  BANK_TRANSFER = "BANK_TRANSFER",
   BANK_MANDIRI = "BANK_MANDIRI",
   BANK_BCA = "BANK_BCA",
   GOPAY = "GOPAY",
@@ -33,7 +34,7 @@ export const createFinancialDonationSchema = z.object({
 
   paymentMethod: z.nativeEnum(PaymentMethod, {
     error:
-      "Metode pembayaran tidak valid. Pilih: QRIS, BANK_MANDIRI, BANK_BCA, GOPAY, OVO, DANA, atau SHOPEEPAY",
+      "Metode pembayaran tidak valid. Pilih: QRIS, BANK_TRANSFER, BANK_MANDIRI, BANK_BCA, GOPAY, OVO, DANA, atau SHOPEEPAY",
   }),
 
   donorName: z
@@ -65,6 +66,10 @@ export const createFinancialDonationSchema = z.object({
 export const paymentWebhookSchema = z.object({
   receiptCode: z.string().min(1, "Kode kuitansi wajib diisi"),
   status: z.enum(["VERIFIED", "FAILED"]).default("VERIFIED"),
+});
+
+export const verifyFinancialDonationSchema = z.object({
+  status: z.enum(["VERIFIED", "FAILED"]),
 });
 
 export const createBookDonationSchema = z.object({
@@ -136,7 +141,46 @@ export type CreateFinancialDonationInput = z.infer<
   typeof createFinancialDonationSchema
 >;
 export type PaymentWebhookInput = z.infer<typeof paymentWebhookSchema>;
+export type VerifyFinancialDonationInput = z.infer<
+  typeof verifyFinancialDonationSchema
+>;
 export type CreateBookDonationInput = z.infer<typeof createBookDonationSchema>;
 export type VerifyBookDonationInput = z.infer<typeof verifyBookDonationSchema>;
 export type DonationQueryInput = z.infer<typeof donationQuerySchema>;
 export type CashReportQueryInput = z.infer<typeof cashReportQuerySchema>;
+
+/**
+ * Form multipart mengirim boolean sebagai string ("true"/"false"), jadi nilai
+ * dikoersi manual — z.coerce.boolean() akan mengubah "false" menjadi true.
+ */
+const booleanish = z
+  .union([z.boolean(), z.enum(["true", "false", "1", "0"])])
+  .transform((value) => value === true || value === "true" || value === "1");
+
+export const paymentAccountSchema = z.object({
+  type: z.enum(["QRIS", "BANK_TRANSFER"], {
+    message: "Tipe kanal harus QRIS atau BANK_TRANSFER",
+  }),
+  providerName: z
+    .string()
+    .trim()
+    .min(1, "Nama penyedia wajib diisi")
+    .max(80, "Nama penyedia maksimal 80 karakter"),
+  accountNumber: z.string().trim().max(60).optional(),
+  accountName: z.string().trim().max(120).optional(),
+  qrisNmid: z.string().trim().max(60).optional(),
+  isActive: booleanish.optional(),
+  sortOrder: z.coerce
+    .number()
+    .int("Urutan harus bilangan bulat")
+    .min(0)
+    .max(999)
+    .optional(),
+});
+
+export const updatePaymentAccountSchema = paymentAccountSchema.partial();
+
+export type PaymentAccountInput = z.infer<typeof paymentAccountSchema>;
+export type UpdatePaymentAccountInput = z.infer<
+  typeof updatePaymentAccountSchema
+>;

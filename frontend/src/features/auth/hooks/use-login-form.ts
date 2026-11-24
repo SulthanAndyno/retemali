@@ -5,7 +5,7 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../providers/auth-provider';
 import { getAccessModeLabel } from '../lib/auth-options';
-import { dashboardForRole } from '../lib/route-guard';
+import { dashboardForRole, resolveRouteAccess } from '../lib/route-guard';
 import type { AccessMode } from '../types';
 
 export interface LoginFieldErrors {
@@ -69,16 +69,29 @@ export function useLoginForm(): UseLoginFormResult {
     setError('');
 
     try {
-      const loggedUser = await login(email, password);
+      const expectedRole =
+        selectedRole === 'NON_MEMBER' ? undefined : selectedRole;
+      const loggedUser = await login(email, password, expectedRole);
       const requestedNext =
         typeof window !== 'undefined'
           ? new URLSearchParams(window.location.search).get('next')
           : null;
-      const destination =
+      const safeNext =
         requestedNext?.startsWith('/') && !requestedNext.startsWith('//')
           ? requestedNext
-          : dashboardForRole(loggedUser.role);
+          : null;
+      const nextAllowed =
+        safeNext !== null &&
+        resolveRouteAccess({
+          pathname: safeNext.split('?')[0],
+          isAuthenticated: true,
+          role: loggedUser.role,
+        }).type === 'next';
+      const destination = nextAllowed && safeNext
+        ? safeNext
+        : dashboardForRole(loggedUser.role);
       router.replace(destination);
+      router.refresh();
     } catch (err: unknown) {
       const message =
         err instanceof Error

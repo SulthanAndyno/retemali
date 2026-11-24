@@ -30,7 +30,7 @@ export function AdminDashboardPage() {
     <div className="space-y-8">
       <SectionTitle
         title="Ringkasan Operasional"
-        description="Data backend real; bagian yang belum tersedia memakai data contoh."
+        description="Data operasional real-time dari sistem backend ReteMali."
         action={
           <LinkButton href="/admin/pembayaran" size="sm" variant="secondary">
             <Receipt className="h-4 w-4" aria-hidden />
@@ -52,17 +52,24 @@ export function AdminDashboardPage() {
 
       <AdminStatGrid
         booksTotal={data.booksTotal}
+        membersTotal={data.membersTotal}
+        activeMembers={data.activeMembers}
         approvedVolunteers={data.approvedVolunteerCount}
         pendingVolunteers={data.pendingVolunteerCount}
         upcomingEvents={data.upcomingEvents}
         eventsTotal={data.eventsTotal}
         registrationsTotal={data.registrationsTotal}
         pendingPaymentCount={data.pendingPaymentCount}
+        pendingFinancialCount={data.pendingFinancialCount}
         pendingBookDonationCount={data.pendingBookDonationCount}
         attendedTotal={data.attendedTotal}
       />
 
-      <AdminPendingPaymentsTable rows={data.pendingPayments} loading={loading} />
+      <AdminPendingPaymentsTable
+        rows={data.pendingPayments}
+        financialRows={data.pendingFinancialDonations}
+        loading={loading}
+      />
 
       <AdminAttendanceTable rows={data.attendance} loading={loading} />
 
@@ -78,6 +85,7 @@ export function AdminDashboardPage() {
 
       <AdminDonationStatusTable
         bookDonations={data.pendingBookDonations}
+        financialDonations={data.financialDonations}
         loading={loading}
       />
     </div>

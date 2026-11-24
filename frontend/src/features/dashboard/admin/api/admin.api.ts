@@ -6,7 +6,9 @@ import type {
   AdminBookDonationSnapshot,
   AdminDashboard,
   AdminEventSnapshot,
+  AdminFinancialDonationSnapshot,
   AdminRegistrationSnapshot,
+  AdminUserCounts,
   AdminVolunteerApplicationSnapshot,
   EventPaymentRegistration,
   EventPaymentStatus,
@@ -108,4 +110,21 @@ export function getAuditLogSnapshot(limit = 6) {
 
 export function getAttendanceSnapshot() {
   return get<ApiEnvelope<{ events: AdminAttendanceSnapshot[] }>>('/events/attendance');
+}
+
+export function getMemberSnapshot() {
+  return get<
+    ApiEnvelope<unknown[]> & { meta: PaginatedMeta; counts?: AdminUserCounts }
+  >('/auth/users?limit=1');
+}
+
+export function getFinancialDonationSnapshot(
+  params: { limit?: number; status?: string } = {}
+) {
+  const query = new URLSearchParams({ limit: String(params.limit ?? 6) });
+  if (params.status) query.set('status', params.status);
+
+  return get<
+    ApiEnvelope<AdminFinancialDonationSnapshot[]> & { meta: PaginatedMeta }
+  >(`/donations/financial?${query.toString()}`);
 }

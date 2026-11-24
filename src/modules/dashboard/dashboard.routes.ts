@@ -20,7 +20,7 @@ router.get("/public", dashboardController.getPublic);
 
 /**
  * @route   GET /api/dashboard/member
- * @desc    Data Portal Anggota (Kartu Digital, pinjaman aktif, reservasi, tiket)
+ * @desc    Data Portal Anggota (Kartu Digital, pinjaman aktif, pengajuan peminjaman, tiket)
  * @access  Private (Member)
  */
 router.get("/member", authenticate, dashboardController.getMember);

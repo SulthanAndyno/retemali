@@ -12,6 +12,7 @@ export type EventPhase =
   | 'UPCOMING'
   | 'ONGOING'
   | 'ENDED'
+  | 'CLOSED'
   | 'COMPLETED'
   | 'CANCELLED'
   | 'DRAFT';
@@ -25,6 +26,8 @@ export interface EventLike {
   quota?: number | null;
   registeredCount?: number | null;
   status?: string | null;
+  /** H-3 / H-2 / H-1 sebelum pelaksanaan (default H-1). */
+  registrationCloseOffsetDays?: number | null;
 }
 
 export interface EventTimeline {
@@ -35,6 +38,11 @@ export interface EventTimeline {
   isAutoClosed: boolean;
   startsAt: Date | null;
   endsAt: Date | null;
+  /** Batas pendaftaran = mulai kegiatan − offset hari (WIB). */
+  registrationCloseAt: Date | null;
+  closeOffsetDays: number;
+  /** "H-3" / "H-2" / "H-1". */
+  closeRule: string;
   closedReason: string | null;
 }
 
@@ -49,6 +57,9 @@ export interface QuotaState {
 }
 
 const TIME_PATTERN = /^(\d{1,2})[:.](\d{2})/;
+const DAY_IN_MS = 86_400_000;
+const WIB_TIME_ZONE = 'Asia/Jakarta';
+export const DEFAULT_CLOSE_OFFSET_DAYS = 1;
 
 function parseTime(value?: string | null): { hours: number; minutes: number } | null {
   if (!value) return null;
@@ -60,42 +71,105 @@ function parseTime(value?: string | null): { hours: number; minutes: number } | 
   return { hours, minutes };
 }
 
-function combine(date: Date, time: string | null | undefined, fallback: Date | null): Date | null {
+/** Tanggal kalender WIB (YYYY-MM-DD) — bukan tanggal lokal browser/UTC. */
+function wibDateString(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: WIB_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+/** Instant absolut untuk jam WIB tertentu pada tanggal kalender WIB. */
+function wibInstant(ymd: string, hours = 0, minutes = 0): Date {
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  return new Date(`${ymd}T${hh}:${mm}:00.000+07:00`);
+}
+
+/** Menggabungkan tanggal kegiatan + jam WIB menjadi instant absolut. */
+function combineWib(
+  date: Date,
+  time: string | null | undefined,
+  fallback: Date | null
+): Date | null {
   const parsed = parseTime(time);
   if (!parsed) return fallback;
-  const result = new Date(date.getTime());
-  result.setHours(parsed.hours, parsed.minutes, 0, 0);
-  return result;
+  return wibInstant(wibDateString(date), parsed.hours, parsed.minutes);
+}
+
+/** Normalisasi offset H-N ke 1..3 hari. */
+export function normalizeCloseOffsetDays(value?: number | null): number {
+  const days = Number(value);
+  if (!Number.isFinite(days)) return DEFAULT_CLOSE_OFFSET_DAYS;
+  return Math.min(3, Math.max(1, Math.trunc(days)));
+}
+
+export function formatCloseRule(value?: number | null): string {
+  return `H-${normalizeCloseOffsetDays(value)}`;
+}
+
+/** Format tanggal + jam WIB untuk badge tenggat pendaftaran. */
+export function formatWibDateTime(dateInput: Date | string): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (Number.isNaN(date.getTime())) return '-';
+  const day = new Intl.DateTimeFormat('id-ID', {
+    timeZone: WIB_TIME_ZONE,
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('id-ID', {
+    timeZone: WIB_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+  return `${day}, ${time} WIB`;
 }
 
 const PHASE_META: Record<EventPhase, { label: string; tone: EventTone; open: boolean }> = {
   UPCOMING: { label: 'Akan Datang', tone: 'blue', open: true },
-  ONGOING: { label: 'Sedang Berlangsung', tone: 'emerald', open: true },
+  ONGOING: { label: 'Sedang Berlangsung', tone: 'emerald', open: false },
   ENDED: { label: 'Selesai • Ditutup Otomatis', tone: 'slate', open: false },
+  CLOSED: { label: 'Pendaftaran Ditutup', tone: 'slate', open: false },
   COMPLETED: { label: 'Selesai', tone: 'slate', open: false },
   CANCELLED: { label: 'Dibatalkan', tone: 'rose', open: false },
   DRAFT: { label: 'Draf', tone: 'amber', open: false },
 };
 
 /**
- * Derives the live phase of an event from its schedule, honouring explicit
- * terminal statuses (COMPLETED / CANCELLED / DRAFT) when they are present.
+ * Derives the live phase of an event from its schedule in WIB, honouring
+ * explicit terminal statuses (COMPLETED / CANCELLED / DRAFT) when present.
+ *
+ * The registration cutoff is `eventStart − registrationCloseOffsetDays`
+ * (H-3, H-2 or H-1), computed against Asia/Jakarta rather than the browser's
+ * local clock, so a visitor in another timezone sees the same deadline the
+ * server enforces.
  */
 export function computeEventTimeline(event: EventLike, now: Date = new Date()): EventTimeline {
   const rawDate = typeof event.eventDate === 'string' ? new Date(event.eventDate) : event.eventDate;
   const hasValidDate = !Number.isNaN(rawDate.getTime());
   const baseDate = hasValidDate ? rawDate : null;
 
-  const startsAt = baseDate ? combine(baseDate, event.startTime, baseDate) : null;
-  let endsAt = baseDate ? combine(baseDate, event.endTime, null) : null;
+  const closeOffsetDays = normalizeCloseOffsetDays(event.registrationCloseOffsetDays);
+  const closeRule = formatCloseRule(closeOffsetDays);
+
+  const startsAt = baseDate ? combineWib(baseDate, event.startTime, baseDate) : null;
+  let endsAt = baseDate ? combineWib(baseDate, event.endTime, null) : null;
 
   if (startsAt && endsAt && endsAt.getTime() <= startsAt.getTime()) {
     // Session crossing midnight (e.g. 19:30 → 00:30).
-    endsAt = new Date(endsAt.getTime() + 24 * 60 * 60 * 1000);
+    endsAt = new Date(endsAt.getTime() + DAY_IN_MS);
   }
   if (startsAt && !endsAt) {
     endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
   }
+
+  const registrationCloseAt = startsAt
+    ? new Date(startsAt.getTime() - closeOffsetDays * DAY_IN_MS)
+    : null;
 
   const status = (event.status ?? '').toUpperCase();
 
@@ -118,20 +192,33 @@ export function computeEventTimeline(event: EventLike, now: Date = new Date()): 
     closedReason = 'Waktu pelaksanaan telah berakhir — pendaftaran ditutup otomatis.';
   } else if (now.getTime() >= startsAt.getTime()) {
     phase = 'ONGOING';
+    closedReason = `Kegiatan sedang berlangsung; pendaftaran sudah ditutup sejak ${closeRule}.`;
+  } else if (registrationCloseAt && now.getTime() >= registrationCloseAt.getTime()) {
+    phase = 'CLOSED';
+    closedReason = `Pendaftaran ditutup otomatis ${closeRule} sebelum pelaksanaan (${formatWibDateTime(registrationCloseAt)}).`;
   } else {
     phase = 'UPCOMING';
   }
 
   const meta = PHASE_META[phase];
+  const label =
+    phase === 'CLOSED'
+      ? `Pendaftaran Ditutup (${closeRule})`
+      : phase === 'ONGOING'
+        ? `Sedang Berlangsung • Pendaftaran Ditutup (${closeRule})`
+        : meta.label;
 
   return {
     phase,
-    label: meta.label,
+    label,
     tone: meta.tone,
     isRegistrationOpen: meta.open,
-    isAutoClosed: phase === 'ENDED',
+    isAutoClosed: phase === 'ENDED' || phase === 'CLOSED',
     startsAt,
     endsAt,
+    registrationCloseAt,
+    closeOffsetDays,
+    closeRule,
     closedReason,
   };
 }
@@ -208,8 +295,6 @@ export const TONE_BAR_CLASSES: Record<EventTone, string> = {
   rose: 'bg-rose-500',
   amber: 'bg-amber-500',
 };
-
-const DAY_IN_MS = 86_400_000;
 
 /** True when the event date falls within the next/previous 7 days. */
 export function isThisWeek(eventDate: string, now = Date.now()): boolean {

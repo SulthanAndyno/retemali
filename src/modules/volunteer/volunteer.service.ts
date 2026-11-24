@@ -49,6 +49,14 @@ export class VolunteerService {
     return this.volunteerRepository.reviewApplication(id, adminId, data);
   }
 
+  async changeUserRole(
+    userId: string,
+    role: "MEMBER",
+    adminId: string,
+  ) {
+    return this.volunteerRepository.changeUserRole(userId, role, adminId);
+  }
+
   async clockIn(userId: string, data: ClockInInput) {
     return this.volunteerRepository.clockIn(userId, data);
   }

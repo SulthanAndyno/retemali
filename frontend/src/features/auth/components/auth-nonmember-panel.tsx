@@ -23,7 +23,7 @@ export function AuthNonMemberPanel({ onOpen }: { onOpen: () => void }) {
         <ArrowRight className="h-4 w-4" aria-hidden />
       </Button>
       <p className="text-center text-xs text-ink-soft">
-        Fitur khusus member (pinjam buku, QR absensi) memerlukan akun
+        Fitur khusus member (pinjam buku, E-Tiket kegiatan) memerlukan akun
         tervalidasi.
       </p>
     </div>

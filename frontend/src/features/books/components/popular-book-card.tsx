@@ -57,7 +57,7 @@ export function PopularBookCard({ book, onOpen, onBookmark }: PopularBookCardPro
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
         }`}
       >
-        {isAvailable ? 'Pinjam Buku' : 'Reservasi'}
+        {isAvailable ? 'Pinjam Buku' : 'Ajukan Peminjaman'}
       </button>
     </div>
   );

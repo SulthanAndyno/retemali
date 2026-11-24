@@ -33,7 +33,7 @@ export function AdminReportsPage() {
             </span>
             <div>
               <p className="text-sm font-bold text-primary-deep">Laporan Kas</p>
-              <p className="text-xs text-ink-soft">Donasi, infaq, dan denda sirkulasi.</p>
+              <p className="text-xs text-ink-soft">Donasi, tiket masuk kegiatan, dan denda sirkulasi.</p>
             </div>
           </div>
           <LinkButton href="/admin/laporan/kas" size="sm" variant="secondary">

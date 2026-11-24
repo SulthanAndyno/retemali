@@ -10,7 +10,7 @@ interface ReservationListProps {
 export function ReservationList({ reservations, pendingId, onCancel }: ReservationListProps) {
   if (reservations.length === 0) {
     return (
-      <p className="text-xs text-slate-500 py-2 text-center">Belum ada reservasi aktif.</p>
+      <p className="text-xs text-slate-500 py-2 text-center">Belum ada peminjaman aktif.</p>
     );
   }
 

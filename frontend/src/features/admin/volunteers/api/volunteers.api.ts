@@ -18,3 +18,23 @@ export function reviewVolunteerApplication(
     { status, rejectionNote }
   );
 }
+
+export interface RoleChangeResult {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    memberCode: string;
+    role: 'MEMBER' | 'VOLUNTEER' | 'ADMIN';
+  };
+  previousRole: string;
+  changed: boolean;
+  note: string;
+}
+
+/** Menurunkan peran relawan menjadi anggota biasa (Admin only). */
+export function changeVolunteerRole(userId: string, role: 'MEMBER' = 'MEMBER') {
+  return patch<ApiEnvelope<RoleChangeResult>>(`/volunteers/${userId}/role`, {
+    role,
+  });
+}

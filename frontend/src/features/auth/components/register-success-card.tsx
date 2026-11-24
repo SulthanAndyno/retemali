@@ -29,7 +29,7 @@ export function RegisterSuccessCard({
           </p>
           <p className="text-ink-soft">
             Akun member masih menunggu verifikasi keanggotaan oleh admin —
-            fitur peminjaman dan reservasi aktif setelah verifikasi. Anda dapat
+            fitur peminjaman buku aktif setelah verifikasi. Anda dapat
             masuk kapan saja dengan email dan kata sandi yang didaftarkan.
           </p>
         </div>

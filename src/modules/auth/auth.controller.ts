@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { successResponse } from "../../utils/response";
+import { paginatedResponse, successResponse } from "../../utils/response";
 import { AuthService } from "./auth.service";
 import {
+  adminResetCredentialsSchema,
   changePasswordSchema,
   loginSchema,
   registerSchema,
-  roleSwitchSchema,
   updateProfileSchema,
+  updateUserStatusSchema,
+  userQuerySchema,
 } from "./auth.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
 
@@ -130,22 +132,65 @@ export class AuthController {
     }
   };
 
-  roleSwitch = async (
+  getAllUsers = async (
     req: AuthRequest,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { role } = roleSwitchSchema.parse(req.body);
-      const result = await this.authService.switchRole(
-        req.userId as string,
-        role,
-      );
+      const query = userQuerySchema.parse(req.query);
+      const { data, meta } = await this.authService.getAllUsers(query);
+      paginatedResponse({
+        res,
+        message: "Berhasil mengambil daftar anggota",
+        data,
+        meta,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 
+  updateUserStatus = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const id = req.params["id"] as string;
+      const input = updateUserStatusSchema.parse(req.body);
+      const updated = await this.authService.updateUserStatus(
+        id,
+        input,
+        req.userId,
+      );
       successResponse({
         res,
-        message: result.note,
-        data: result,
+        message: "Status anggota berhasil diperbarui",
+        data: updated,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  adminResetCredentials = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const id = req.params["id"] as string;
+      const input = adminResetCredentialsSchema.parse(req.body);
+      const updated = await this.authService.adminResetCredentials(
+        id,
+        input,
+        req.userId,
+      );
+      successResponse({
+        res,
+        message: "Kredensial akun anggota berhasil diperbarui",
+        data: updated,
       });
     } catch (error) {
       next(error);

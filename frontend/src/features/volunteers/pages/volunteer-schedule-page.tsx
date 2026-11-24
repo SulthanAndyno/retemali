@@ -1,35 +1,37 @@
+'use client';
+
 import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
 import { SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { formatDateId } from '@/shared/lib/format';
-import {
-  VOLUNTEER_PAST_ASSIGNMENTS,
-  VOLUNTEER_UPCOMING_ASSIGNMENTS,
-} from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { UpcomingAssignmentCard } from '../components/upcoming-assignment-card';
+import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
 export function VolunteerSchedulePage() {
+  const { upcomingAssignments, pastAssignments, loading } =
+    useVolunteerPortalData();
+
   return (
     <div className="space-y-8">
       <SectionTitle
         title="Jadwal dan Tugas"
         description="Penugasan relawan dan riwayat kegiatan yang sudah berlalu."
       />
-      <DummyNotice />
 
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
           <CalendarClock className="h-5 w-5" aria-hidden />
           Akan Berlangsung
         </h2>
-        {VOLUNTEER_UPCOMING_ASSIGNMENTS.length === 0 ? (
+        {loading ? (
+          <div className="h-32 animate-pulse rounded-card bg-white" />
+        ) : upcomingAssignments.length === 0 ? (
           <EmptyState title="Tidak ada jadwal mendatang" />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {VOLUNTEER_UPCOMING_ASSIGNMENTS.map((assignment) => (
+            {upcomingAssignments.map((assignment) => (
               <UpcomingAssignmentCard
                 key={assignment.id}
                 assignment={assignment}
@@ -42,7 +44,9 @@ export function VolunteerSchedulePage() {
 
       <section>
         <h2 className="mb-3 text-base font-bold text-ink">Sudah Berlalu</h2>
-        {VOLUNTEER_PAST_ASSIGNMENTS.length === 0 ? (
+        {loading ? (
+          <div className="h-32 animate-pulse rounded-card bg-white" />
+        ) : pastAssignments.length === 0 ? (
           <EmptyState title="Belum ada penugasan selesai" />
         ) : (
           <Table>
@@ -55,7 +59,7 @@ export function VolunteerSchedulePage() {
               </TR>
             </THead>
             <TBody>
-              {VOLUNTEER_PAST_ASSIGNMENTS.map((assignment) => (
+              {pastAssignments.map((assignment) => (
                 <TR key={assignment.id}>
                   <TD>
                     <Link

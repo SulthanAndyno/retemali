@@ -7,7 +7,6 @@ import { Button } from '@/shared/components/ui/button';
 import { SectionTitle } from '@/shared/components/ui/card';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useAdminRegistrations } from '../hooks/use-admin-registrations';
 
@@ -110,7 +109,7 @@ export function AdminRegistrationsPage({
                   <p className="text-xs text-ink-soft">{row.user.memberCode}</p>
                 </TD>
                 <TD className="font-mono text-xs">{row.ticketCode}</TD>
-                <TD>{formatRupiah(Number(row.event.infaqAmount ?? 0))}</TD>
+                <TD>{formatRupiah(Number(row.event.ticketPrice ?? 0))}</TD>
                 <TD>
                   <Badge
                     tone={
@@ -154,8 +153,6 @@ export function AdminRegistrationsPage({
           </Button>
         </div>
       ) : null}
-
-      <DummyNotice />
     </div>
   );
 }

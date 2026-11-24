@@ -14,7 +14,7 @@ export function AdminAttendanceTable({ rows, loading }: AdminAttendanceTableProp
     <section>
       <SectionTitle
         title="Absensi Kegiatan"
-        description="Peserta hadir melalui check-in tiket; kelola QR menyusul."
+        description="Peserta hadir melalui check-in tiket E-Tiket."
       />
       {loading ? (
         <div className="h-32 animate-pulse rounded-card bg-white" />

@@ -4,19 +4,20 @@ import { ClipboardList } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
-import { VOLUNTEER_ASSIGNMENTS } from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
+import { PasswordChangeForm } from '@/features/members';
 import { VolunteerProfileForm } from '../components/volunteer-profile-form';
+import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
 export function VolunteerProfilePage() {
   const { user } = useAuth();
+  const { assignments } = useVolunteerPortalData();
 
   if (!user) {
     return <p className="text-sm text-ink-soft">Memuat profil relawan…</p>;
   }
 
   const approved = user.role === 'VOLUNTEER';
-  const approvedAssignments = VOLUNTEER_ASSIGNMENTS.filter(
+  const approvedAssignments = assignments.filter(
     (assignment) => assignment.approval === 'approved'
   ).length;
 
@@ -45,11 +46,10 @@ export function VolunteerProfilePage() {
           <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-soft">
             <ClipboardList className="h-3.5 w-3.5" aria-hidden />
             Total penugasan aktif: {approvedAssignments} dari{' '}
-            {VOLUNTEER_ASSIGNMENTS.length} penugasan tercatat
+            {assignments.length} penugasan tercatat
           </p>
         </div>
       </Card>
-      <DummyNotice />
 
       <Card>
         <h2 className="text-base font-bold text-ink">Ubah Data Profil</h2>
@@ -62,6 +62,14 @@ export function VolunteerProfilePage() {
           phone={user.phone ?? ''}
           email={user.email}
         />
+      </Card>
+
+      <Card>
+        <h2 className="text-base font-bold text-ink">Ganti Kata Sandi</h2>
+        <p className="mb-3 mt-0.5 text-xs text-ink-soft">
+          Setiap perubahan kata sandi diverifikasi dari kata sandi saat ini.
+        </p>
+        <PasswordChangeForm />
       </Card>
     </div>
   );

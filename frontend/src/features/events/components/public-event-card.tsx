@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Ticket, Users } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
+import { formatCurrency } from '@/shared/lib/utils';
 import { formatDateId } from '@/shared/lib/format';
 import type { AutoCloseState, EventItem } from '../types/event.types';
-import { isPaidEvent } from '../lib/event-options';
+import { getTicketPrice, isPaidEvent } from '../lib/event-options';
 
 export function PublicEventCard({
   event,
@@ -18,6 +19,7 @@ export function PublicEventCard({
   const phase = autoCloseState?.phase;
   const closed =
     phase === 'ENDED' ||
+    phase === 'CLOSED' ||
     phase === 'COMPLETED' ||
     event.status === 'COMPLETED';
 
@@ -26,7 +28,7 @@ export function PublicEventCard({
       <Card className="h-full space-y-2.5 transition-shadow hover:shadow-drawer">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge tone={paid ? 'warning' : 'success'}>
-            {paid ? 'Berbayar' : 'Gratis'}
+            {paid ? `Tiket ${formatCurrency(getTicketPrice(event))}` : 'Gratis'}
           </Badge>
           <Badge tone={closed ? 'neutral' : 'info'}>
             {closed ? 'Selesai' : (autoCloseState?.label ?? 'Akan Datang')}
@@ -70,6 +72,18 @@ export function PublicEventCard({
               {event.quota} kuota
             </span>
           </div>
+          {autoCloseState?.registrationCloseAtWib ? (
+            <div className="flex items-start gap-1.5">
+              <Ticket
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary-deep"
+                aria-hidden
+              />
+              <span>
+                Pendaftaran ditutup {autoCloseState.closeRule ?? 'H-1'}:{' '}
+                {autoCloseState.registrationCloseAtWib}
+              </span>
+            </div>
+          ) : null}
         </dl>
 
         <span className="inline-flex text-sm font-semibold text-primary-deep underline-offset-4 hover:underline">

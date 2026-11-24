@@ -21,8 +21,9 @@ async function request(
   endpoint: string,
   body?: any,
   token?: string,
+  extraHeaders?: Record<string, string>,
 ): Promise<{ status: number; data: any }> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...extraHeaders };
   if (body) {
     headers["Content-Type"] = "application/json";
   }
@@ -101,6 +102,20 @@ async function runTests() {
   record("POST /api/auth/login (Admin)", loginAdmin.status, 200, loginAdmin.data);
   const adminToken = loginAdmin.data?.data?.token;
 
+  const adminLoginAsMember = await request("POST", "/api/auth/login", {
+    email: "admin@retemali.id",
+    password: "Password123",
+    expectedRole: "MEMBER",
+  });
+  record("POST /api/auth/login (Admin ditolak di mode Member 403)", adminLoginAsMember.status, 403, adminLoginAsMember.data);
+
+  const adminLoginAsVolunteer = await request("POST", "/api/auth/login", {
+    email: "admin@retemali.id",
+    password: "Password123",
+    expectedRole: "VOLUNTEER",
+  });
+  record("POST /api/auth/login (Admin ditolak di mode Volunteer 403)", adminLoginAsVolunteer.status, 403, adminLoginAsVolunteer.data);
+
   const loginVol = await request("POST", "/api/auth/login", {
     email: "relawan@retemali.id",
     password: "Password123",
@@ -126,35 +141,60 @@ async function runTests() {
   );
   record("PATCH /api/auth/me (Update Target Baca)", updateProfile.status, 200, updateProfile.data);
 
-  // 2b. Role Switch Feature
-  console.log("\n--- 1b. VOLUNTEER ROLE SWITCH FEATURE ---");
-  const switchRoleToMember = await request(
-    "POST",
-    "/api/auth/role-switch",
-    { role: "MEMBER" },
-    volunteerToken,
-  );
-  record("POST /api/auth/role-switch (Volunteer -> MEMBER mode)", switchRoleToMember.status, 200, switchRoleToMember.data);
-  const switchedMemberToken = switchRoleToMember.data?.data?.token;
-
-  // Test that in MEMBER mode, volunteer cannot access volunteer-only endpoint
-  const testDeniedAccess = await request(
+  // 2b. Admin Users & Site Settings Management
+  console.log("\n--- 1b. ADMIN USERS & SITE SETTINGS ---");
+  const listUsers = await request(
     "GET",
-    "/api/volunteers/applications",
+    "/api/auth/users?page=1&limit=10",
     undefined,
-    switchedMemberToken,
+    adminToken,
   );
-  record("GET /api/volunteers/applications in MEMBER mode (Forbidden 403)", testDeniedAccess.status, 403, testDeniedAccess.data);
+  record("GET /api/auth/users (Daftar Anggota & Ringkasan Status)", listUsers.status, 200, listUsers.data);
 
-  // Switch back to VOLUNTEER mode
-  const switchBackToVolunteer = await request(
-    "POST",
-    "/api/auth/role-switch",
-    { role: "VOLUNTEER" },
-    switchedMemberToken,
+  const testUserId = register.data?.data?.user?.id;
+  if (testUserId) {
+    const suspendUser = await request(
+      "PATCH",
+      `/api/auth/users/${testUserId}/status`,
+      { status: "SUSPENDED" },
+      adminToken,
+    );
+    record("PATCH /api/auth/users/:id/status (Tangguhkan Member)", suspendUser.status, 200, suspendUser.data);
+
+    const activateUser = await request(
+      "PATCH",
+      `/api/auth/users/${testUserId}/status`,
+      { status: "ACTIVE" },
+      adminToken,
+    );
+    record("PATCH /api/auth/users/:id/status (Aktifkan Kembali Member)", activateUser.status, 200, activateUser.data);
+
+    const resetEmail = `reset.${Date.now()}@retemali.id`;
+    const resetCreds = await request(
+      "PATCH",
+      `/api/auth/users/${testUserId}/credentials`,
+      { email: resetEmail, newPassword: "NewPassword123" },
+      adminToken,
+    );
+    record("PATCH /api/auth/users/:id/credentials (Reset Email & Password Admin)", resetCreds.status, 200, resetCreds.data);
+
+    const loginReset = await request("POST", "/api/auth/login", {
+      email: resetEmail,
+      password: "NewPassword123",
+    });
+    record("POST /api/auth/login (Login dengan Kredensial Baru)", loginReset.status, 200, loginReset.data);
+  }
+
+  const getSettings = await request("GET", "/api/settings");
+  record("GET /api/settings (Pengaturan Situs & Operasional)", getSettings.status, 200, getSettings.data);
+
+  const patchSettings = await request(
+    "PATCH",
+    "/api/settings",
+    { openHours: "09.00 - 17.00 WIB" },
+    adminToken,
   );
-  record("POST /api/auth/role-switch (Switch back -> VOLUNTEER mode)", switchBackToVolunteer.status, 200, switchBackToVolunteer.data);
-  volunteerToken = switchBackToVolunteer.data?.data?.token;
+  record("PATCH /api/settings (Update Jam Operasional)", patchSettings.status, 200, patchSettings.data);
 
   // 3. Dashboard
   console.log("\n--- 2. DASHBOARD AGGREGATIONS ---");
@@ -286,8 +326,24 @@ async function runTests() {
     record("POST /api/circulation/loans/:id/remind-wa (Link WhatsApp)", remindWa.status, 200, remindWa.data);
   }
 
-  const cronDue = await request("POST", "/api/circulation/cron/due-reminders");
+  const cronDueUnauth = await request("POST", "/api/circulation/cron/due-reminders");
+  record("POST /api/circulation/cron/due-reminders (Tanpa Secret -> 401)", cronDueUnauth.status, 401, cronDueUnauth.data);
+
+  const cronSecret = process.env.CRON_SECRET || "retemali-cron-secret-2026";
+  const cronDue = await request(
+    "POST",
+    "/api/circulation/cron/due-reminders",
+    undefined,
+    undefined,
+    { "x-cron-secret": cronSecret },
+  );
   record("POST /api/circulation/cron/due-reminders (Cron Pengingat H-2)", cronDue.status, 200, cronDue.data);
+
+  const webhookUnauth = await request("POST", "/api/donations/webhook", {
+    receiptCode: "INV-RM-2026-0001",
+    status: "VERIFIED",
+  });
+  record("POST /api/donations/webhook (Tanpa Secret -> 401)", webhookUnauth.status, 401, webhookUnauth.data);
 
   const quickReturn = await request(
     "POST",
@@ -330,8 +386,8 @@ async function runTests() {
       startTime: "10:00",
       endTime: "12:00",
       quota: 10,
-      feeType: "INFAQ",
-      infaqAmount: 25000,
+      feeType: "PAID",
+      ticketPrice: 25000,
     },
     adminToken,
   );
@@ -339,16 +395,60 @@ async function runTests() {
   const createdEventId = createEvent.data?.data?.id;
   const createdEventSlug = createEvent.data?.data?.slug;
 
+  // Try registering to Paid Event WITHOUT payment proof -> Should fail 400
+  const regNoProof = await request(
+    "POST",
+    `/api/events/${createdEventSlug}/register`,
+    {},
+    memberToken,
+  );
+  record("POST /api/events/:id/register (Wajib Bukti Pembayaran Event Berbayar 400)", regNoProof.status, 400, regNoProof.data);
+
   // Register to Future Event (with payment proof URL)
   const regEvent = await request(
     "POST",
     `/api/events/${createdEventSlug}/register`,
-    { paymentProofUrl: "https://retemali.id/uploads/proof-test.jpg" },
+    { paymentProofUrl: "https://drive.google.com/file/d/1PaymentProofDriveId1234567890/view?usp=sharing" },
     memberToken,
   );
-  record("POST /api/events/:id/register (Daftar Event Masa Depan)", regEvent.status, 201, regEvent.data);
+  record("POST /api/events/:id/register (Daftar Event + Bukti Pembayaran & Kredensial Tiket)", regEvent.status, 201, regEvent.data);
   const ticketCode = regEvent.data?.data?.ticketCode;
   const registrationId = regEvent.data?.data?.id;
+
+  if (ticketCode) {
+    const ticketDetail = await request("GET", `/api/events/tickets/${ticketCode}`, undefined, memberToken);
+    record("GET /api/events/tickets/:ticketCode (Detail Kredensial Tiket & Bukti Bayar)", ticketDetail.status, 200, ticketDetail.data);
+  }
+
+  // Test H-3 Auto-Close Rule: Create event 2 days from now (H-2) with registrationCloseOffsetDays: 3 -> Registration must be closed (400)
+  const h2Date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const h2Event = await request(
+    "POST",
+    "/api/events",
+    {
+      title: `Kegiatan H-2 Sudah Tutup H-3 ${Date.now()}`,
+      category: "UMUM",
+      description: "Pengujian penutupan otomatis H-3 sebelum kegiatan.",
+      facilitatorName: "Kak Andi",
+      location: "Pendopo Rete Mali",
+      eventDate: h2Date,
+      startTime: "09:00",
+      endTime: "11:00",
+      quota: 20,
+      feeType: "FREE",
+      registrationCloseOffsetDays: 3,
+    },
+    adminToken,
+  );
+  const h2EventId = h2Event.data?.data?.id;
+  const h2EventSlug = h2Event.data?.data?.slug;
+  if (h2EventSlug) {
+    const regH2 = await request("POST", `/api/events/${h2EventSlug}/register`, undefined, memberToken);
+    record("POST /api/events/:slug/register (Penutupan Otomatis H-3 Ditolak 400)", regH2.status, 400, regH2.data);
+  }
+  if (h2EventId) {
+    await request("DELETE", `/api/events/${h2EventId}`, undefined, adminToken);
+  }
 
   // Test Quota Limit Protection: create event with quota = 1
   const limitedEvent = await request(
@@ -388,6 +488,21 @@ async function runTests() {
   const myTickets = await request("GET", "/api/events/tickets/me", undefined, memberToken);
   record("GET /api/events/tickets/me (Daftar Tiket Saya)", myTickets.status, 200, myTickets.data);
 
+  // Event Registrations List (Admin)
+  const listRegistrations = await request("GET", "/api/events/registrations", undefined, adminToken);
+  record("GET /api/events/registrations (Daftar Registrasi Peserta)", listRegistrations.status, 200, listRegistrations.data);
+
+  // Verify Registration Payment (Approve) BEFORE Check-in for PAID event
+  if (registrationId) {
+    const verifyReg = await request(
+      "PATCH",
+      `/api/events/registrations/${registrationId}/verify`,
+      { status: "VERIFIED", adminNotes: "Bukti transfer valid dan sesuai nominal tiket masuk." },
+      adminToken,
+    );
+    record("PATCH /api/events/registrations/:id/verify (Verifikasi Pembayaran Tiket)", verifyReg.status, 200, verifyReg.data);
+  }
+
   // Volunteer checks in participant QR
   if (ticketCode) {
     const checkIn = await request(
@@ -406,21 +521,6 @@ async function runTests() {
   // Event Auto-Close Execution
   const autoClose = await request("GET", "/api/events/auto-close", undefined, adminToken);
   record("GET /api/events/auto-close (Auto-Close Timeline Trigger)", autoClose.status, 200, autoClose.data);
-
-  // Event Registrations List (Admin)
-  const listRegistrations = await request("GET", "/api/events/registrations", undefined, adminToken);
-  record("GET /api/events/registrations (Daftar Registrasi Peserta)", listRegistrations.status, 200, listRegistrations.data);
-
-  // Verify Registration Payment (Approve)
-  if (registrationId) {
-    const verifyReg = await request(
-      "PATCH",
-      `/api/events/registrations/${registrationId}/verify`,
-      { status: "VERIFIED", adminNotes: "Bukti transfer valid dan sesuai nominal infaq." },
-      adminToken,
-    );
-    record("PATCH /api/events/registrations/:id/verify (Verifikasi Pembayaran Tiket)", verifyReg.status, 200, verifyReg.data);
-  }
 
   // 8. Volunteers & Shifts
   console.log("\n--- 7. VOLUNTEER & SHIFT MODULE ---");
@@ -449,6 +549,31 @@ async function runTests() {
       adminToken,
     );
     record("PATCH /api/volunteers/applications/:id/review (Approval Relawan)", reviewApp.status, 200, reviewApp.data);
+  }
+
+  const newMemberId = register.data?.data?.user?.id;
+  if (newMemberId) {
+    // Demote newMember back to MEMBER & test re-apply capability
+    const demoteVol = await request(
+      "PATCH",
+      `/api/volunteers/${newMemberId}/role`,
+      { role: "MEMBER" },
+      adminToken,
+    );
+    record("PATCH /api/volunteers/:userId/role (Kembalikan Peran Relawan -> MEMBER)", demoteVol.status, 200, demoteVol.data);
+
+    const reApplyVol = await request(
+      "POST",
+      "/api/volunteers/apply",
+      {
+        majorOrJob: "Sastra Indonesia",
+        institution: "Universitas Indonesia",
+        division: "Kelas Cerita",
+        motivation: "Mendaftar kembali menjadi relawan literasi.",
+      },
+      newMemberToken,
+    );
+    record("POST /api/volunteers/apply (Re-Apply setelah Demote/Reject)", reApplyVol.status, 201, reApplyVol.data);
   }
 
   const clockIn = await request(
@@ -528,6 +653,28 @@ async function runTests() {
     record("GET /api/donations/financial/:code (Kuitansi Digital)", getReceipt.status, 200, getReceipt.data);
   }
 
+  const createBankFin = await request("POST", "/api/donations/financial", {
+    donorName: "Andi Saputra",
+    amount: 250000,
+    paymentMethod: "BANK_TRANSFER",
+    purposeLabel: "Pengadaan Buku Anak",
+  });
+  record("POST /api/donations/financial (Donasi Transfer Bank PENDING)", createBankFin.status, 201, createBankFin.data);
+  const bankFinId = createBankFin.data?.data?.id;
+
+  const listFinDons = await request("GET", "/api/donations/financial?limit=10", undefined, adminToken);
+  record("GET /api/donations/financial (Daftar Donasi Finansial Admin)", listFinDons.status, 200, listFinDons.data);
+
+  if (bankFinId) {
+    const verifyFinDon = await request(
+      "PATCH",
+      `/api/donations/financial/${bankFinId}/verify`,
+      { status: "VERIFIED" },
+      adminToken,
+    );
+    record("PATCH /api/donations/financial/:id/verify (Verifikasi Donasi Transfer Bank)", verifyFinDon.status, 200, verifyFinDon.data);
+  }
+
   const createBookDon = await request("POST", "/api/donations/books", {
     donorName: "Budi Santoso",
     donorBadge: "Warga RW 14",
@@ -538,6 +685,12 @@ async function runTests() {
   });
   record("POST /api/donations/books (Submit Donasi Buku)", createBookDon.status, 201, createBookDon.data);
   const batchId = createBookDon.data?.data?.id;
+  const batchCode = createBookDon.data?.data?.batchCode;
+
+  if (batchCode) {
+    const getBookDonByCode = await request("GET", `/api/donations/books/${batchCode}`);
+    record("GET /api/donations/books/:batchCode (Detail Status Paket Buku)", getBookDonByCode.status, 200, getBookDonByCode.data);
+  }
 
   const listBookDons = await request("GET", "/api/donations/books", undefined, volunteerToken);
   record("GET /api/donations/books (Antrean Kurasi Relawan)", listBookDons.status, 200, listBookDons.data);
@@ -563,6 +716,42 @@ async function runTests() {
   const paymentSetting = await request("GET", "/api/donations/payment-setting");
   record("GET /api/donations/payment-setting (Pengaturan Payment Gateway)", paymentSetting.status, 200, paymentSetting.data);
 
+  const createPayAcc = await request(
+    "POST",
+    "/api/donations/payment-accounts",
+    {
+      type: "BANK_TRANSFER",
+      providerName: "Bank Mandiri E2E",
+      accountNumber: "9876543210",
+      accountName: "Yayasan Rete Mali",
+      isActive: true,
+    },
+    adminToken,
+  );
+  record("POST /api/donations/payment-accounts (Tambah Kanal Pembayaran)", createPayAcc.status, 201, createPayAcc.data);
+  const payAccId = createPayAcc.data?.data?.id;
+
+  const listAdminPayAcc = await request("GET", "/api/donations/payment-accounts/admin", undefined, adminToken);
+  record("GET /api/donations/payment-accounts/admin (Daftar Kanal Admin)", listAdminPayAcc.status, 200, listAdminPayAcc.data);
+
+  if (payAccId) {
+    const patchPayAcc = await request(
+      "PATCH",
+      `/api/donations/payment-accounts/${payAccId}`,
+      { isActive: false },
+      adminToken,
+    );
+    record("PATCH /api/donations/payment-accounts/:id (Update Kanal Pembayaran)", patchPayAcc.status, 200, patchPayAcc.data);
+
+    const delPayAcc = await request(
+      "DELETE",
+      `/api/donations/payment-accounts/${payAccId}`,
+      undefined,
+      adminToken,
+    );
+    record("DELETE /api/donations/payment-accounts/:id (Hapus Kanal Pembayaran)", delPayAcc.status, 200, delPayAcc.data);
+  }
+
   // 11. Gallery Module (Google Maps-Style)
   console.log("\n--- 10. GALLERY MODULE (GOOGLE MAPS STYLE) ---");
   const placeInfo = await request("GET", "/api/gallery/place-info");
@@ -583,6 +772,20 @@ async function runTests() {
   record("POST /api/gallery (Unggah Foto Galeri Google Maps)", addPhoto.status, 201, addPhoto.data);
   const photoId = addPhoto.data?.data?.id;
 
+  const addDrivePhoto = await request(
+    "POST",
+    "/api/gallery/google-drive",
+    {
+      driveUrl: "https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9I0J1K2L3M4N5O6P/view?usp=sharing",
+      title: "Dokumentasi Kegiatan dari Google Drive",
+      category: "KEGIATAN",
+      isFeatured: true,
+    },
+    adminToken,
+  );
+  record("POST /api/gallery/google-drive (Input & Sinkron Foto dari Google Drive)", addDrivePhoto.status, 201, addDrivePhoto.data);
+  const drivePhotoId = addDrivePhoto.data?.data?.photos?.[0]?.id;
+
   const getGallery = await request("GET", "/api/gallery?category=KEGIATAN");
   record("GET /api/gallery?category=KEGIATAN (Filter Kategori Galeri)", getGallery.status, 200, getGallery.data);
 
@@ -590,11 +793,29 @@ async function runTests() {
     const delPhoto = await request("DELETE", `/api/gallery/${photoId}`, undefined, adminToken);
     record("DELETE /api/gallery/:id (Hapus Foto Galeri)", delPhoto.status, 200, delPhoto.data);
   }
+  if (drivePhotoId) {
+    await request("DELETE", `/api/gallery/${drivePhotoId}`, undefined, adminToken);
+  }
 
   // 12. Notifications Module
   console.log("\n--- 11. NOTIFICATION FEED MODULE ---");
   const notifications = await request("GET", "/api/notifications", undefined, memberToken);
   record("GET /api/notifications (Feed Notifikasi & Pengingat)", notifications.status, 200, notifications.data);
+
+  const createBroadcast = await request(
+    "POST",
+    "/api/notifications/broadcast",
+    {
+      title: "Pengumuman Jadwal Baca Akhir Pekan",
+      description: "Pendopo Rete Mali buka pukul 08.00 - 16.00 WIB akhir pekan ini.",
+      target: "Semua Anggota & Relawan",
+    },
+    adminToken,
+  );
+  record("POST /api/notifications/broadcast (Kirim Siaran Notifikasi Admin)", createBroadcast.status, 201, createBroadcast.data);
+
+  const listBroadcasts = await request("GET", "/api/notifications/broadcasts", undefined, adminToken);
+  record("GET /api/notifications/broadcasts (Riwayat Siaran Notifikasi Admin)", listBroadcasts.status, 200, listBroadcasts.data);
 
   // 13. Audit Logs Module
   console.log("\n--- 12. AUDIT LOGS MODULE ---");

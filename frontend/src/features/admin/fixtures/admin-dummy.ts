@@ -36,22 +36,6 @@ export interface DummyApprovedVolunteer {
   status: 'approved' | 'pending';
 }
 
-export interface DummySiteSettings {
-  address: string;
-  mapsUrl: string;
-  instagramUrl: string;
-  phone: string;
-  email: string;
-  donationInstructions: string;
-}
-
-export interface DummyQrToken {
-  activityId: string;
-  token: string;
-  active: boolean;
-  expiresAt: string;
-}
-
 export interface DummyBroadcast {
   id: string;
   title: string;
@@ -138,24 +122,6 @@ export const DUMMY_APPROVED_VOLUNTEERS: DummyApprovedVolunteer[] = [
     fullName: 'Relawan Contoh Dua',
     email: 'relawan.dua@example.test',
     status: 'pending',
-  },
-];
-
-export const DUMMY_SITE_SETTINGS: DummySiteSettings = {
-  address: 'Alamat contoh — belum diatur di backend',
-  mapsUrl: 'https://maps.example.test',
-  instagramUrl: 'https://instagram.example.test',
-  phone: '080000000000',
-  email: 'admin@example.test',
-  donationInstructions: 'Instruksi donasi contoh — endpoint pengaturan belum tersedia.',
-};
-
-export const DUMMY_QR_TOKENS: DummyQrToken[] = [
-  {
-    activityId: 'dummy-activity-1',
-    token: 'DUMMY-QR-TOKEN',
-    active: true,
-    expiresAt: '2026-11-17T10:00:00.000Z',
   },
 ];
 

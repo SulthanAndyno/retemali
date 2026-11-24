@@ -8,7 +8,7 @@ export interface AdminRegistrationRow {
   event: {
     id: string;
     title: string;
-    infaqAmount: string | number;
+    ticketPrice: string | number;
   };
   user: {
     id: string;

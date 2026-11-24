@@ -5,7 +5,7 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
 export const sessionCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.COOKIE_SECURE === 'true',
   sameSite: 'lax',
   path: '/',
   maxAge: SESSION_MAX_AGE,

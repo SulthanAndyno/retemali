@@ -14,6 +14,17 @@ import {
   EventStatus,
   UpdateEventInput,
 } from "./event.validation";
+import {
+  combineEventDateTimeWib,
+  DAY_IN_MS,
+  formatCloseRule,
+  formatDateTimeWib,
+  getEventRegistrationCutoffWib,
+  normalizeCloseOffsetDays,
+  toWibIsoString,
+  WIB_TIMEZONE,
+} from "../../utils/date-wib";
+import { normalizeGalleryImageUrl } from "../../utils/google-drive";
 
 interface FindAllEventOptions {
   skip: number;
@@ -32,10 +43,209 @@ export class EventRepository {
     this.prisma = prisma;
   }
 
+  /**
+   * Menerbitkan kode E-Tiket unik berformat `TKT-XXXXXX`.
+   * Kode diperiksa ke database dan diulang bila bentrok, karena kolom
+   * `ticketCode` bersifat unik — pola lama (angka acak + jumlah baris) bisa
+   * menghasilkan duplikat dan menggagalkan pendaftaran.
+   */
   private async generateTicketCode(): Promise<string> {
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const count = await this.prisma.eventRegistration.count();
-    return `RETEMALI-EV-${randomNum + count}`;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const candidate = `TKT-${random}`;
+      const existing = await this.prisma.eventRegistration.findUnique({
+        where: { ticketCode: candidate },
+        select: { id: true },
+      });
+      if (!existing) return candidate;
+    }
+    throw new AppError(
+      "Gagal menerbitkan kode tiket unik. Silakan coba lagi.",
+      503,
+    );
+  }
+
+  /**
+   * Menghitung status penutupan otomatis pendaftaran dalam zona waktu WIB
+   * (Asia/Jakarta). Offset H-N diambil dari `registrationCloseOffsetDays`
+   * milik kegiatan (1, 2, atau 3 hari sebelum pelaksanaan).
+   */
+  private evaluateEventTimelineWib(
+    event: CommunityEvent,
+    now: Date = new Date(),
+  ) {
+    const startsAt = combineEventDateTimeWib(event.eventDate, event.startTime);
+    let endsAt = combineEventDateTimeWib(
+      event.eventDate,
+      event.endTime || event.startTime,
+    );
+    if (endsAt.getTime() <= startsAt.getTime()) {
+      endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
+    }
+
+    const closeOffsetDays = normalizeCloseOffsetDays(
+      event.registrationCloseOffsetDays,
+    );
+    const closeRule = formatCloseRule(closeOffsetDays);
+
+    const registrationCloseAt = getEventRegistrationCutoffWib(
+      event.eventDate,
+      event.startTime,
+      closeOffsetDays,
+    );
+
+    const isEventEnded = now.getTime() >= endsAt.getTime();
+    const isEventOngoing =
+      now.getTime() >= startsAt.getTime() && now.getTime() < endsAt.getTime();
+    const isRegistrationCutoffPassed =
+      now.getTime() >= registrationCloseAt.getTime();
+    const isQuotaFull = event.registeredCount >= event.quota;
+    const seatsLeft = Math.max(0, event.quota - event.registeredCount);
+
+    let phase = "UPCOMING";
+    let label = "Akan Datang";
+    let closedReason: string | null = null;
+
+    if (event.status === "CANCELLED") {
+      phase = "CANCELLED";
+      label = "Dibatalkan";
+      closedReason = "Kegiatan dibatalkan oleh panitia.";
+    } else if (event.status === "DRAFT") {
+      phase = "DRAFT";
+      label = "Draf";
+      closedReason = "Kegiatan masih berstatus draf dan belum dipublikasikan.";
+    } else if (event.status === "COMPLETED") {
+      phase = "COMPLETED";
+      label = "Selesai";
+      closedReason = "Kegiatan telah ditandai selesai oleh panitia.";
+    } else if (isEventEnded) {
+      phase = "ENDED";
+      label = "Selesai • Ditutup Otomatis";
+      closedReason =
+        "Waktu pelaksanaan kegiatan telah berakhir — pendaftaran ditutup otomatis.";
+    } else if (isEventOngoing) {
+      phase = "ONGOING";
+      label = `Sedang Berlangsung • Pendaftaran Ditutup (${closeRule})`;
+      closedReason = `Kegiatan sedang berlangsung dan pendaftaran telah ditutup sejak ${closeRule}.`;
+    } else if (isRegistrationCutoffPassed) {
+      phase = "ENDED";
+      label = `Pendaftaran Ditutup Otomatis (${closeRule})`;
+      closedReason = `Pendaftaran ditutup otomatis pada ${closeRule} sebelum pelaksanaan (${formatDateTimeWib(registrationCloseAt)}).`;
+    } else if (isQuotaFull) {
+      phase = "QUOTA_FULL";
+      label = "Kuota Penuh";
+      closedReason = "Kuota peserta sudah penuh.";
+    }
+
+    const isAutoClosed = isRegistrationCutoffPassed || isEventEnded;
+    const isRegistrationOpen =
+      !isAutoClosed && !isQuotaFull && event.status === "PUBLISHED";
+
+    return {
+      startsAt,
+      endsAt,
+      registrationCloseAt,
+      closeOffsetDays,
+      closeRule,
+      isEventEnded,
+      isRegistrationCutoffPassed,
+      isQuotaFull,
+      seatsLeft,
+      isAutoClosed,
+      isRegistrationOpen,
+      phase,
+      label,
+      closedReason,
+      timezone: WIB_TIMEZONE,
+    };
+  }
+
+  /**
+   * Memperkaya objek registrasi/tiket dengan informasi kredensial tiket,
+   * harga tiket masuk, dan bukti pembayaran yang siap dicetak.
+   */
+  private enrichTicketCredential<
+    T extends EventRegistration & {
+      event?: CommunityEvent;
+      user?: {
+        id: string;
+        name: string;
+        email?: string;
+        memberCode: string;
+        rtRw?: string | null;
+      };
+    },
+  >(registration: T) {
+    const isPaidEvent =
+      registration.event?.feeType === "PAID" &&
+      Number(registration.event?.ticketPrice ?? 0) > 0;
+
+    const credentialStatus =
+      registration.status === "CANCELLED" ||
+      registration.paymentStatus === "FAILED"
+        ? "INVALID_OR_REJECTED"
+        : isPaidEvent && registration.paymentStatus === "PENDING"
+          ? "PENDING_PAYMENT_VERIFICATION"
+          : registration.status === "CHECKED_IN"
+            ? "USED_CHECKED_IN"
+            : "ACTIVE_VALID";
+
+    /**
+     * Label status pembayaran yang dipakai di bukti pembayaran & E-Tiket.
+     * Kegiatan gratis tidak pernah menunggu verifikasi: statusnya langsung
+     * TERVERIFIKASI (tanpa pembayaran).
+     */
+    const paymentStatusLabel = !isPaidEvent
+      ? "GRATIS — TERVERIFIKASI"
+      : registration.paymentStatus === "VERIFIED"
+        ? "LUNAS / TERVERIFIKASI"
+        : registration.paymentStatus === "FAILED"
+          ? "PEMBAYARAN DITOLAK"
+          : "MENUNGGU VERIFIKASI";
+
+    const eventStart = registration.event
+      ? combineEventDateTimeWib(
+          registration.event.eventDate,
+          registration.event.startTime,
+        )
+      : null;
+
+    return {
+      ...registration,
+      ticketCredential: {
+        ticketCode: registration.ticketCode,
+        credentialStatus,
+        isPaymentRequired: isPaidEvent,
+        ticketPrice: Number(registration.event?.ticketPrice ?? 0),
+        hasPaymentProof: Boolean(registration.paymentProofUrl),
+        paymentProofUrl: registration.paymentProofUrl,
+        paymentStatus: isPaidEvent
+          ? (registration.paymentStatus ?? "PENDING")
+          : "FREE_VERIFIED",
+        paymentStatusLabel,
+        paymentNote: registration.paymentNote ?? null,
+        verifiedAt: registration.verifiedAt
+          ? toWibIsoString(registration.verifiedAt)
+          : null,
+        verifiedAtWib: registration.verifiedAt
+          ? formatDateTimeWib(registration.verifiedAt)
+          : null,
+        issuedAtWib: formatDateTimeWib(registration.createdAt),
+        checkedInAtWib: registration.checkedInAt
+          ? formatDateTimeWib(registration.checkedInAt)
+          : null,
+        participantName: registration.user?.name ?? null,
+        participantCode: registration.user?.memberCode ?? null,
+        eventTitle: registration.event?.title ?? null,
+        eventScheduleWib: registration.event
+          ? `${formatDateTimeWib(eventStart ?? registration.event.eventDate)} – ${registration.event.endTime} WIB`
+          : null,
+        eventLocation: registration.event?.location ?? null,
+        eventDateWib: registration.event
+          ? formatDateTimeWib(registration.event.eventDate)
+          : null,
+      },
+    };
   }
 
   async findAll(
@@ -58,7 +268,9 @@ export class EventRepository {
       }),
     };
 
-    const [data, total] = await this.prisma.$transaction([
+    // Read-only list + count: Promise.all instead of $transaction so a
+    // transaction-mode connection pooler cannot fail the request with P2028.
+    const [data, total] = await Promise.all([
       this.prisma.communityEvent.findMany({
         where,
         skip,
@@ -68,15 +280,39 @@ export class EventRepository {
       this.prisma.communityEvent.count({ where }),
     ]);
 
-    return { data, total };
+    const now = new Date();
+    const enrichedData = data.map((ev) => {
+      const evalTimeline = this.evaluateEventTimelineWib(ev, now);
+      return {
+        ...ev,
+        registrationCloseAt: toWibIsoString(evalTimeline.registrationCloseAt),
+        isAutoClosed: evalTimeline.isAutoClosed,
+        isRegistrationOpen: evalTimeline.isRegistrationOpen,
+        closedReason: evalTimeline.closedReason,
+        closeRule: evalTimeline.closeRule,
+      };
+    });
+
+    return { data: enrichedData as unknown as CommunityEvent[], total };
   }
 
   async findByIdOrSlug(identifier: string): Promise<CommunityEvent | null> {
-    return this.prisma.communityEvent.findFirst({
+    const event = await this.prisma.communityEvent.findFirst({
       where: {
         OR: [{ id: identifier }, { slug: identifier }],
       },
     });
+    if (!event) return null;
+
+    const evalTimeline = this.evaluateEventTimelineWib(event);
+    return {
+      ...event,
+      registrationCloseAt: toWibIsoString(evalTimeline.registrationCloseAt),
+      isAutoClosed: evalTimeline.isAutoClosed,
+      isRegistrationOpen: evalTimeline.isRegistrationOpen,
+      closedReason: evalTimeline.closedReason,
+      closeRule: evalTimeline.closeRule,
+    } as unknown as CommunityEvent;
   }
 
   async create(
@@ -101,7 +337,8 @@ export class EventRepository {
           endTime: data.endTime,
           quota: data.quota,
           feeType: data.feeType,
-          infaqAmount: data.infaqAmount ?? 0,
+          ticketPrice: data.ticketPrice ?? data.infaqAmount ?? 0,
+          registrationCloseOffsetDays: data.registrationCloseOffsetDays ?? 1,
           materialsNote: data.materialsNote ?? null,
           bannerImage: bannerImagePath ?? null,
           isFeatured: data.isFeatured ?? false,
@@ -141,8 +378,12 @@ export class EventRepository {
     if (data.endTime !== undefined) updateData.endTime = data.endTime;
     if (data.quota !== undefined) updateData.quota = data.quota;
     if (data.feeType !== undefined) updateData.feeType = data.feeType;
-    if (data.infaqAmount !== undefined)
-      updateData.infaqAmount = data.infaqAmount;
+    if (data.ticketPrice !== undefined) updateData.ticketPrice = data.ticketPrice;
+    else if (data.infaqAmount !== undefined)
+      updateData.ticketPrice = data.infaqAmount;
+    if (data.registrationCloseOffsetDays !== undefined)
+      updateData.registrationCloseOffsetDays =
+        normalizeCloseOffsetDays(data.registrationCloseOffsetDays);
     if (data.materialsNote !== undefined)
       updateData.materialsNote = data.materialsNote;
     if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
@@ -176,19 +417,39 @@ export class EventRepository {
     eventIdOrSlug: string,
     userId: string,
     paymentProofUrl?: string,
+    paymentNote?: string,
   ): Promise<EventRegistration> {
-    const event = await this.findByIdOrSlug(eventIdOrSlug);
+    if (!userId) {
+      throw new AppError(
+        "Kredensial pengguna wajib disertakan untuk mendaftar dan menerbitkan tiket kegiatan",
+        401,
+      );
+    }
+
+    const event = await this.prisma.communityEvent.findFirst({
+      where: {
+        OR: [{ id: eventIdOrSlug }, { slug: eventIdOrSlug }],
+      },
+    });
 
     if (!event) {
       throw new AppError("Kegiatan komunitas tidak ditemukan", 404);
     }
 
-    // Guard: Auto-Closing berdasarkan Timeline
+    // 1. Guard: Auto-Closing H-3 berdasarkan Waktu Indonesia Barat (WIB)
     const now = new Date();
-    const eventDate = new Date(event.eventDate);
-    if (eventDate < now) {
+    const timeline = this.evaluateEventTimelineWib(event, now);
+
+    if (timeline.isEventEnded || now >= timeline.startsAt) {
       throw new AppError(
-        "Waktu pelaksanaan kegiatan sudah lewat. Pendaftaran telah ditutup otomatis.",
+        "Waktu pelaksanaan kegiatan sudah lewat atau sedang berlangsung. Pendaftaran telah ditutup otomatis.",
+        400,
+      );
+    }
+
+    if (timeline.isRegistrationCutoffPassed) {
+      throw new AppError(
+        `Pendaftaran kegiatan telah ditutup otomatis pada ${timeline.closeRule} sebelum hari pelaksanaan (Batas akhir: ${formatDateTimeWib(timeline.registrationCloseAt)}).`,
         400,
       );
     }
@@ -204,7 +465,7 @@ export class EventRepository {
       );
     }
 
-    // Guard: Pembatasan Kuota Peserta
+    // 2. Guard: Pembatasan Kuota Peserta
     if (event.registeredCount >= event.quota) {
       throw new AppError("Kuota kursi kegiatan ini sudah penuh", 400);
     }
@@ -219,16 +480,27 @@ export class EventRepository {
       throw new AppError("Anda sudah terdaftar pada kegiatan ini", 400);
     }
 
-    const ticketCode = await this.generateTicketCode();
-
-    // Tentukan paymentStatus untuk kegiatan berbayar vs gratis
+    // 3. Guard: wajib bukti pembayaran untuk kegiatan dengan tiket masuk berbayar
     const isPaidEvent =
-      event.feeType === "INFAQ" && Number(event.infaqAmount) > 0;
+      event.feeType === "PAID" && Number(event.ticketPrice) > 0;
+
+    const normalizedProofUrl = paymentProofUrl
+      ? normalizeGalleryImageUrl(paymentProofUrl)
+      : undefined;
+
+    if (isPaidEvent && !normalizedProofUrl) {
+      throw new AppError(
+        "Kegiatan ini memerlukan Pembayaran Tiket Masuk. Wajib melampirkan bukti transfer (unggah file paymentProof atau sertakan paymentProofUrl) untuk menerbitkan kredensial E-Tiket.",
+        400,
+      );
+    }
+
+    const ticketCode = await this.generateTicketCode();
     const initialPaymentStatus: PaymentStatus | null = isPaidEvent
       ? "PENDING"
       : null;
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       await tx.communityEvent.update({
         where: { id: event.id },
         data: { registeredCount: { increment: 1 } },
@@ -240,8 +512,9 @@ export class EventRepository {
           eventId: event.id,
           userId,
           status: "REGISTERED",
-          paymentProofUrl: paymentProofUrl ?? null,
+          paymentProofUrl: normalizedProofUrl ?? null,
           paymentStatus: initialPaymentStatus,
+          paymentNote: paymentNote ?? null,
         },
         include: {
           event: true,
@@ -251,14 +524,52 @@ export class EventRepository {
         },
       });
     });
+
+    return this.enrichTicketCredential(created) as unknown as EventRegistration;
   }
 
   async findTicketsByUser(userId: string): Promise<EventRegistration[]> {
-    return this.prisma.eventRegistration.findMany({
+    const tickets = await this.prisma.eventRegistration.findMany({
       where: { userId },
-      include: { event: true },
+      include: {
+        event: true,
+        user: {
+          select: { id: true, name: true, email: true, memberCode: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
+
+    return tickets.map((t) =>
+      this.enrichTicketCredential(t),
+    ) as unknown as EventRegistration[];
+  }
+
+  async findTicketByCode(ticketCode: string): Promise<EventRegistration> {
+    const ticket = await this.prisma.eventRegistration.findUnique({
+      where: { ticketCode },
+      include: {
+        event: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            memberCode: true,
+            rtRw: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      throw new AppError(
+        `Kredensial tiket dengan kode "${ticketCode}" tidak ditemukan`,
+        404,
+      );
+    }
+
+    return this.enrichTicketCredential(ticket) as unknown as EventRegistration;
   }
 
   async checkInParticipant(
@@ -277,11 +588,28 @@ export class EventRepository {
       );
     }
 
+    if (ticket.status === "CANCELLED" || ticket.paymentStatus === "FAILED") {
+      throw new AppError(
+        "Tiket ini telah dibatalkan atau bukti pembayarannya ditolak",
+        400,
+      );
+    }
+
+    // Kegiatan berbayar: E-Tiket hanya sah setelah tiket masuk lunas diverifikasi.
+    const requiresPayment =
+      ticket.event.feeType === "PAID" && Number(ticket.event.ticketPrice) > 0;
+    if (requiresPayment && ticket.paymentStatus !== "VERIFIED") {
+      throw new AppError(
+        "Tiket belum lunas. Verifikasi Pembayaran Tiket Masuk terlebih dahulu sebelum melakukan check-in.",
+        400,
+      );
+    }
+
     if (ticket.status === "CHECKED_IN") {
       throw new AppError("Peserta ini sudah melakukan check-in sebelumnya", 400);
     }
 
-    return this.prisma.eventRegistration.update({
+    const updated = await this.prisma.eventRegistration.update({
       where: { id: ticket.id },
       data: {
         status: "CHECKED_IN",
@@ -291,10 +619,18 @@ export class EventRepository {
       include: {
         event: true,
         user: {
-          select: { id: true, memberCode: true, name: true, rtRw: true },
+          select: {
+            id: true,
+            memberCode: true,
+            name: true,
+            email: true,
+            rtRw: true,
+          },
         },
       },
     });
+
+    return this.enrichTicketCredential(updated) as unknown as EventRegistration;
   }
 
   async submitReport(
@@ -376,6 +712,8 @@ export class EventRepository {
       const attendanceRate =
         registered > 0 ? Math.round((attended / registered) * 100) : 0;
 
+      const timeline = this.evaluateEventTimelineWib(event);
+
       return {
         id: event.id,
         title: event.title,
@@ -384,6 +722,8 @@ export class EventRepository {
         eventDate: event.eventDate,
         startTime: event.startTime,
         endTime: event.endTime,
+        registrationCloseAt: toWibIsoString(timeline.registrationCloseAt),
+        closeRule: timeline.closeRule,
         quota: event.quota,
         registeredCount: registered,
         attendedCount: attended,
@@ -395,9 +735,15 @@ export class EventRepository {
           user: reg.user,
           status: reg.status,
           checkedInAt: reg.checkedInAt,
+          checkedInAtWib: reg.checkedInAt
+            ? formatDateTimeWib(reg.checkedInAt)
+            : null,
           paymentProofUrl: reg.paymentProofUrl,
           paymentStatus: reg.paymentStatus,
+          paymentNote: reg.paymentNote,
+          verifiedAt: reg.verifiedAt,
           registeredAt: reg.createdAt,
+          registeredAtWib: formatDateTimeWib(reg.createdAt),
         })),
       };
     });
@@ -408,9 +754,10 @@ export class EventRepository {
         : 0;
 
     return {
+      timezone: WIB_TIMEZONE,
       period: {
-        from: from ? from.toISOString() : null,
-        to: to ? to.toISOString() : null,
+        from: from ? toWibIsoString(from) : null,
+        to: to ? toWibIsoString(to) : null,
       },
       summary: {
         totalEvents: events.length,
@@ -446,15 +793,7 @@ export class EventRepository {
         skip,
         take,
         include: {
-          event: {
-            select: {
-              id: true,
-              title: true,
-              feeType: true,
-              infaqAmount: true,
-              eventDate: true,
-            },
-          },
+          event: true,
           user: {
             select: {
               id: true,
@@ -470,7 +809,10 @@ export class EventRepository {
       this.prisma.eventRegistration.count({ where }),
     ]);
 
-    return { data, total };
+    return {
+      data: data.map((r) => this.enrichTicketCredential(r)),
+      total,
+    };
   }
 
   /**
@@ -491,16 +833,16 @@ export class EventRepository {
       throw new AppError("Data pendaftaran kegiatan tidak ditemukan", 404);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       // Jika ditolak (FAILED), kembalikan kuota event dan batalkan tiket
-      if (status === "FAILED") {
+      if (status === "FAILED" && reg.status !== "CANCELLED") {
         await tx.communityEvent.update({
           where: { id: reg.eventId },
           data: { registeredCount: { decrement: 1 } },
         });
       }
 
-      const updated = await tx.eventRegistration.update({
+      const result = await tx.eventRegistration.update({
         where: { id: registrationId },
         data: {
           paymentStatus: status,
@@ -509,7 +851,18 @@ export class EventRepository {
           verifiedAt: new Date(),
           status: status === "FAILED" ? "CANCELLED" : reg.status,
         },
-        include: { event: true, user: true },
+        include: {
+          event: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              memberCode: true,
+              phone: true,
+            },
+          },
+        },
       });
 
       await tx.auditLog.create({
@@ -524,12 +877,14 @@ export class EventRepository {
         },
       });
 
-      return updated;
+      return result;
     });
+
+    return this.enrichTicketCredential(updated);
   }
 
   /**
-   * Evaluasi Status & Timeline Otomatis untuk Semua Event
+   * Evaluasi Status & Timeline Otomatis (Aturan Penutupan H-3 dalam WIB) untuk Semua Event
    */
   async getAutoCloseEvaluations() {
     const events = await this.prisma.communityEvent.findMany({
@@ -539,17 +894,10 @@ export class EventRepository {
     const now = new Date();
 
     return events.map((event) => {
-      const eventDate = new Date(event.eventDate);
-      const isTimelinePassed = eventDate < now;
-      const isQuotaFull = event.registeredCount >= event.quota;
-      const seatsLeft = Math.max(0, event.quota - event.registeredCount);
-
-      let phase = "UPCOMING";
-      if (isTimelinePassed || event.status === "COMPLETED") {
-        phase = "CLOSED";
-      } else if (isQuotaFull) {
-        phase = "QUOTA_FULL";
-      }
+      const timeline = this.evaluateEventTimelineWib(event, now);
+      const daysUntilEvent = Math.ceil(
+        (timeline.startsAt.getTime() - now.getTime()) / DAY_IN_MS,
+      );
 
       return {
         id: event.id,
@@ -558,16 +906,24 @@ export class EventRepository {
         eventDate: event.eventDate,
         startTime: event.startTime,
         endTime: event.endTime,
+        feeType: event.feeType,
+        ticketPrice: Number(event.ticketPrice),
+        closeOffsetDays: timeline.closeOffsetDays,
+        registrationCloseAt: toWibIsoString(timeline.registrationCloseAt),
+        registrationCloseAtWib: formatDateTimeWib(timeline.registrationCloseAt),
+        closeRule: timeline.closeRule,
+        timezone: timeline.timezone,
+        daysUntilEvent,
         quota: event.quota,
         registeredCount: event.registeredCount,
-        seatsLeft,
-        isQuotaFull,
-        isAutoClosed: isTimelinePassed,
-        isRegistrationOpen:
-          !isTimelinePassed &&
-          !isQuotaFull &&
-          event.status === "PUBLISHED",
-        phase,
+        seatsLeft: timeline.seatsLeft,
+        isQuotaFull: timeline.isQuotaFull,
+        isRegistrationCutoffPassed: timeline.isRegistrationCutoffPassed,
+        isAutoClosed: timeline.isAutoClosed,
+        isRegistrationOpen: timeline.isRegistrationOpen,
+        phase: timeline.phase,
+        label: timeline.label,
+        closedReason: timeline.closedReason,
       };
     });
   }

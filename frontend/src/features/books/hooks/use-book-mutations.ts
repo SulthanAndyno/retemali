@@ -56,7 +56,7 @@ export function useBookMutations(): UseBookMutationsResult {
       await reserveBook(book.id);
       return {
         ok: true,
-        message: `Reservasi buku "${book.title}" berhasil dibuat! Berlaku 48 jam di Loket Sirkulasi.`,
+        message: `Peminjaman buku "${book.title}" berhasil diajukan! Berlaku 48 jam di Loket Sirkulasi.`,
       };
     } catch (error) {
       return {

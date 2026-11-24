@@ -29,6 +29,18 @@ function parseOrigin(value: string | undefined): URL | null {
   }
 }
 
+/**
+ * Foto galeri yang ditautkan dari Google Drive. Backend menyimpan URL
+ * `drive.google.com/thumbnail?id=...` (imageUrl) dan menyertakan
+ * `lh3.googleusercontent.com/d/...` (lh3ImageUrl) yang lebih andal untuk
+ * hotlink. Keduanya harus diizinkan agar optimizer next/image tidak 400.
+ */
+const GALLERY_REMOTE_PATTERNS: UploadPattern[] = [
+  // Query string (id & sz) dinamis, jadi `search` sengaja tidak dibatasi.
+  { protocol: 'https', hostname: 'drive.google.com', pathname: '/thumbnail' },
+  { protocol: 'https', hostname: 'lh3.googleusercontent.com', pathname: '/d/**' },
+];
+
 function uploadRemotePatterns(): UploadPattern[] {
   const origins = new Set<string>([DEV_API_ORIGIN]);
 
@@ -57,7 +69,7 @@ const nextConfig: NextConfig = {
   // one deterministic flat layout is what the Dockerfile expects.
   outputFileTracingRoot: process.cwd(),
   images: {
-    remotePatterns: uploadRemotePatterns(),
+    remotePatterns: [...uploadRemotePatterns(), ...GALLERY_REMOTE_PATTERNS],
   },
 };
 
