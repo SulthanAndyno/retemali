@@ -8,6 +8,8 @@ import {
   getBookCount,
   getBookDonationSnapshot,
   getEventSnapshot,
+  getFinancialDonationSnapshot,
+  getMemberSnapshot,
   getRegistrationSnapshot,
   getVolunteerApplicationSnapshot,
 } from '../api/admin.api';
@@ -39,8 +41,11 @@ export function useAdminOverview(): UseAdminOverviewResult {
 
     const [
       books,
+      members,
       events,
       pendingPayments,
+      pendingFinancialDonations,
+      financialDonations,
       registrations,
       bookDonations,
       applications,
@@ -48,8 +53,11 @@ export function useAdminOverview(): UseAdminOverviewResult {
       attendance,
     ] = await Promise.allSettled([
       getBookCount(),
+      getMemberSnapshot(),
       getEventSnapshot(),
       getRegistrationSnapshot({ limit: 5, paymentStatus: 'PENDING' }),
+      getFinancialDonationSnapshot({ limit: 5, status: 'PENDING' }),
+      getFinancialDonationSnapshot({ limit: 6 }),
       getRegistrationSnapshot({ limit: 1 }),
       getBookDonationSnapshot(),
       getVolunteerApplicationSnapshot(),
@@ -61,8 +69,11 @@ export function useAdminOverview(): UseAdminOverviewResult {
 
     const results = {
       books,
+      members,
       events,
       pendingPayments,
+      pendingFinancialDonations,
+      financialDonations,
       registrations,
       bookDonations,
       applications,

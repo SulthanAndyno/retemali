@@ -206,3 +206,20 @@ export interface AdminAttendanceSnapshot {
   registeredCount: number;
   attendedCount: number;
 }
+
+export interface AdminFinancialDonationSnapshot {
+  id: string;
+  receiptCode: string;
+  donorName: string;
+  amount: string | number;
+  purposeLabel: string;
+  paymentMethod: string;
+  paymentStatus: 'PENDING' | 'VERIFIED' | 'FAILED';
+  createdAt: string;
+}
+
+export interface AdminUserCounts {
+  active: number;
+  pending: number;
+  suspended: number;
+}

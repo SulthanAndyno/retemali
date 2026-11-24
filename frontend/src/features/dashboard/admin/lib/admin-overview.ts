@@ -4,17 +4,30 @@ import type {
   AdminAuditLogSnapshot,
   AdminBookDonationSnapshot,
   AdminEventSnapshot,
+  AdminFinancialDonationSnapshot,
   AdminRegistrationSnapshot,
+  AdminUserCounts,
   AdminVolunteerApplicationSnapshot,
 } from '../types/admin.types';
 
 type Envelope<T> = ApiEnvelope<T> & { meta: PaginatedMeta };
+type MemberEnvelope = ApiEnvelope<unknown[]> & {
+  meta: PaginatedMeta;
+  counts?: AdminUserCounts;
+};
 type AttendanceEnvelope = ApiEnvelope<{ events: AdminAttendanceSnapshot[] }>;
 
 export interface AdminOverviewResults {
   books: PromiseSettledResult<Envelope<unknown[]>>;
+  members: PromiseSettledResult<MemberEnvelope>;
   events: PromiseSettledResult<Envelope<AdminEventSnapshot[]>>;
   pendingPayments: PromiseSettledResult<Envelope<AdminRegistrationSnapshot[]>>;
+  pendingFinancialDonations: PromiseSettledResult<
+    Envelope<AdminFinancialDonationSnapshot[]>
+  >;
+  financialDonations: PromiseSettledResult<
+    Envelope<AdminFinancialDonationSnapshot[]>
+  >;
   registrations: PromiseSettledResult<Envelope<AdminRegistrationSnapshot[]>>;
   bookDonations: PromiseSettledResult<Envelope<AdminBookDonationSnapshot[]>>;
   applications: PromiseSettledResult<Envelope<AdminVolunteerApplicationSnapshot[]>>;
@@ -24,12 +37,17 @@ export interface AdminOverviewResults {
 
 export interface AdminOverviewData {
   booksTotal: number;
+  membersTotal: number;
+  activeMembers: number;
   events: AdminEventSnapshot[];
   eventsTotal: number;
   upcomingEvents: number;
   registrationsTotal: number;
   pendingPayments: AdminRegistrationSnapshot[];
   pendingPaymentCount: number;
+  pendingFinancialDonations: AdminFinancialDonationSnapshot[];
+  pendingFinancialCount: number;
+  financialDonations: AdminFinancialDonationSnapshot[];
   pendingBookDonations: AdminBookDonationSnapshot[];
   pendingBookDonationCount: number;
   applications: AdminVolunteerApplicationSnapshot[];
@@ -47,12 +65,17 @@ export interface AdminOverviewBuild {
 
 export const EMPTY_ADMIN_OVERVIEW: AdminOverviewData = {
   booksTotal: 0,
+  membersTotal: 0,
+  activeMembers: 0,
   events: [],
   eventsTotal: 0,
   upcomingEvents: 0,
   registrationsTotal: 0,
   pendingPayments: [],
   pendingPaymentCount: 0,
+  pendingFinancialDonations: [],
+  pendingFinancialCount: 0,
+  financialDonations: [],
   pendingBookDonations: [],
   pendingBookDonationCount: 0,
   applications: [],
@@ -79,8 +102,19 @@ export function buildAdminOverview(
 ): AdminOverviewBuild {
   const failedSources: string[] = [];
   const books = read('buku', results.books, failedSources);
+  const members = read('anggota', results.members, failedSources);
   const events = read('kegiatan', results.events, failedSources);
   const pendingPayments = read('pembayaran', results.pendingPayments, failedSources);
+  const pendingFinancialDonations = read(
+    'donasi finansial tertunda',
+    results.pendingFinancialDonations,
+    failedSources
+  );
+  const financialDonations = read(
+    'donasi finansial',
+    results.financialDonations,
+    failedSources
+  );
   const registrations = read('pendaftaran', results.registrations, failedSources);
   const bookDonations = read('donasi buku', results.bookDonations, failedSources);
   const applications = read('relawan', results.applications, failedSources);
@@ -92,12 +126,15 @@ export function buildAdminOverview(
   const attendanceRows = [...(attendance?.data?.events ?? [])]
     .sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime())
     .slice(0, 5);
+  const membersTotal = members?.meta?.total ?? 0;
 
   return {
     failedSources,
     data: {
       ...EMPTY_ADMIN_OVERVIEW,
       booksTotal: books?.meta?.total ?? 0,
+      membersTotal,
+      activeMembers: members?.counts?.active ?? membersTotal,
       events: eventRows,
       eventsTotal: events?.meta?.total ?? eventRows.length,
       upcomingEvents: eventRows.filter(
@@ -107,6 +144,9 @@ export function buildAdminOverview(
       registrationsTotal: registrations?.meta?.total ?? 0,
       pendingPayments: pendingPayments?.data ?? [],
       pendingPaymentCount: pendingPayments?.meta?.total ?? 0,
+      pendingFinancialDonations: pendingFinancialDonations?.data ?? [],
+      pendingFinancialCount: pendingFinancialDonations?.meta?.total ?? 0,
+      financialDonations: financialDonations?.data ?? [],
       pendingBookDonations: bookDonations?.data ?? [],
       pendingBookDonationCount: bookDonations?.meta?.total ?? 0,
       applications: applicationRows,

@@ -11,10 +11,3 @@ export { AdminPaymentsPage } from './payments/pages/admin-payments-page';
 export { AdminRegistrationsPage } from './registrations/pages/admin-registrations-page';
 export { AdminSettingsPage } from './settings/pages/admin-settings-page';
 export { AdminVolunteersPage } from './volunteers/pages/admin-volunteers-page';
-export {
-  DUMMY_APPROVED_VOLUNTEERS,
-  DUMMY_BROADCASTS,
-  DUMMY_DONATIONS,
-  DUMMY_MEMBERS,
-  DUMMY_PENDING_PAYMENTS,
-} from './fixtures/admin-dummy';

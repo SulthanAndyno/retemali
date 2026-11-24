@@ -20,6 +20,12 @@ export function getFinancialReceipt(code: string) {
   );
 }
 
+export function getBookDonationByCode(code: string) {
+  return get<ApiEnvelope<PhysicalBookDonationRecord>>(
+    `/donations/books/${encodeURIComponent(code)}`
+  );
+}
+
 export function getPaymentAccounts() {
   return get<ApiEnvelope<PaymentAccount[]>>('/donations/payment-accounts');
 }

@@ -39,8 +39,7 @@ export function resolvePaymentMethod(account: PaymentAccount | null): PaymentMet
 
   const name = account.providerName.toLowerCase();
   const match = PROVIDER_PAYMENT_METHODS.find((item) => name.includes(item.keyword));
-  // Backend only accepts the documented enum; unknown banks fall back to Mandiri.
-  return match?.method ?? 'BANK_MANDIRI';
+  return match?.method ?? 'BANK_TRANSFER';
 }
 
 export function getCampaignPercentage(collected: number, target: number): number {

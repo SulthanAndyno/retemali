@@ -2,13 +2,15 @@ import { Badge } from '@/shared/components/ui/badge';
 import { SectionTitle } from '@/shared/components/ui/card';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
-import { DUMMY_PENDING_PAYMENTS } from '@/features/admin';
 import { formatDateTimeId, formatRupiah } from '@/shared/lib/format';
-import type { AdminRegistrationSnapshot } from '../types/admin.types';
+import type {
+  AdminFinancialDonationSnapshot,
+  AdminRegistrationSnapshot,
+} from '../types/admin.types';
 
 interface AdminPendingPaymentsTableProps {
   rows: AdminRegistrationSnapshot[];
+  financialRows?: AdminFinancialDonationSnapshot[];
   loading: boolean;
 }
 
@@ -18,34 +20,32 @@ interface PaymentRow {
   amount: number;
   method: string;
   createdAt: string;
-  dummy: boolean;
 }
 
 export function AdminPendingPaymentsTable({
   rows,
+  financialRows = [],
   loading,
 }: AdminPendingPaymentsTableProps) {
-  const realRows: PaymentRow[] = rows.map((row) => ({
-    id: row.id,
+  const registrationRows: PaymentRow[] = rows.map((row) => ({
+    id: `reg-${row.id}`,
     label: `${row.user.name} • ${row.event.title}`,
     amount: Number(row.event.ticketPrice ?? 0),
-    method: '-',
+    method: 'Tiket Kegiatan',
     createdAt: row.createdAt,
-    dummy: false,
   }));
 
-  const dummyRows: PaymentRow[] = DUMMY_PENDING_PAYMENTS.filter(
-    (payment) => payment.status === 'pending'
-  ).map((payment) => ({
-    id: payment.id,
-    label: payment.description,
-    amount: payment.amount,
-    method: payment.method === 'qris' ? 'QRIS' : 'Transfer Bank',
-    createdAt: payment.createdAt,
-    dummy: true,
+  const donationRows: PaymentRow[] = financialRows.map((donation) => ({
+    id: `don-${donation.id}`,
+    label: `${donation.donorName} • ${donation.purposeLabel || donation.receiptCode}`,
+    amount: Number(donation.amount ?? 0),
+    method: donation.paymentMethod === 'QRIS' ? 'QRIS' : 'Transfer Bank',
+    createdAt: donation.createdAt,
   }));
 
-  const payments = [...realRows, ...dummyRows].slice(0, 5);
+  const payments = [...registrationRows, ...donationRows]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   return (
     <section>
@@ -83,9 +83,6 @@ export function AdminPendingPaymentsTable({
           </TBody>
         </Table>
       )}
-      <div className="mt-2">
-        <DummyNotice />
-      </div>
     </section>
   );
 }

@@ -2,41 +2,48 @@ import { Badge } from '@/shared/components/ui/badge';
 import { SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
-import { DUMMY_DONATIONS } from '@/features/admin';
-import type { AdminBookDonationSnapshot } from '../types/admin.types';
+import type {
+  AdminBookDonationSnapshot,
+  AdminFinancialDonationSnapshot,
+} from '../types/admin.types';
 
 interface AdminDonationStatusTableProps {
   bookDonations: AdminBookDonationSnapshot[];
+  financialDonations?: AdminFinancialDonationSnapshot[];
   loading: boolean;
 }
 
 export function AdminDonationStatusTable({
   bookDonations,
+  financialDonations = [],
   loading,
 }: AdminDonationStatusTableProps) {
   const rows = [
     ...bookDonations.map((donation) => ({
-      id: donation.id,
+      id: `book-${donation.id}`,
       reference: donation.batchCode,
       type: 'Buku',
       donor: donation.donorName,
       status: donation.status,
+      createdAt: donation.createdAt,
     })),
-    ...DUMMY_DONATIONS.map((donation) => ({
-      id: donation.id,
-      reference: donation.reference,
-      type: donation.type === 'financial' ? 'Uang' : 'Buku',
+    ...financialDonations.map((donation) => ({
+      id: `fin-${donation.id}`,
+      reference: donation.receiptCode,
+      type: 'Uang',
       donor: donation.donorName,
-      status: donation.status,
+      status: donation.paymentStatus,
+      createdAt: donation.createdAt,
     })),
-  ].slice(0, 6);
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 6);
 
   return (
     <section>
       <SectionTitle
         title="Status Donasi Terkini"
-        description="Donasi buku dari backend; donasi finansial masih data contoh."
+        description="Donasi buku fisik dan donasi finansial terbaru dari backend."
       />
       {loading ? (
         <div className="h-32 animate-pulse rounded-card bg-white" />
@@ -61,9 +68,9 @@ export function AdminDonationStatusTable({
                 <TD>
                   <Badge
                     tone={
-                      row.status === 'ACCEPTED' || row.status === 'verified'
+                      row.status === 'ACCEPTED' || row.status === 'VERIFIED'
                         ? 'success'
-                        : row.status === 'REJECTED' || row.status === 'rejected'
+                        : row.status === 'REJECTED' || row.status === 'FAILED'
                           ? 'danger'
                           : 'warning'
                     }
@@ -76,9 +83,6 @@ export function AdminDonationStatusTable({
           </TBody>
         </Table>
       )}
-      <div className="mt-2">
-        <DummyNotice />
-      </div>
     </section>
   );
 }

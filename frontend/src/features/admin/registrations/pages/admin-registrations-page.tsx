@@ -7,7 +7,6 @@ import { Button } from '@/shared/components/ui/button';
 import { SectionTitle } from '@/shared/components/ui/card';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useAdminRegistrations } from '../hooks/use-admin-registrations';
 
@@ -154,8 +153,6 @@ export function AdminRegistrationsPage({
           </Button>
         </div>
       ) : null}
-
-      <DummyNotice />
     </div>
   );
 }

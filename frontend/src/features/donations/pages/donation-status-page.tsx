@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Search } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
-import { getFinancialReceipt } from '../api/donations.api';
-import { DUMMY_BOOK_DONATION_STATUS } from '../fixtures/public-donation-dummy';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
+import {
+  getBookDonationByCode,
+  getFinancialReceipt,
+} from '../api/donations.api';
 
 export function DonationStatusPage() {
   const router = useRouter();
@@ -25,11 +26,7 @@ export function DonationStatusPage() {
 
     try {
       if (value.startsWith('BDN')) {
-        const book = DUMMY_BOOK_DONATION_STATUS[value];
-        if (!book) {
-          setError('Nomor referensi donasi buku tidak ditemukan.');
-          return;
-        }
+        await getBookDonationByCode(value);
         router.push(
           `/donasi/buku/konfirmasi?ref=${encodeURIComponent(value)}`
         );
@@ -89,8 +86,6 @@ export function DonationStatusPage() {
             <span>{error}</span>
           </div>
         ) : null}
-
-        <DummyNotice />
       </Card>
     </div>
   );
