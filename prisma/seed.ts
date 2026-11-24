@@ -11,6 +11,12 @@ interface AdminSeedEntry {
   initialPassword: string;
 }
 
+const DEMO_SEED_EMAILS: readonly string[] = [
+  "admin@retemali.id",
+  "relawan@retemali.id",
+  "rifky@retemali.id",
+];
+
 const ADMIN_ACCOUNTS: readonly AdminSeedEntry[] = [
   {
     preferredMemberCode: "RM-2026-0001",
@@ -74,8 +80,85 @@ async function resolveAvailableMemberCode(preferred: string): Promise<string> {
   return `${prefix}${String(maxSeq + 1).padStart(4, "0")}`;
 }
 
+async function flushAndSeedFresh(): Promise<string[]> {
+  const tablesResult = await prisma.$queryRaw<Array<{ tablename: string }>>`
+    SELECT tablename
+    FROM pg_tables
+    WHERE schemaname = 'public'
+      AND tablename <> '_prisma_migrations'
+    ORDER BY tablename ASC
+  `;
+
+  if (tablesResult.length === 0) {
+    throw new Error("Tidak ada tabel aplikasi ditemukan pada schema public.");
+  }
+
+  const tableList = tablesResult.map((t) => `"${t.tablename}"`).join(", ");
+  const truncateSql = `TRUNCATE TABLE ${tableList} RESTART IDENTITY CASCADE`;
+
+  const preparedAdmins = await Promise.all(
+    ADMIN_ACCOUNTS.map(async (admin) => ({
+      memberCode: admin.preferredMemberCode,
+      name: admin.name,
+      email: admin.email.toLowerCase(),
+      passwordHash: await bcrypt.hash(admin.initialPassword, SALT_ROUNDS),
+    })),
+  );
+
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(truncateSql);
+
+    await tx.siteSetting.create({
+      data: {
+        id: "default",
+        donationInstructions:
+          "Transfer ke rekening resmi Rete Mali, lalu unggah bukti pembayaran pada halaman donasi.",
+      },
+    });
+
+    for (const admin of preparedAdmins) {
+      await tx.user.create({
+        data: {
+          memberCode: admin.memberCode,
+          name: admin.name,
+          email: admin.email,
+          password: admin.passwordHash,
+          rtRw: "RT05/RW14",
+          role: "ADMIN",
+          status: "ACTIVE",
+        },
+      });
+    }
+  });
+
+  return preparedAdmins.map((a) => `${a.email} (created: ${a.memberCode})`);
+}
+
 async function main() {
   console.log("Seeding Taman Baca Rete Mali database (Admins & SiteSetting)...");
+
+  const forceFlush =
+    process.env.FLUSH_DB === "true" || process.argv.includes("--flush");
+
+  const realAdminEmails = ADMIN_ACCOUNTS.map((a) => a.email.toLowerCase());
+  const [hasDemoUsers, hasAnyRealAdmin] = await Promise.all([
+    prisma.user.count({ where: { email: { in: [...DEMO_SEED_EMAILS] } } }),
+    prisma.user.count({ where: { email: { in: realAdminEmails } } }),
+  ]);
+
+  // Auto-flush once if database still only holds legacy demo accounts and none of the real admins exist,
+  // or when explicitly requested via FLUSH_DB=true / --flush.
+  if (forceFlush || (hasDemoUsers > 0 && hasAnyRealAdmin === 0)) {
+    console.log(
+      forceFlush
+        ? "FLUSH_DB requested: truncating all application tables before seeding..."
+        : "Legacy demo accounts detected without real admins: flushing demo data once before seeding...",
+    );
+    const seeded = await flushAndSeedFresh();
+    console.log("Seeded Admin Accounts:", seeded);
+    console.log("Seeding finished successfully.");
+    return;
+  }
 
   await prisma.siteSetting.upsert({
     where: { id: "default" },
@@ -93,7 +176,7 @@ async function main() {
     const email = admin.email.toLowerCase();
     const existing = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, memberCode: true },
+      select: { email: true, memberCode: true },
     });
 
     if (existing) {

@@ -50,8 +50,9 @@ services:
       - uploads:/app/uploads
     ports:
       - "${API_PORT:-5000}:5000"
-    # Migrations run before the server starts; re-running is a no-op.
-    command: ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+    # Migrations & idempotent admin seed run before the server starts;
+    # legacy demo data is flushed automatically on first boot without real admins.
+    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/server.js"]
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 30s
