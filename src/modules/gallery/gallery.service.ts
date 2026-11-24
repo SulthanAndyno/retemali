@@ -252,25 +252,10 @@ export class GalleryService {
         };
       }
 
-      // Fallback jika folder valid namun tidak dapat diakses langsung (atau di sandbox offline):
-      // simpan menggunakan ID folder sebagai referensi gambar Google Drive
-      const { photo, isNew } = await this.galleryRepository.upsertDrivePhoto({
-        fileId: folderId,
-        title: input.title || "Album Dokumentasi Kegiatan Google Drive",
-        category,
-        caption:
-          input.caption ??
-          `Sinkronisasi Folder Google Drive (${targetUrl})`,
-        location: input.location,
-        isFeatured: input.isFeatured ?? true,
-        uploadedById: actorId,
-      });
-
-      return {
-        importedCount: isNew ? 1 : 0,
-        totalProcessed: 1,
-        photos: [photo],
-      };
+      throw new AppError(
+        "Tidak dapat memuat daftar foto dari folder Google Drive tersebut. Pastikan akses folder disetel 'Siapa saja yang memiliki link' (Publik) atau masukkan tautan file foto Google Drive secara langsung.",
+        400,
+      );
     }
 
     throw new AppError(

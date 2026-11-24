@@ -26,15 +26,54 @@ export class VolunteerRepository {
     data: ApplyVolunteerInput,
     cvPath?: string,
   ): Promise<VolunteerApplication> {
-    const existing = await this.prisma.volunteerApplication.findUnique({
-      where: { userId },
-    });
+    const [existing, currentUser] = await Promise.all([
+      this.prisma.volunteerApplication.findUnique({
+        where: { userId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      }),
+    ]);
 
     if (existing) {
-      throw new AppError(
-        "Anda sudah pernah mengajukan pendaftaran relawan",
-        400,
-      );
+      const isStillActiveVolunteer =
+        existing.status === "APPROVED" &&
+        (currentUser?.role === "VOLUNTEER" || currentUser?.role === "ADMIN");
+
+      if (existing.status === "PENDING" || isStillActiveVolunteer) {
+        throw new AppError(
+          "Anda sudah pernah mengajukan pendaftaran relawan",
+          400,
+        );
+      }
+
+      // Jika pernah ditolak (REJECTED) atau sudah diturunkan kembali menjadi MEMBER, izinkan daftar ulang
+      return this.prisma.volunteerApplication.update({
+        where: { userId },
+        data: {
+          majorOrJob: data.majorOrJob,
+          institution: data.institution,
+          division: data.division,
+          motivation: data.motivation,
+          ...(cvPath !== undefined ? { cvDocument: cvPath } : {}),
+          status: "PENDING",
+          reviewedById: null,
+          reviewedAt: null,
+          rejectionNote: null,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              memberCode: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+        },
+      });
     }
 
     return this.prisma.volunteerApplication.create({

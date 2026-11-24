@@ -39,8 +39,17 @@ export class CirculationRepository {
   private async generateLoanCode(): Promise<string> {
     const year = getWibYear();
     const count = await this.prisma.bookLoan.count();
-    const seq = String(count + 1).padStart(4, "0");
-    return `LN-${year}-${seq}`;
+    for (let offset = 1; offset <= 50; offset += 1) {
+      const seq = String(count + offset).padStart(4, "0");
+      const candidate = `LN-${year}-${seq}`;
+      const exists = await this.prisma.bookLoan.findUnique({
+        where: { loanCode: candidate },
+        select: { id: true },
+      });
+      if (!exists) return candidate;
+    }
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `LN-${year}-${random}`;
   }
 
   /**
