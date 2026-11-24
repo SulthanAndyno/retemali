@@ -7,6 +7,7 @@ import {
   getEventRegistrationCutoffWib,
   normalizeCloseOffsetDays,
 } from "../../utils/date-wib";
+import { CreateBroadcastInput } from "./notification.validation";
 
 export interface ActivityNotificationItem {
   id: string;
@@ -16,6 +17,15 @@ export interface ActivityNotificationItem {
   createdAt: Date;
   severity: "info" | "warning" | "success" | "error";
   href: string | null;
+}
+
+export interface BroadcastNotificationItem {
+  id: string;
+  title: string;
+  description: string;
+  target: string;
+  sentAt: string;
+  createdAt: Date;
 }
 
 export class NotificationRepository {
@@ -161,5 +171,53 @@ export class NotificationRepository {
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return items.slice(0, limit);
+  }
+
+  private mapAuditToBroadcast(log: {
+    id: string;
+    title: string;
+    description: string;
+    createdAt: Date;
+  }): BroadcastNotificationItem {
+    const match = log.description.match(/^\[Target:\s*([^\]]+)\]\s*([\s\S]*)$/);
+    const target = match?.[1]?.trim() || "Semua Anggota & Relawan";
+    const description = match?.[2]?.trim() || log.description;
+
+    return {
+      id: log.id,
+      title: log.title,
+      description,
+      target,
+      sentAt: formatDateTimeWib(log.createdAt),
+      createdAt: log.createdAt,
+    };
+  }
+
+  async getBroadcasts(limit: number = 30): Promise<BroadcastNotificationItem[]> {
+    const logs = await this.prisma.auditLog.findMany({
+      where: {
+        category: { in: ["BROADCAST", "EVENT", "SYSTEM"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+
+    return logs.map((log) => this.mapAuditToBroadcast(log));
+  }
+
+  async createBroadcast(
+    input: CreateBroadcastInput,
+    actorId?: string,
+  ): Promise<BroadcastNotificationItem> {
+    const log = await this.prisma.auditLog.create({
+      data: {
+        actorId: actorId ?? null,
+        title: input.title,
+        description: `[Target: ${input.target}] ${input.description}`,
+        category: "BROADCAST",
+      },
+    });
+
+    return this.mapAuditToBroadcast(log);
   }
 }
