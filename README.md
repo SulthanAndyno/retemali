@@ -159,10 +159,9 @@ CRON_SECRET="retemali-cron-secret-2026"
 npx prisma migrate deploy
 
 # Jalankan seeder 6 akun Admin Rete Mali & SiteSetting default
+# (otomatis membersihkan data demo lama jika akun demo masih ada & admin resmi belum dibuat;
+# pakai FLUSH_DB=true npm run prisma:seed jika ingin reset ulang secara eksplisit)
 npm run prisma:seed
-
-# (Opsional / Dev & Testing) Seed data contoh buku, kegiatan, donasi & akun demo
-npm run prisma:seed:demo
 ```
 
 ### 5. Jalankan Server Development
@@ -173,16 +172,9 @@ Server akan aktif di `http://localhost:2000` (API endpoint di `http://localhost:
 
 ---
 
-## 🔑 Akun Seed & Demo Testing
+## 🔑 Akun Admin Seed (`prisma/seed.ts`)
 
-1. **Seeder Utama (`prisma/seed.ts` / `npm run prisma:seed`)**: mengisi 6 akun Admin pengurus Rete Mali (`retemali.tanti@gmail.com`, `umi.naffisah13@gmail.com`, `aninda.zulfa89@gmail.com`, `yhayaz_annisa@yahoo.com`, `virginaniac@gmail.com`, `anniskarulika@gmail.com`) beserta pengaturan awal situs (`SiteSetting`). Segera ubah kata sandi awal masing-masing melalui menu **Ganti Kata Sandi** di portal admin setelah deployment pertama.
-2. **Seeder Demo / E2E (`prisma/seed-demo.ts` / `npm run prisma:seed:demo`)**: data akun & katalog contoh khusus untuk automated test:
-
-| Role | Nama Akun | Email | Password | Keterangan |
-|---|---|---|---|---|
-| **Admin** | Koordinator Rete Mali | `admin@retemali.id` | `Password123` | Akses penuh seluruh sistem, approval relawan & laporan kas |
-| **Relawan (Volunteer)** | Bunga Lestari | `relawan@retemali.id` | `Password123` | Meja sirkulasi, kurasi donasi, presensi shift & agenda komunitas |
-| **Member** | Rifky Darmawan | `rifky@retemali.id` | `Password123` | Peminjaman buku, bookmark, pendaftaran event & donasi |
+`prisma/seed.ts` (`npm run prisma:seed`, juga dijalankan otomatis saat container API di `docker-compose.prod.yml` start) mengisi 6 akun Admin pengurus Rete Mali (`retemali.tanti@gmail.com`, `umi.naffisah13@gmail.com`, `aninda.zulfa89@gmail.com`, `yhayaz_annisa@yahoo.com`, `virginaniac@gmail.com`, `anniskarulika@gmail.com`) beserta pengaturan awal situs (`SiteSetting`). Segera ubah kata sandi awal masing-masing melalui menu **Ganti Kata Sandi** di portal admin setelah deployment pertama.
 
 ---
 
