@@ -3,7 +3,7 @@ import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
 import { AuthService } from "./auth.service";
 import { prisma } from "@/lib/prisma";
-import { authenticate } from "@/middlewares/auth.middleware";
+import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
 import { createUpload } from "@/middlewares/upload.middleware";
 
 const upload = createUpload("avatars", "avatar");
@@ -54,5 +54,41 @@ router.patch(
  * @access  Private (Token)
  */
 router.patch("/change-password", authenticate, authController.changePassword);
+
+/**
+ * @route   GET /api/auth/users
+ * @desc    Mengambil daftar seluruh anggota (search & filter status/role)
+ * @access  Private (Admin)
+ */
+router.get(
+  "/users",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  authController.getAllUsers,
+);
+
+/**
+ * @route   PATCH /api/auth/users/:id/status
+ * @desc    Mengubah status akun anggota (ACTIVE / PENDING / SUSPENDED)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/status",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  authController.updateUserStatus,
+);
+
+/**
+ * @route   PATCH /api/auth/users/:id/credentials
+ * @desc    Admin memperbarui email dan/atau mereset password sementara anggota
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/credentials",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  authController.adminResetCredentials,
+);
 
 export default router;

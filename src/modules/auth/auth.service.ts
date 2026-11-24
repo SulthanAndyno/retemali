@@ -5,11 +5,19 @@ import path from "path";
 import { User } from "../../../generated/prisma";
 import { AuthRepository } from "./auth.repository";
 import {
+  AdminResetCredentialsInput,
   ChangePasswordInput,
   LoginInput,
   RegisterInput,
   UpdateProfileInput,
+  UpdateUserStatusInput,
+  UserQueryInput,
 } from "./auth.validation";
+import {
+  buildPaginationMeta,
+  parsePagination,
+  PaginationMeta,
+} from "../../utils/pagination";
 import { AppError } from "@/middlewares/error.middleware";
 
 const SALT_ROUNDS = 12;
@@ -94,6 +102,28 @@ export class AuthService {
 
     if (user.status === "SUSPENDED") {
       throw new AppError("Akun Anda sedang dinonaktifkan sementara", 403);
+    }
+
+    if (data.expectedRole) {
+      const allowedByMode: Record<string, string[]> = {
+        MEMBER: ["MEMBER", "DONOR"],
+        DONOR: ["MEMBER", "DONOR"],
+        VOLUNTEER: ["VOLUNTEER"],
+        ADMIN: ["ADMIN"],
+      };
+      const roleLabels: Record<string, string> = {
+        MEMBER: "Member",
+        DONOR: "Donatur",
+        VOLUNTEER: "Relawan (Volunteer)",
+        ADMIN: "Administrator",
+      };
+      const allowedRoles = allowedByMode[data.expectedRole] ?? [];
+      if (!allowedRoles.includes(user.role)) {
+        throw new AppError(
+          `Akun ${roleLabels[user.role] ?? user.role} tidak dapat masuk melalui mode ${roleLabels[data.expectedRole] ?? data.expectedRole}. Silakan pilih mode akses yang sesuai.`,
+          403,
+        );
+      }
     }
 
     const token: string = jwt.sign(
@@ -188,4 +218,89 @@ export class AuthService {
     await this.authRepository.updatePassword(userId, hashedPassword);
   }
 
+  async getAllUsers(query: UserQueryInput): Promise<{
+    data: SafeUser[];
+    meta: PaginationMeta & {
+      counts: { active: number; pending: number; suspended: number };
+    };
+  }> {
+    const { skip, take, page, limit } = parsePagination(query);
+    const { data, total, counts } = await this.authRepository.findAllUsers({
+      skip,
+      take,
+      search: query.search,
+      status: query.status,
+      role: query.role,
+    });
+
+    return {
+      data: data.map(toSafeUser),
+      meta: {
+        ...buildPaginationMeta(total, page, limit),
+        counts,
+      },
+    };
+  }
+
+  async updateUserStatus(
+    targetUserId: string,
+    input: UpdateUserStatusInput,
+    adminId?: string,
+  ): Promise<SafeUser> {
+    const target = await this.authRepository.findById(targetUserId);
+    if (!target) {
+      throw new AppError("Anggota tidak ditemukan", 404);
+    }
+    if (target.role === "ADMIN") {
+      throw new AppError("Status akun Admin tidak dapat diubah", 403);
+    }
+    const updated = await this.authRepository.updateUserStatusByAdmin(
+      targetUserId,
+      input,
+      adminId,
+    );
+    return toSafeUser(updated);
+  }
+
+  async adminResetCredentials(
+    targetUserId: string,
+    input: AdminResetCredentialsInput,
+    adminId?: string,
+  ): Promise<SafeUser> {
+    const target = await this.authRepository.findById(targetUserId);
+    if (!target) {
+      throw new AppError("Anggota tidak ditemukan", 404);
+    }
+    if (target.role === "ADMIN") {
+      throw new AppError(
+        "Kredensial akun Admin tidak dapat direset melalui manajemen anggota",
+        403,
+      );
+    }
+
+    if (input.email && input.email !== target.email) {
+      const taken = await this.authRepository.findByEmailExcludeId(
+        input.email,
+        targetUserId,
+      );
+      if (taken) {
+        throw new AppError("Email sudah digunakan oleh pengguna lain", 409);
+      }
+    }
+
+    const hashedPassword = input.newPassword
+      ? await bcrypt.hash(input.newPassword, SALT_ROUNDS)
+      : undefined;
+
+    const updated = await this.authRepository.updateUserCredentialsByAdmin(
+      targetUserId,
+      {
+        email: input.email,
+        hashedPassword,
+      },
+      adminId,
+    );
+
+    return toSafeUser(updated);
+  }
 }
