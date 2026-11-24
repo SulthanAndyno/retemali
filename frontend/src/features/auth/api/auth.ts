@@ -25,10 +25,14 @@ export interface RegisterInput {
   rtRw?: string;
 }
 
-export function loginUpstream(email: string, password: string) {
+export function loginUpstream(
+  email: string,
+  password: string,
+  expectedRole?: 'MEMBER' | 'VOLUNTEER' | 'DONOR' | 'ADMIN'
+) {
   return upstreamRequest<AuthEnvelope>('/auth/login', {
     method: 'POST',
-    body: { email, password },
+    body: expectedRole ? { email, password, expectedRole } : { email, password },
   });
 }
 

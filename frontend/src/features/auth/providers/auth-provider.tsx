@@ -4,11 +4,12 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   ReactNode,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { User } from '@/features/auth/types';
 
 export type { User } from '@/features/auth/types';
@@ -16,7 +17,11 @@ export type { User } from '@/features/auth/types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (
+    email: string,
+    password: string,
+    expectedRole?: User['role']
+  ) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -39,29 +44,43 @@ async function readJson<T>(response: Response): Promise<T | null> {
   }
 }
 
+const PROTECTED_PREFIXES = ['/member', '/volunteer', '/admin', '/portal', '/dashboard'];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const authEpochRef = useRef(0);
 
   const refreshUser = useCallback(async () => {
+    const epoch = authEpochRef.current;
     try {
       const response = await fetch('/api/auth/me', {
         credentials: 'same-origin',
         cache: 'no-store',
       });
 
-      if (!response.ok) {
+      if (epoch !== authEpochRef.current) return;
+
+      if (response.status === 401 || response.status === 403) {
         setUser(null);
         return;
       }
 
+      if (!response.ok) {
+        return;
+      }
+
       const payload = await readJson<AuthResponse>(response);
+      if (epoch !== authEpochRef.current) return;
       setUser(payload?.data?.user ?? null);
     } catch {
-      setUser(null);
+      // Abaikan gangguan jaringan sementara agar sesi valid tidak terhapus di state client.
     } finally {
-      setLoading(false);
+      if (epoch === authEpochRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -73,13 +92,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refreshUser();
   }, [refreshUser]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ email, password }),
-    });
+  useEffect(() => {
+    const isProtected = PROTECTED_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
+    if (!loading && !user && isProtected) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void refreshUser();
+    }
+  }, [loading, user, pathname, refreshUser]);
+
+  const login = useCallback(
+    async (email: string, password: string, expectedRole?: User['role']) => {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(
+          expectedRole ? { email, password, expectedRole } : { email, password }
+        ),
+      });
 
     const payload = await readJson<AuthResponse>(response);
 
@@ -87,17 +119,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(payload?.message ?? 'Login gagal. Periksa email & password.');
     }
 
+    authEpochRef.current += 1;
     setUser(payload.data.user);
+    setLoading(false);
     return payload.data.user;
   }, []);
 
   const logout = useCallback(() => {
+    authEpochRef.current += 1;
     void fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'same-origin',
     }).finally(() => {
       setUser(null);
       router.push('/login');
+      router.refresh();
     });
   }, [router]);
 
