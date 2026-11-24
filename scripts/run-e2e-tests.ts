@@ -21,8 +21,9 @@ async function request(
   endpoint: string,
   body?: any,
   token?: string,
+  extraHeaders?: Record<string, string>,
 ): Promise<{ status: number; data: any }> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...extraHeaders };
   if (body) {
     headers["Content-Type"] = "application/json";
   }
@@ -325,8 +326,24 @@ async function runTests() {
     record("POST /api/circulation/loans/:id/remind-wa (Link WhatsApp)", remindWa.status, 200, remindWa.data);
   }
 
-  const cronDue = await request("POST", "/api/circulation/cron/due-reminders");
+  const cronDueUnauth = await request("POST", "/api/circulation/cron/due-reminders");
+  record("POST /api/circulation/cron/due-reminders (Tanpa Secret -> 401)", cronDueUnauth.status, 401, cronDueUnauth.data);
+
+  const cronSecret = process.env.CRON_SECRET || "retemali-cron-secret-2026";
+  const cronDue = await request(
+    "POST",
+    "/api/circulation/cron/due-reminders",
+    undefined,
+    undefined,
+    { "x-cron-secret": cronSecret },
+  );
   record("POST /api/circulation/cron/due-reminders (Cron Pengingat H-2)", cronDue.status, 200, cronDue.data);
+
+  const webhookUnauth = await request("POST", "/api/donations/webhook", {
+    receiptCode: "INV-RM-2026-0001",
+    status: "VERIFIED",
+  });
+  record("POST /api/donations/webhook (Tanpa Secret -> 401)", webhookUnauth.status, 401, webhookUnauth.data);
 
   const quickReturn = await request(
     "POST",

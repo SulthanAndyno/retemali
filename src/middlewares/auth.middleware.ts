@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { AppError } from "./error.middleware";
 import { prisma } from "@/lib/prisma";
@@ -92,6 +93,66 @@ export const authorizeRoles = (...allowedRoles: string[]) => {
       );
       return;
     }
+    next();
+  };
+};
+
+function constantTimeEquals(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Verifies a server-to-server shared secret (used by cron jobs and webhooks).
+ * Accepts any configured header name directly or `Authorization: Bearer <secret>`.
+ * Fails closed with 503 if the backing env variable is not configured.
+ */
+export const requireSharedSecret = (
+  envVarName: string,
+  headerNames: readonly string[],
+  label: string,
+) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const expectedSecret = process.env[envVarName]?.trim();
+    if (!expectedSecret) {
+      res.status(503).json({
+        status: "error",
+        message: `${label} belum dikonfigurasi pada server (${envVarName})`,
+      });
+      return;
+    }
+
+    const candidates: string[] = [];
+    for (const headerName of headerNames) {
+      const value = req.headers[headerName.toLowerCase()];
+      if (typeof value === "string" && value.trim()) {
+        candidates.push(value.trim());
+      }
+    }
+
+    const authHeader = req.headers.authorization;
+    if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+      const bearer = authHeader.slice("Bearer ".length).trim();
+      if (bearer) {
+        candidates.push(bearer);
+      }
+    }
+
+    const matched = candidates.some((candidate) =>
+      constantTimeEquals(candidate, expectedSecret),
+    );
+    if (!matched) {
+      res.status(401).json({
+        status: "error",
+        message: `Secret ${label} tidak valid atau tidak ditemukan`,
+      });
+      return;
+    }
+
     next();
   };
 };

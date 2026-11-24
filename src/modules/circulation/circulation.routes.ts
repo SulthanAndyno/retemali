@@ -3,7 +3,11 @@ import { CirculationController } from "./circulation.controller";
 import { CirculationRepository } from "./circulation.repository";
 import { CirculationService } from "./circulation.service";
 import { prisma } from "@/lib/prisma";
-import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  authorizeRoles,
+  requireSharedSecret,
+} from "@/middlewares/auth.middleware";
 
 const router: Router = Router();
 
@@ -125,8 +129,12 @@ router.post(
 /**
  * @route   POST /api/circulation/cron/due-reminders
  * @desc    Endpoint Cron Job untuk cek jatuh tempo H-2 & update status OVERDUE
- * @access  Public / System
+ * @access  System (x-cron-secret / Bearer CRON_SECRET)
  */
-router.post("/cron/due-reminders", circulationController.runCronReminders);
+router.post(
+  "/cron/due-reminders",
+  requireSharedSecret("CRON_SECRET", ["x-cron-secret"], "Cron"),
+  circulationController.runCronReminders,
+);
 
 export default router;

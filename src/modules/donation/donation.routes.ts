@@ -3,7 +3,11 @@ import { DonationController } from "./donation.controller";
 import { DonationRepository } from "./donation.repository";
 import { DonationService } from "./donation.service";
 import { prisma } from "@/lib/prisma";
-import { authenticate, authorizeRoles } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  authorizeRoles,
+  requireSharedSecret,
+} from "@/middlewares/auth.middleware";
 import { createUpload } from "@/middlewares/upload.middleware";
 
 const upload = createUpload("donations", "donation");
@@ -136,9 +140,17 @@ router.patch(
 /**
  * @route   POST /api/donations/webhook
  * @desc    Webhook callback untuk verifikasi otomatis pembayaran donasi
- * @access  Public (Webhook)
+ * @access  System (x-webhook-secret / x-callback-token / Bearer WEBHOOK_SECRET)
  */
-router.post("/webhook", donationController.webhook);
+router.post(
+  "/webhook",
+  requireSharedSecret(
+    "WEBHOOK_SECRET",
+    ["x-webhook-secret", "x-callback-token"],
+    "Webhook",
+  ),
+  donationController.webhook,
+);
 
 /**
  * @route   GET /api/donations/financial/:receiptCode
