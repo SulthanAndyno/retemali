@@ -12,6 +12,7 @@ import {
   PaymentWebhookInput,
   UpdatePaymentAccountInput,
   VerifyBookDonationInput,
+  VerifyFinancialDonationInput,
 } from "./donation.validation";
 
 export class DonationService {
@@ -49,6 +50,42 @@ export class DonationService {
       throw new AppError("Kuitansi donasi tidak ditemukan", 404);
     }
     return receipt;
+  }
+
+  async getAllFinancialDonations(query: DonationQueryInput) {
+    const { skip, take, page, limit } = parsePagination(query);
+    const { data, total } =
+      await this.donationRepository.findAllFinancialDonations({
+        skip,
+        take,
+        status: query.status,
+      });
+
+    return {
+      data,
+      meta: buildPaginationMeta(total, page, limit),
+    };
+  }
+
+  async verifyFinancialDonation(
+    id: string,
+    data: VerifyFinancialDonationInput,
+    actorId?: string,
+  ) {
+    return this.donationRepository.verifyFinancialDonationById(
+      id,
+      data.status,
+      actorId,
+    );
+  }
+
+  async getBookDonationByCode(codeOrId: string) {
+    const batch =
+      await this.donationRepository.findBookDonationByCodeOrId(codeOrId);
+    if (!batch) {
+      throw new AppError("Paket donasi buku fisik tidak ditemukan", 404);
+    }
+    return batch;
   }
 
   async createBookDonation(

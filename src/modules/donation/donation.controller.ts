@@ -10,6 +10,7 @@ import {
   paymentWebhookSchema,
   updatePaymentAccountSchema,
   verifyBookDonationSchema,
+  verifyFinancialDonationSchema,
 } from "./donation.validation";
 import { AuthRequest } from "@/middlewares/auth.middleware";
 
@@ -93,6 +94,71 @@ export class DonationController {
         res,
         message: "Berhasil mengambil kuitansi digital donasi",
         data: receipt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllFinancialDonations = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const query = donationQuerySchema.parse(req.query);
+      const { data, meta } =
+        await this.donationService.getAllFinancialDonations(query);
+
+      paginatedResponse({
+        res,
+        message: "Berhasil mengambil daftar transaksi donasi finansial",
+        data,
+        meta,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyFinancialDonation = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const id = req.params["id"] as string;
+      const data = verifyFinancialDonationSchema.parse(req.body);
+      const donation = await this.donationService.verifyFinancialDonation(
+        id,
+        data,
+        req.userId,
+      );
+
+      successResponse({
+        res,
+        message: "Status pembayaran donasi finansial berhasil diperbarui",
+        data: donation,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBookDonationByCode = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const batchCode = req.params["batchCode"] as string;
+      const batch =
+        await this.donationService.getBookDonationByCode(batchCode);
+
+      successResponse({
+        res,
+        message: "Berhasil mengambil detail paket donasi buku fisik",
+        data: batch,
       });
     } catch (error) {
       next(error);

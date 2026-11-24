@@ -99,6 +99,18 @@ router.get("/payment-setting", donationController.getPaymentSetting);
 router.get("/summary", donationController.getSummary);
 
 /**
+ * @route   GET /api/donations/financial
+ * @desc    Mengambil daftar transaksi donasi finansial (untuk Admin / Relawan)
+ * @access  Private (Volunteer / Admin)
+ */
+router.get(
+  "/financial",
+  authenticate,
+  authorizeRoles("VOLUNTEER", "ADMIN"),
+  donationController.getAllFinancialDonations,
+);
+
+/**
  * @route   POST /api/donations/financial
  * @desc    Membuat transaksi Donasi Finansial (QRIS / Transfer / Sahabat Literasi)
  * @access  Public
@@ -107,6 +119,18 @@ router.post(
   "/financial",
   upload.single("proofImage"),
   donationController.createFinancial,
+);
+
+/**
+ * @route   PATCH /api/donations/financial/:id/verify
+ * @desc    Memverifikasi atau menolak donasi finansial oleh Admin
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/financial/:id/verify",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  donationController.verifyFinancialDonation,
 );
 
 /**
@@ -145,6 +169,13 @@ router.get(
   authorizeRoles("VOLUNTEER", "ADMIN"),
   donationController.getAllBookDonations,
 );
+
+/**
+ * @route   GET /api/donations/books/:batchCode
+ * @desc    Mengambil detail status paket donasi buku fisik berdasarkan kode batch
+ * @access  Public
+ */
+router.get("/books/:batchCode", donationController.getBookDonationByCode);
 
 /**
  * @route   PATCH /api/donations/books/:id/verify

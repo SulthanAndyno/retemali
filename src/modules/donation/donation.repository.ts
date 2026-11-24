@@ -4,6 +4,7 @@ import {
   PhysicalBookDonation,
   PrismaClient,
 } from "../../../generated/prisma";
+import { getWibYear } from "../../utils/date-wib";
 import {
   CreateBookDonationInput,
   CreateFinancialDonationInput,
@@ -21,17 +22,37 @@ export class DonationRepository {
   }
 
   private async generateReceiptCode(): Promise<string> {
-    const year = new Date().getFullYear();
-    const count = await this.prisma.financialDonation.count();
-    const seq = String(count + 1).padStart(4, "0");
-    return `INV-RM-${year}-${seq}`;
+    const year = getWibYear();
+    let offset = (await this.prisma.financialDonation.count()) + 1;
+    while (true) {
+      const seq = String(offset).padStart(4, "0");
+      const candidate = `INV-RM-${year}-${seq}`;
+      const existing = await this.prisma.financialDonation.findUnique({
+        where: { receiptCode: candidate },
+        select: { id: true },
+      });
+      if (!existing) {
+        return candidate;
+      }
+      offset += 1;
+    }
   }
 
   private async generateBatchCode(): Promise<string> {
-    const year = new Date().getFullYear();
-    const count = await this.prisma.physicalBookDonation.count();
-    const seq = String(count + 1).padStart(4, "0");
-    return `BDN-${year}-${seq}`;
+    const year = getWibYear();
+    let offset = (await this.prisma.physicalBookDonation.count()) + 1;
+    while (true) {
+      const seq = String(offset).padStart(4, "0");
+      const candidate = `BDN-${year}-${seq}`;
+      const existing = await this.prisma.physicalBookDonation.findUnique({
+        where: { batchCode: candidate },
+        select: { id: true },
+      });
+      if (!existing) {
+        return candidate;
+      }
+      offset += 1;
+    }
   }
 
   /**
@@ -172,6 +193,105 @@ export class DonationRepository {
     return this.prisma.financialDonation.findUnique({
       where: { receiptCode },
       include: { campaign: true },
+    });
+  }
+
+  /**
+   * Mengambil daftar transaksi donasi finansial (Admin / Relawan).
+   */
+  async findAllFinancialDonations(options: {
+    skip: number;
+    take: number;
+    status?: string;
+  }): Promise<{ data: FinancialDonation[]; total: number }> {
+    const { skip, take, status } = options;
+    const where: Record<string, unknown> = {
+      ...(status && { paymentStatus: status }),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.financialDonation.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: "desc" },
+        include: { campaign: true },
+      }),
+      this.prisma.financialDonation.count({ where }),
+    ]);
+
+    return { data, total };
+  }
+
+  /**
+   * Memverifikasi / menolak donasi finansial secara manual oleh Admin.
+   */
+  async verifyFinancialDonationById(
+    id: string,
+    status: "VERIFIED" | "FAILED",
+    actorId?: string,
+  ): Promise<FinancialDonation> {
+    const donation = await this.prisma.financialDonation.findUnique({
+      where: { id },
+    });
+
+    if (!donation) {
+      throw new AppError("Transaksi donasi tidak ditemukan", 404);
+    }
+
+    if (donation.paymentStatus === status) {
+      return donation;
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (
+        status === "VERIFIED" &&
+        donation.paymentStatus !== "VERIFIED" &&
+        donation.campaignId
+      ) {
+        await tx.donationCampaign.update({
+          where: { id: donation.campaignId },
+          data: {
+            collectedAmount: { increment: donation.amount },
+          },
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          actorId: actorId ?? null,
+          title:
+            status === "VERIFIED"
+              ? `Verifikasi Donasi Finansial (${donation.receiptCode})`
+              : `Penolakan Donasi Finansial (${donation.receiptCode})`,
+          description:
+            status === "VERIFIED"
+              ? `Pembayaran Rp${Number(donation.amount).toLocaleString("id-ID")} dari ${donation.donorName} diverifikasi.`
+              : `Pembayaran Rp${Number(donation.amount).toLocaleString("id-ID")} dari ${donation.donorName} ditolak.`,
+          category: "DONATION",
+        },
+      });
+
+      return tx.financialDonation.update({
+        where: { id: donation.id },
+        data: {
+          paymentStatus: status,
+          verifiedAt: status === "VERIFIED" ? new Date() : null,
+        },
+      });
+    });
+  }
+
+  /**
+   * Mengambil detail donasi buku fisik berdasarkan batchCode atau id.
+   */
+  async findBookDonationByCodeOrId(
+    codeOrId: string,
+  ): Promise<PhysicalBookDonation | null> {
+    return this.prisma.physicalBookDonation.findFirst({
+      where: {
+        OR: [{ batchCode: codeOrId }, { id: codeOrId }],
+      },
     });
   }
 

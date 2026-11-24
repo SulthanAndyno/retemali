@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export enum PaymentMethod {
   QRIS = "QRIS",
+  BANK_TRANSFER = "BANK_TRANSFER",
   BANK_MANDIRI = "BANK_MANDIRI",
   BANK_BCA = "BANK_BCA",
   GOPAY = "GOPAY",
@@ -33,7 +34,7 @@ export const createFinancialDonationSchema = z.object({
 
   paymentMethod: z.nativeEnum(PaymentMethod, {
     error:
-      "Metode pembayaran tidak valid. Pilih: QRIS, BANK_MANDIRI, BANK_BCA, GOPAY, OVO, DANA, atau SHOPEEPAY",
+      "Metode pembayaran tidak valid. Pilih: QRIS, BANK_TRANSFER, BANK_MANDIRI, BANK_BCA, GOPAY, OVO, DANA, atau SHOPEEPAY",
   }),
 
   donorName: z
@@ -65,6 +66,10 @@ export const createFinancialDonationSchema = z.object({
 export const paymentWebhookSchema = z.object({
   receiptCode: z.string().min(1, "Kode kuitansi wajib diisi"),
   status: z.enum(["VERIFIED", "FAILED"]).default("VERIFIED"),
+});
+
+export const verifyFinancialDonationSchema = z.object({
+  status: z.enum(["VERIFIED", "FAILED"]),
 });
 
 export const createBookDonationSchema = z.object({
@@ -136,6 +141,9 @@ export type CreateFinancialDonationInput = z.infer<
   typeof createFinancialDonationSchema
 >;
 export type PaymentWebhookInput = z.infer<typeof paymentWebhookSchema>;
+export type VerifyFinancialDonationInput = z.infer<
+  typeof verifyFinancialDonationSchema
+>;
 export type CreateBookDonationInput = z.infer<typeof createBookDonationSchema>;
 export type VerifyBookDonationInput = z.infer<typeof verifyBookDonationSchema>;
 export type DonationQueryInput = z.infer<typeof donationQuerySchema>;
