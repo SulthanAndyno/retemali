@@ -1,37 +1,41 @@
+'use client';
+
 import { ClipboardCheck, History } from 'lucide-react';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { Table, TBody, TD, TH, THead, TR } from '@/shared/components/ui/table';
 import { formatDateId, formatDateTimeId } from '@/shared/lib/format';
-import { VOLUNTEER_ATTENDANCE } from '../fixtures/volunteer-dummy';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
+import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
 export function VolunteerAttendancePage() {
+  const { attendance, loading } = useVolunteerPortalData();
+
   return (
     <div className="space-y-6">
       <SectionTitle
         title="Riwayat Kehadiran"
-        description="Rekap kehadiran relawan per kegiatan dari attendance_records."
+        description="Rekap kehadiran relawan dari log shift dan kegiatan operasional."
       />
-      <DummyNotice />
 
-      {VOLUNTEER_ATTENDANCE.length === 0 ? (
+      {loading ? (
+        <div className="h-32 animate-pulse rounded-card bg-white" />
+      ) : attendance.length === 0 ? (
         <EmptyState
           icon={<History aria-hidden />}
           title="Belum ada catatan kehadiran"
-          description="Kehadiran tercatat ketika kode E-Tiket Anda diverifikasi petugas pada kegiatan."
+          description="Kehadiran tercatat ketika shift piket atau E-Tiket Anda diverifikasi pada kegiatan."
         />
       ) : (
         <Table>
           <THead>
             <TR>
-              <TH>Kegiatan</TH>
+              <TH>Kegiatan / Shift</TH>
               <TH>Waktu Check-in</TH>
               <TH>Status Personel</TH>
             </TR>
           </THead>
           <TBody>
-            {VOLUNTEER_ATTENDANCE.map((record) => (
+            {attendance.map((record) => (
               <TR key={record.id}>
                 <TD>
                   {record.title}
@@ -58,9 +62,8 @@ export function VolunteerAttendancePage() {
           aria-hidden
         />
         <p className="text-sm text-primary-deep">
-          Pencatatan kehadiran otomatis akan tersedia setelah fitur absensi
-          diaktifkan. Saat ini catatan kehadiran berasal dari proses yang sudah
-          berjalan.
+          Catatan kehadiran terhubung langsung dengan log shift piket relawan
+          dan presensi kegiatan ReteMali.
         </p>
       </Card>
     </div>

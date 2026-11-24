@@ -1,11 +1,13 @@
+'use client';
+
 import { SectionTitle } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { VOLUNTEER_ASSIGNMENTS } from '../fixtures/volunteer-dummy';
 import { AssignmentCard } from '../components/assignment-card';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
+import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
 export function VolunteerActivitiesPage() {
-  const sorted = [...VOLUNTEER_ASSIGNMENTS].sort((a, b) =>
+  const { assignments, loading } = useVolunteerPortalData();
+  const sorted = [...assignments].sort((a, b) =>
     b.eventDate.localeCompare(a.eventDate)
   );
 
@@ -15,9 +17,10 @@ export function VolunteerActivitiesPage() {
         title="Kegiatan Saya (Relawan)"
         description="Kegiatan yang Anda tugasi beserta tanggung jawab dan koordinator."
       />
-      <DummyNotice />
 
-      {sorted.length === 0 ? (
+      {loading ? (
+        <div className="h-32 animate-pulse rounded-card bg-white" />
+      ) : sorted.length === 0 ? (
         <EmptyState
           title="Belum ada kegiatan yang ditugaskan"
           description="Penugasan ditetapkan admin atau pengelola kegiatan. Jika belum ada, tunggu penugasan berikutnya atau hubungi koordinator."

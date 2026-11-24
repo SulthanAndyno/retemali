@@ -14,8 +14,6 @@ import { formatDateId, formatRupiah } from '@/shared/lib/format';
 import { useMemberHome } from '../hooks/use-member-home';
 import { useNow } from '../hooks/use-now';
 import { isActiveLoan, resolveLoanState } from '../lib/member-loans';
-import { MEMBER_ATTENDANCE } from '../fixtures/member-dummy';
-import { DummyNotice } from '@/shared/components/ui/dummy-notice';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { LoanStatusBadge } from '../components/loan-status-badge';
 import { MemberProfileCard } from '../components/member-profile-card';
@@ -83,6 +81,9 @@ export function MemberHomePage() {
   const pendingPaymentCount = data.tickets.filter(
     (ticket) => ticket.paymentStatus === 'PENDING'
   ).length;
+  const attendedCount = data.tickets.filter(
+    (ticket) => ticket.status === 'CHECKED_IN'
+  ).length;
 
   const upcomingEvents = data.events
     .filter(
@@ -121,7 +122,7 @@ export function MemberHomePage() {
         />
         <StatCard
           label="Kehadiran tercatat"
-          value={MEMBER_ATTENDANCE.length}
+          value={attendedCount}
           icon={<ClipboardCheck className="h-5 w-5" aria-hidden />}
           hint="Check-in E-Tiket kegiatan"
         />
@@ -131,7 +132,6 @@ export function MemberHomePage() {
           hint="Pesan pembayaran, pengingat, dan pengumuman"
         />
       </div>
-      <DummyNotice />
 
       {failedSources.length > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-card border border-amber-200 bg-amber-50 p-3">
