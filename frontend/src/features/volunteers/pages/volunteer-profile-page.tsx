@@ -4,6 +4,7 @@ import { ClipboardList } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { useAuth } from '@/features/auth';
+import { PasswordChangeForm } from '@/features/members';
 import { VolunteerProfileForm } from '../components/volunteer-profile-form';
 import { useVolunteerPortalData } from '../hooks/use-volunteer-portal-data';
 
@@ -61,6 +62,14 @@ export function VolunteerProfilePage() {
           phone={user.phone ?? ''}
           email={user.email}
         />
+      </Card>
+
+      <Card>
+        <h2 className="text-base font-bold text-ink">Ganti Kata Sandi</h2>
+        <p className="mb-3 mt-0.5 text-xs text-ink-soft">
+          Setiap perubahan kata sandi diverifikasi dari kata sandi saat ini.
+        </p>
+        <PasswordChangeForm />
       </Card>
     </div>
   );

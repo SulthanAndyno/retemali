@@ -41,6 +41,9 @@ export function useChangePassword(): UseChangePasswordResult {
   const submit = async (): Promise<PasswordActionResult> => {
     setError(null);
 
+    if (!form.currentPassword) {
+      return { ok: false, message: 'Kata sandi saat ini wajib diisi.' };
+    }
     if (form.newPassword.length < 8) {
       return { ok: false, message: 'Kata sandi baru minimal 8 karakter.' };
     }
@@ -48,6 +51,12 @@ export function useChangePassword(): UseChangePasswordResult {
       return {
         ok: false,
         message: 'Kata sandi baru harus memuat huruf besar dan angka.',
+      };
+    }
+    if (form.newPassword === form.currentPassword) {
+      return {
+        ok: false,
+        message: 'Kata sandi baru tidak boleh sama dengan kata sandi saat ini.',
       };
     }
     if (form.newPassword !== form.confirmPassword) {

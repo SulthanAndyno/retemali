@@ -1,5 +1,6 @@
 export { MemberShell } from './shell/member-shell';
 export { TicketCredentialButton } from './components/ticket-credential-button';
+export { PasswordChangeForm } from './components/password-change-form';
 export { MemberHomePage } from './pages/member-home-page';
 export { MemberLoansPage } from './pages/member-loans-page';
 export { MemberLoanDetailPage } from './pages/member-loan-detail-page';
