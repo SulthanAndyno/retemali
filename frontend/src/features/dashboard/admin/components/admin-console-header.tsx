@@ -10,7 +10,7 @@ export function AdminConsoleHeader() {
         Pusat Manajemen &amp; Operasional
       </h1>
       <p className="text-xs text-gray-500 mt-1">
-        Pantau sirkulasi, relawan, donasi, dan aktivitas harian Rete Mali RTO5 RW14.
+        Pantau sirkulasi, volunteer, donasi, dan aktivitas harian Rete Mali RTO5 RW14.
       </p>
       <div className="flex items-center justify-between mt-3">
         <button className="flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200">

@@ -47,7 +47,7 @@ export function PortalAccessSection({
                   Dashboard Administrator
                 </h4>
                 <p className="text-[11px] text-slate-500">
-                  Pusat kendali 4 KPI, kurasi relawan, sirkulasi, &amp; audit
+                  Pusat kendali 4 KPI, kurasi volunteer, sirkulasi, &amp; audit
                 </p>
               </div>
             </div>
@@ -70,10 +70,10 @@ export function PortalAccessSection({
             </div>
             <div>
               <h4 className="text-xs font-bold text-slate-900">
-                Meja Operasional Relawan
+                Meja Operasional Volunteer
               </h4>
               <p className="text-[11px] text-slate-500">
-                Piket relawan, verifikasi E-Tiket, &amp; donasi
+                Piket volunteer, verifikasi E-Tiket, &amp; donasi
               </p>
             </div>
           </div>

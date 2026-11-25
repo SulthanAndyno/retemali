@@ -113,14 +113,14 @@ export const DUMMY_DONATIONS: DummyDonation[] = [
 export const DUMMY_APPROVED_VOLUNTEERS: DummyApprovedVolunteer[] = [
   {
     id: 'dummy-volunteer-1',
-    fullName: 'Relawan Contoh Satu',
-    email: 'relawan.satu@example.test',
+    fullName: 'Volunteer Contoh Satu',
+    email: 'volunteer.satu@example.test',
     status: 'approved',
   },
   {
     id: 'dummy-volunteer-2',
-    fullName: 'Relawan Contoh Dua',
-    email: 'relawan.dua@example.test',
+    fullName: 'Volunteer Contoh Dua',
+    email: 'volunteer.dua@example.test',
     status: 'pending',
   },
 ];

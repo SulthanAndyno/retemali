@@ -135,7 +135,7 @@ export function PortalDrawer({
                         size={16}
                         className="text-teal-600"
                       />
-                      <span>Operasional Relawan</span>
+                      <span>Operasional Volunteer</span>
                     </span>
                     <ChevronRight size={14} className="text-slate-400" />
                   </button>
@@ -149,7 +149,7 @@ export function PortalDrawer({
                 >
                   <span className="flex items-center gap-2.5">
                     <HeartHandshake size={16} className="text-teal-600" />
-                    <span>Operasional Relawan</span>
+                    <span>Operasional Volunteer</span>
                   </span>
                   <ChevronRight size={14} className="text-slate-400" />
                 </button>

@@ -18,7 +18,7 @@ export function VolunteerHomePage() {
     useVolunteerPortalData();
 
   if (!user) {
-    return <p className="text-sm text-ink-soft">Memuat profil relawan…</p>;
+    return <p className="text-sm text-ink-soft">Memuat profil volunteer…</p>;
   }
 
   const upcoming = upcomingAssignments.slice(0, 2);
@@ -34,12 +34,12 @@ export function VolunteerHomePage() {
           <div>
             <p className="font-bold text-ink">{user.name}</p>
             <p className="text-sm text-ink-soft">
-              ID Relawan {user.memberCode} • {user.email}
+              ID Volunteer {user.memberCode} • {user.email}
             </p>
           </div>
         </div>
         <Badge tone={approved ? 'success' : 'warning'}>
-          {approved ? 'Relawan disetujui' : 'Status relawan: menunggu'}
+          {approved ? 'Volunteer disetujui' : 'Status volunteer: menunggu'}
         </Badge>
       </Card>
 
@@ -56,7 +56,7 @@ export function VolunteerHomePage() {
           hint="Status aplikasi, penugasan, pengingat"
         />
         <StatCard
-          label="Status relawan"
+          label="Status volunteer"
           value={approved ? 'Disetujui' : 'Menunggu'}
         />
       </div>
@@ -94,7 +94,7 @@ export function VolunteerHomePage() {
       <section>
         <SectionTitle
           title="Riwayat Kehadiran"
-          description="Catatan kehadiran shift dan kegiatan relawan."
+          description="Catatan kehadiran shift dan kegiatan volunteer."
         />
         {attendance.length === 0 ? (
           <EmptyState
@@ -124,7 +124,7 @@ export function VolunteerHomePage() {
         />
         <div>
           <p className="text-sm font-semibold text-primary-deep">
-            Panduan &amp; SOP Relawan
+            Panduan &amp; SOP Volunteer
           </p>
           <p className="mt-1 text-sm text-ink-soft">
             Panduan resmi akan dibagikan pengelola saat sudah siap. Sementara

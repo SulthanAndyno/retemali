@@ -50,7 +50,7 @@ export function BookFormModal({
             <p className="text-[11px] text-slate-500">
               {role === 'ADMIN'
                 ? 'Akses Penuh Administrator (CRUD)'
-                : 'Akses Operasional Relawan (CRU)'}
+                : 'Akses Operasional Volunteer (CRU)'}
             </p>
           </div>
           <button

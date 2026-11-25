@@ -22,7 +22,7 @@ export const ACCESS_MODES: readonly AccessModeOption[] = [
   {
     key: 'VOLUNTEER',
     label: 'Volunteer',
-    desc: 'Dashboard relawan: jadwal, tugas, dan absensi.',
+    desc: 'Dashboard volunteer: jadwal, tugas, dan absensi.',
     badge: 'Perlu persetujuan admin',
     badgeColor: 'bg-amber-100 text-amber-700',
   },
@@ -39,7 +39,7 @@ export const LOGIN_FEATURES: readonly string[] = [
   'Katalog buku dapat dicari dan disaring',
   'Kegiatan gratis maupun berbayar',
   'Donasi finansial & buku fisik',
-  'Dashboard member, relawan, & admin',
+  'Dashboard member, volunteer, & admin',
 ];
 
 export const PUBLIC_BENEFITS: readonly string[] = [

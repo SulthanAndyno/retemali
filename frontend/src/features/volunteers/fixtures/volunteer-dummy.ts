@@ -52,7 +52,7 @@ export const VOLUNTEER_ASSIGNMENTS: VolunteerAssignment[] = [
     startTime: '08:00',
     endTime: '11:00',
     location: 'Rak Koleksi Sayap Barat',
-    coordinator: 'Koordinator Relawan',
+    coordinator: 'Koordinator Volunteer',
     responsibilities: 'Perapian rak, penyortiran buku, dan pembersihan area baca.',
     approval: 'approved',
     phase: 'past',

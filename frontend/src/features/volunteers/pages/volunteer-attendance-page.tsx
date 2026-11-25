@@ -14,7 +14,7 @@ export function VolunteerAttendancePage() {
     <div className="space-y-6">
       <SectionTitle
         title="Riwayat Kehadiran"
-        description="Rekap kehadiran relawan dari log shift dan kegiatan operasional."
+        description="Rekap kehadiran volunteer dari log shift dan kegiatan operasional."
       />
 
       {loading ? (
@@ -62,7 +62,7 @@ export function VolunteerAttendancePage() {
           aria-hidden
         />
         <p className="text-sm text-primary-deep">
-          Catatan kehadiran terhubung langsung dengan log shift piket relawan
+          Catatan kehadiran terhubung langsung dengan log shift piket volunteer
           dan presensi kegiatan ReteMali.
         </p>
       </Card>

@@ -25,7 +25,7 @@ export function PendingDonationsCard({
         </span>
       </div>
       <p className="text-[11px] text-slate-500 -mt-1">
-        {donations.length} batch perlu kurasi relawan
+        {donations.length} batch perlu kurasi volunteer
       </p>
 
       {donations.length === 0 ? (

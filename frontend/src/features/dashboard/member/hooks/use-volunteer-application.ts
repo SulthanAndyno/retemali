@@ -55,7 +55,7 @@ export function useVolunteerApplication(onSuccess: () => void): UseVolunteerAppl
       return { ok: true };
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : 'Gagal mendaftar relawan. Coba lagi.';
+        err instanceof ApiError ? err.message : 'Gagal mendaftar volunteer. Coba lagi.';
       return { ok: false, message };
     } finally {
       setPending(false);

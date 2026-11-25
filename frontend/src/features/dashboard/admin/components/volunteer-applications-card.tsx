@@ -16,7 +16,7 @@ export function VolunteerApplicationsCard({
 }: VolunteerApplicationsCardProps) {
   return (
     <AdminSection
-      title="Calon Relawan Baru"
+      title="Calon Volunteer Baru"
       count={applications.length}
       countColor="bg-blue-100 text-blue-700"
     >
@@ -58,7 +58,7 @@ export function VolunteerApplicationsCard({
                   className="flex-1 text-xs bg-blue-600 text-white rounded-lg py-1.5 hover:bg-blue-700 transition flex items-center justify-center gap-1 disabled:opacity-60"
                 >
                   <UserCheck size={12} />
-                  {pending ? 'Memproses...' : 'Setujui Relawan'}
+                  {pending ? 'Memproses...' : 'Setujui Volunteer'}
                 </button>
               </div>
             </div>

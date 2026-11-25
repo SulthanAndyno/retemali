@@ -80,7 +80,7 @@ export function MemberOperationsPage() {
     const result = await volunteer.submit();
     showToast(
       result.ok
-        ? 'Pendaftaran relawan berhasil dikirim! Menunggu persetujuan admin.'
+        ? 'Pendaftaran volunteer berhasil dikirim! Menunggu persetujuan admin.'
         : result.message,
       result.ok ? 'success' : 'error'
     );

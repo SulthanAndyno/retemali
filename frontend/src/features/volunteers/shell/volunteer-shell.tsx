@@ -14,8 +14,8 @@ export function VolunteerShell({ children }: { children: ReactNode }) {
       items={volunteerNav}
       mobileNav={volunteerMobileNav}
       brandHref="/volunteer"
-      titleFallback="Dashboard Relawan"
-      roleLabel="Relawan Terverifikasi"
+      titleFallback="Dashboard Volunteer"
+      roleLabel="Volunteer Terverifikasi"
       user={user ? { name: user.name, role: user.role } : null}
       onLogout={logout}
       notificationSlot={<NotificationBell />}

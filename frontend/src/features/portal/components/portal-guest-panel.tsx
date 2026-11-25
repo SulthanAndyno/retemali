@@ -35,7 +35,7 @@ export function PortalGuestPanel({
           </h2>
           <p className="mx-auto mt-1 max-w-xs text-xs text-slate-500">
             Silakan masuk atau daftar anggota untuk meminjam buku fisik, klaim
-            E-Tiket kegiatan, dan fitur relawan.
+            E-Tiket kegiatan, dan fitur volunteer.
           </p>
         </div>
         <div className="space-y-2 pt-2">

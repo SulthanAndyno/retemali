@@ -56,8 +56,8 @@ export function useBookDonationForm(): UseBookDonationFormResult {
       return {
         ok: true,
         message: code
-          ? `Pendataan donasi buku fisik berhasil! Kode batch: ${code}. Relawan kami akan memverifikasi di pos jaga.`
-          : 'Pendataan donasi buku fisik berhasil! Relawan kami akan memverifikasi di pos jaga.',
+          ? `Pendataan donasi buku fisik berhasil! Kode batch: ${code}. Volunteer kami akan memverifikasi di pos jaga.`
+          : 'Pendataan donasi buku fisik berhasil! Volunteer kami akan memverifikasi di pos jaga.',
         batchCode: code ?? undefined,
       };
     } catch (error) {

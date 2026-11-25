@@ -17,7 +17,7 @@ export function AdminPendingApprovals({
     <section>
       <SectionTitle
         title="Pengajuan Menunggu Persetujuan"
-        description="Donasi buku (drop-off) dan pendaftaran relawan perlu keputusan admin."
+        description="Donasi buku (drop-off) dan pendaftaran volunteer perlu keputusan admin."
       />
       {loading ? (
         <div className="h-24 animate-pulse rounded-card bg-white" />
@@ -44,10 +44,10 @@ export function AdminPendingApprovals({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-primary-deep">
-                  Relawan Menunggu Persetujuan
+                  Volunteer Menunggu Persetujuan
                 </h3>
                 <p className="text-xs text-ink-soft">
-                  {pendingVolunteers} akun menunggu dikaktifkan sebagai relawan.
+                  {pendingVolunteers} akun menunggu dikaktifkan sebagai volunteer.
                 </p>
               </div>
               <LinkButton href="/admin/volunteer" size="sm" variant="secondary">

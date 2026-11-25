@@ -14,7 +14,7 @@ export const DONATION_PURPOSES: readonly string[] = [
   'Peralatan & Rak Ensiklopedia',
   'Operasional Kelas Anak & Dongeng',
   'Pengadaan Buku Bacaan Baru',
-  'Infaq Kas Umum Saung Baca',
+  'Donasi Kas Umum Saung Baca',
 ];
 
 export const DELIVERY_METHOD_LABELS: Record<DeliveryMethod, string> = {

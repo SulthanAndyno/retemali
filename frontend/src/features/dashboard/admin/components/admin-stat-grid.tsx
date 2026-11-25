@@ -55,7 +55,7 @@ export function AdminStatGrid({
         hint={`${activeMembers} aktif`}
       />
       <StatCard
-        label="Relawan"
+        label="Volunteer"
         value={approvedVolunteers}
         icon={<ShieldCheck className="h-5 w-5" aria-hidden />}
         hint={`${pendingVolunteers} menunggu persetujuan`}

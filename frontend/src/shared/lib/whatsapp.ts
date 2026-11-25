@@ -47,5 +47,5 @@ export const WHATSAPP_TEMPLATES = {
   eventInfo: (params: { title: string }) =>
     `Halo Admin Rete Mali, saya ingin menanyakan detail kegiatan "${params.title}".`,
   volunteerCoordination:
-    'Halo Koordinator Relawan Rete Mali, saya ingin berkoordinasi mengenai jadwal piket hari ini.',
+    'Halo Koordinator Volunteer Rete Mali, saya ingin berkoordinasi mengenai jadwal piket hari ini.',
 };

@@ -9,9 +9,9 @@ export function VolunteerCta({ onOpen }: VolunteerCtaProps) {
     <section className="bg-gradient-to-r from-teal-700 to-emerald-700 rounded-2xl p-4 text-white shadow-sm flex items-center justify-between gap-3">
       <div>
         <p className="text-[10px] text-teal-200 font-bold uppercase tracking-wider">
-          Program Relawan
+          Siap menjadi Volunteer?
         </p>
-        <h3 className="text-sm font-extrabold mt-0.5">Ingin Mengabdi Jadi Relawan?</h3>
+        <h3 className="text-sm font-extrabold mt-0.5">Siap menjadi Volunteer?</h3>
         <p className="text-[11px] text-teal-100 mt-0.5">
           Daftar sesi mengajar anak, kurasi sirkulasi, atau pemandu kelas.
         </p>

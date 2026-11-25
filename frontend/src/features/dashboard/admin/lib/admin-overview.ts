@@ -117,7 +117,7 @@ export function buildAdminOverview(
   );
   const registrations = read('pendaftaran', results.registrations, failedSources);
   const bookDonations = read('donasi buku', results.bookDonations, failedSources);
-  const applications = read('relawan', results.applications, failedSources);
+  const applications = read('volunteer', results.applications, failedSources);
   const auditLogs = read('audit', results.audit, failedSources);
   const attendance = read('presensi', results.attendance, failedSources);
 

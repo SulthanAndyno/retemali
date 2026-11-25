@@ -35,7 +35,7 @@ export function useAdminVolunteers(): UseAdminVolunteersResult {
       setError(
         loadError instanceof ApiError
           ? loadError.message
-          : 'Gagal memuat pendaftaran relawan.'
+          : 'Gagal memuat pendaftaran volunteer.'
       );
       setApplications([]);
     } finally {
@@ -58,12 +58,12 @@ export function useAdminVolunteers(): UseAdminVolunteersResult {
       await reviewVolunteerApplication(id, status, note);
       await load();
       return status === 'APPROVED'
-        ? 'Pendaftaran relawan disetujui.'
-        : 'Pendaftaran relawan ditolak.';
+        ? 'Pendaftaran volunteer disetujui.'
+        : 'Pendaftaran volunteer ditolak.';
     } catch (reviewError) {
       return reviewError instanceof ApiError
         ? reviewError.message
-        : 'Gagal memproses pendaftaran relawan.';
+        : 'Gagal memproses pendaftaran volunteer.';
     } finally {
       setPendingId(null);
     }
@@ -81,7 +81,7 @@ export function useAdminVolunteers(): UseAdminVolunteersResult {
     } catch (demoteError) {
       return demoteError instanceof ApiError
         ? demoteError.message
-        : 'Gagal mengubah peran relawan.';
+        : 'Gagal mengubah peran volunteer.';
     } finally {
       setPendingId(null);
     }

@@ -46,7 +46,7 @@ export function BookConfirmationPage({ reference }: { reference: string }) {
       ? 'Diterima & Masuk Kurasi'
       : record?.status === 'REJECTED'
         ? 'Ditolak Kurasi'
-        : 'Menunggu Kurasi Relawan';
+        : 'Menunggu Kurasi Volunteer';
 
   return (
     <div className="space-y-6">

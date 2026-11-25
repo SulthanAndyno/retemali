@@ -18,7 +18,7 @@ export interface UseVolunteerApprovalsResult {
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error && error.message) return error.message;
-  return 'Gagal memproses pendaftaran relawan.';
+  return 'Gagal memproses pendaftaran volunteer.';
 }
 
 export function useVolunteerApprovals(

@@ -27,7 +27,7 @@ export function AdminVolunteersPage() {
 
   const handleDemote = async (userId: string, name: string) => {
     const confirmed = window.confirm(
-      `Ubah peran ${name} dari Relawan menjadi Anggota (MEMBER)? Akses portal relawan akan langsung dicabut.`
+      `Ubah peran ${name} dari Volunteer menjadi Anggota (MEMBER)? Akses portal volunteer akan langsung dicabut.`
     );
     if (!confirmed) return;
     const message = await demote(userId, name);
@@ -38,7 +38,7 @@ export function AdminVolunteersPage() {
     <div className="space-y-4">
       <SectionTitle
         title="Manajemen Volunteer"
-        description="Pendaftaran relawan dan status persetujuannya."
+        description="Pendaftaran volunteer dan status persetujuannya."
       />
 
       {error ? (
@@ -51,7 +51,7 @@ export function AdminVolunteersPage() {
       ) : loading ? (
         <div className="h-40 animate-pulse rounded-card bg-white" />
       ) : applications.length === 0 ? (
-        <EmptyState title="Belum ada pendaftaran relawan" />
+        <EmptyState title="Belum ada pendaftaran volunteer" />
       ) : (
         <Table>
           <THead>

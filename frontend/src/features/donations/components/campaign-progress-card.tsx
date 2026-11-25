@@ -31,7 +31,7 @@ export function CampaignProgressCard({
           Donasi Buku &amp; Dana Operasional
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">
-          Salurkan buku layak baca anak atau infak kas baca melalui QRIS terverifikasi.
+          Salurkan buku layak baca anak atau donasi kas baca melalui QRIS terverifikasi.
         </p>
       </div>
 

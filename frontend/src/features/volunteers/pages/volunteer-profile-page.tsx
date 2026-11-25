@@ -13,7 +13,7 @@ export function VolunteerProfilePage() {
   const { assignments } = useVolunteerPortalData();
 
   if (!user) {
-    return <p className="text-sm text-ink-soft">Memuat profil relawan…</p>;
+    return <p className="text-sm text-ink-soft">Memuat profil volunteer…</p>;
   }
 
   const approved = user.role === 'VOLUNTEER';
@@ -24,8 +24,8 @@ export function VolunteerProfilePage() {
   return (
     <div className="w-full space-y-6">
       <SectionTitle
-        title="Profil Saya (Relawan)"
-        description="Data relawan dan status persetujuan; menu fitur relawan aktif untuk akun disetujui."
+        title="Profil Saya (Volunteer)"
+        description="Data volunteer dan status persetujuan; menu fitur volunteer aktif untuk akun disetujui."
       />
 
       <Card className="flex flex-wrap items-center gap-4">
@@ -38,7 +38,7 @@ export function VolunteerProfilePage() {
             {user.email} • {user.phone ?? '-'}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-2">
-            <Badge tone="info">Relawan · {user.memberCode}</Badge>
+            <Badge tone="info">Volunteer · {user.memberCode}</Badge>
             <Badge tone={approved ? 'success' : 'warning'}>
               {approved ? 'Disetujui admin' : 'Status: menunggu'}
             </Badge>

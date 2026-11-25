@@ -8,7 +8,7 @@ import { publicMobileNav, publicNav } from './public-nav';
 
 function publicRoleLabel(role: User['role']): string {
   if (role === 'ADMIN') return 'Administrator';
-  if (role === 'VOLUNTEER') return 'Relawan Terverifikasi';
+  if (role === 'VOLUNTEER') return 'Volunteer Terverifikasi';
   return 'Member ReteMali';
 }
 

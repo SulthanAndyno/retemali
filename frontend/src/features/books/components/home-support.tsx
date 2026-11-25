@@ -28,7 +28,7 @@ export function HomeSupport({ onDonate, onJoinVolunteer }: HomeSupportProps) {
                 Donasi Buku &amp; Dana Operasional
               </h4>
               <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-                Salurkan buku layak baca anak atau infak kas baca melalui QRIS terverifikasi.
+                Salurkan buku layak baca anak atau donasi kas baca melalui QRIS terverifikasi.
               </p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export function HomeSupport({ onDonate, onJoinVolunteer }: HomeSupportProps) {
               <Users size={20} />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900">Gabung Relawan</h4>
+              <h4 className="text-xs font-bold text-slate-900">Gabung Volunteer</h4>
               <p className="text-[11px] text-slate-500">Pengajar dongeng &amp; admin sirkulasi</p>
             </div>
           </div>

@@ -17,7 +17,7 @@ export function VolunteerSchedulePage() {
     <div className="space-y-8">
       <SectionTitle
         title="Jadwal dan Tugas"
-        description="Penugasan relawan dan riwayat kegiatan yang sudah berlalu."
+        description="Penugasan volunteer dan riwayat kegiatan yang sudah berlalu."
       />
 
       <section>

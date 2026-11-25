@@ -27,7 +27,7 @@ export function VolunteerApplyModal({
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">Form Pendaftaran Relawan</h3>
+          <h3 className="text-sm font-bold text-slate-900">Form Pendaftaran Volunteer</h3>
           <button
             onClick={onClose}
             className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center"

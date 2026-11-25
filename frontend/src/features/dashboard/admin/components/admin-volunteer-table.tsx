@@ -16,8 +16,8 @@ export function AdminVolunteerTable({
   return (
     <section>
       <SectionTitle
-        title="Persetujuan Relawan Terbaru"
-        description="Daftar berkas relawan dan status persetujuannya."
+        title="Persetujuan Volunteer Terbaru"
+        description="Daftar berkas volunteer dan status persetujuannya."
       />
       {loading ? (
         <div className="h-32 animate-pulse rounded-card bg-white" />

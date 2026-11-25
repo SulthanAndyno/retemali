@@ -14,7 +14,7 @@ export function VolunteerActivitiesPage() {
   return (
     <div className="space-y-6">
       <SectionTitle
-        title="Kegiatan Saya (Relawan)"
+        title="Kegiatan Saya (Volunteer)"
         description="Kegiatan yang Anda tugasi beserta tanggung jawab dan koordinator."
       />
 

@@ -70,7 +70,7 @@ export function useVolunteerPortalData(): UseVolunteerPortalDataResult {
           startTime: event.startTime,
           endTime: event.endTime,
           location: event.location,
-          coordinator: event.facilitatorName || 'Koordinator Relawan',
+          coordinator: event.facilitatorName || 'Koordinator Volunteer',
           responsibilities:
             event.description ||
             'Pendampingan kegiatan, registrasi peserta, dan dokumentasi.',

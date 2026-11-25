@@ -60,7 +60,7 @@ export function ActiveShiftCard({
       </div>
 
       <h2 className="text-base font-extrabold text-slate-900 leading-tight">
-        Meja Operasional Relawan
+        Meja Operasional Volunteer
       </h2>
       <p className="text-[11px] text-slate-500 mt-0.5">{location}</p>
 

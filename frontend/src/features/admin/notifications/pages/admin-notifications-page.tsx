@@ -26,7 +26,7 @@ export function AdminNotificationsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [target, setTarget] = useState('Semua Anggota & Relawan');
+  const [target, setTarget] = useState('Semua Anggota & Volunteer');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,7 +78,7 @@ export function AdminNotificationsPage() {
     <div className="space-y-4">
       <SectionTitle
         title="Notifikasi & Siaran"
-        description="Kirim pengumuman ke seluruh anggota dan relawan serta pantau riwayat siaran."
+        description="Kirim pengumuman ke seluruh anggota dan volunteer serta pantau riwayat siaran."
       />
 
       <Card className="space-y-3">
@@ -102,11 +102,11 @@ export function AdminNotificationsPage() {
                 onChange={(event) => setTarget(event.target.value)}
                 className="mt-1.5 w-full rounded-field border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
               >
-                <option value="Semua Anggota & Relawan">
-                  Semua Anggota & Relawan
+                <option value="Semua Anggota & Volunteer">
+                  Semua Anggota & Volunteer
                 </option>
                 <option value="Anggota">Anggota</option>
-                <option value="Relawan">Relawan</option>
+                <option value="Volunteer">Volunteer</option>
               </select>
             </label>
           </div>
@@ -117,7 +117,7 @@ export function AdminNotificationsPage() {
             rows={3}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Tuliskan pesan pengumuman untuk anggota dan relawan..."
+            placeholder="Tuliskan pesan pengumuman untuk anggota dan volunteer..."
           />
           <Button type="submit" size="sm" loading={submitting}>
             Kirim Broadcast

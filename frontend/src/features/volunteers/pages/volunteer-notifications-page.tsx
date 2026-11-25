@@ -7,7 +7,7 @@ export function VolunteerNotificationsPage() {
     <div className="space-y-6">
       <SectionTitle
         title="Notifikasi"
-        description="Status aplikasi relawan, jadwal penugasan, pengumuman, dan pengingat kegiatan."
+        description="Status aplikasi volunteer, jadwal penugasan, pengumuman, dan pengingat kegiatan."
       />
       <Card className="flex items-start gap-3 bg-surface-blue/50">
         <BellRing
@@ -15,7 +15,7 @@ export function VolunteerNotificationsPage() {
           aria-hidden
         />
         <p className="text-sm text-primary-deep">
-          Pengingat penugasan hanya muncul untuk relawan yang disetujui dan
+          Pengingat penugasan hanya muncul untuk volunteer yang disetujui dan
           tercatat pada penugasan kegiatan terpublikasi.
         </p>
       </Card>
