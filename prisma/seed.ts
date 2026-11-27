@@ -49,10 +49,16 @@ const ADMIN_ACCOUNTS: readonly AdminSeedEntry[] = [
     initialPassword: "ReteMali#Nania05",
   },
   {
-    preferredMemberCode: "RM-2026-0006",
+    preferredMemberCode: "RM-ADMIN-006",
     name: "Annis",
     email: "anniskarulika@gmail.com",
     initialPassword: "ReteMali#Annis06",
+  },
+  {
+    preferredMemberCode: "RM-ADMIN-007",
+    name: "Koordinator Rete Mali",
+    email: "admin@retemali.id",
+    initialPassword: "ReteMali#Admin123",
   },
 ];
 
