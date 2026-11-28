@@ -1,8 +1,68 @@
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
 import bcrypt from "bcrypt";
+import { BookCategory } from "../generated/prisma";
 import { prisma } from "../src/lib/prisma";
 
 const SALT_ROUNDS = 12;
+
+interface CatalogBookEntry {
+  bookCode: string;
+  isbn: string | null;
+  title: string;
+  slug: string;
+  author: string;
+  publisher: string | null;
+  publishYear: number | null;
+  category: BookCategory;
+  ageGroup: string | null;
+  synopsis: string | null;
+  shelfLocation: string;
+  totalStock: number;
+  availableStock: number;
+}
+
+async function seedCatalogIfEmpty(): Promise<number> {
+  const existingCount = await prisma.book.count();
+  if (existingCount > 0) {
+    console.log(`Book catalog already populated (${existingCount} books), skipping catalog seed.`);
+    return 0;
+  }
+
+  const catalogPath = path.join(__dirname, "books-catalog.json");
+  if (!fs.existsSync(catalogPath)) {
+    console.log("No prisma/books-catalog.json found, skipping catalog seed.");
+    return 0;
+  }
+
+  const raw = fs.readFileSync(catalogPath, "utf8");
+  const books = JSON.parse(raw) as CatalogBookEntry[];
+  if (books.length === 0) return 0;
+
+  const result = await prisma.book.createMany({
+    data: books.map((b) => ({
+      bookCode: b.bookCode,
+      isbn: b.isbn,
+      title: b.title,
+      slug: b.slug,
+      author: b.author,
+      publisher: b.publisher,
+      publishYear: b.publishYear,
+      category: b.category,
+      ageGroup: b.ageGroup ?? null,
+      synopsis: b.synopsis,
+      shelfLocation: b.shelfLocation,
+      totalStock: b.totalStock,
+      availableStock: b.availableStock,
+      status: "AVAILABLE",
+    })),
+    skipDuplicates: true,
+  });
+
+  console.log(`Seeded Book Catalog: ${result.count} books inserted.`);
+  return result.count;
+}
 
 interface AdminSeedEntry {
   preferredMemberCode: string;
@@ -156,6 +216,7 @@ async function main() {
     );
     const seeded = await flushAndSeedFresh();
     console.log("Seeded Admin Accounts:", seeded);
+    await seedCatalogIfEmpty();
     console.log("Seeding finished successfully.");
     return;
   }
@@ -203,6 +264,7 @@ async function main() {
   }
 
   console.log("Seeded Admin Accounts:", seededEmails);
+  await seedCatalogIfEmpty();
   console.log("Seeding finished successfully.");
 }
 

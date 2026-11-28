@@ -19,10 +19,9 @@ export enum BookStatus {
 export const createBookSchema = z.object({
   title: z
     .string()
+    .trim()
     .min(1, "Judul buku wajib diisi")
-    .min(3, "Judul buku minimal 3 karakter")
-    .max(150, "Judul buku maksimal 150 karakter")
-    .trim(),
+    .max(150, "Judul buku maksimal 150 karakter"),
 
   author: z
     .string()
@@ -35,6 +34,13 @@ export const createBookSchema = z.object({
     error:
       "Kategori tidak valid. Pilih: FIKSI_SASTRA, SAINS_FAKTA, SEJARAH, PSIKOLOGI, EDUKASI_ANAK, ENSIKLOPEDIA, atau KOMIK_EDUKASI",
   }),
+
+  ageGroup: z
+    .enum(["0 - 6 Tahun", "7 - 12 Tahun", "13 - 16 Tahun", "> 16 Tahun"])
+    .or(z.literal(""))
+    .transform((val) => (val === "" ? null : val))
+    .nullable()
+    .optional(),
 
   shelfLocation: z
     .string()
@@ -118,6 +124,10 @@ export const bookQuerySchema = z.object({
     .default("10"),
 
   category: z.nativeEnum(BookCategory).optional(),
+
+  ageGroup: z
+    .enum(["0 - 6 Tahun", "7 - 12 Tahun", "13 - 16 Tahun", "> 16 Tahun"])
+    .optional(),
 
   status: z.nativeEnum(BookStatus).optional(),
 

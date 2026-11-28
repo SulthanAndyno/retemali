@@ -12,6 +12,7 @@ interface FindAllBookOptions {
   skip: number;
   take: number;
   category?: BookCategory;
+  ageGroup?: string;
   status?: BookStatus;
   shelfLocation?: string;
   sortBy?: "newest" | "popular" | "rating";
@@ -59,11 +60,20 @@ export class BookRepository {
    * pengurutan (newest/popular/rating), dan pencarian judul/penulis/ISBN/rak.
    */
   async findAll(options: FindAllBookOptions): Promise<FindAllBookResult> {
-    const { skip, take, category, status, shelfLocation, sortBy, search } =
-      options;
+    const {
+      skip,
+      take,
+      category,
+      ageGroup,
+      status,
+      shelfLocation,
+      sortBy,
+      search,
+    } = options;
 
     const where: Record<string, unknown> = {
       ...(category && { category }),
+      ...(ageGroup && { ageGroup }),
       ...(status === ("BORROWED" as BookStatus)
         ? {
             OR: [
@@ -129,15 +139,6 @@ export class BookRepository {
    * Menambahkan koleksi buku baru ke database.
    */
   async create(data: CreateBookInput, coverImagePath?: string): Promise<Book> {
-    if (data.isbn) {
-      const existingIsbn = await this.prisma.book.findUnique({
-        where: { isbn: data.isbn },
-      });
-      if (existingIsbn) {
-        throw new AppError("Buku dengan ISBN tersebut sudah terdaftar", 400);
-      }
-    }
-
     const bookCode = await this.generateBookCode(data.category);
     const baseSlug = slug(data.title, { lower: true });
     const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
@@ -152,6 +153,7 @@ export class BookRepository {
         publisher: data.publisher ?? null,
         publishYear: data.publishYear ?? null,
         category: data.category,
+        ageGroup: data.ageGroup ?? null,
         synopsis: data.synopsis ?? null,
         coverImage: coverImagePath ?? null,
         shelfLocation: data.shelfLocation,
@@ -176,6 +178,7 @@ export class BookRepository {
     if (data.title !== undefined) updateData.title = data.title;
     if (data.author !== undefined) updateData.author = data.author;
     if (data.category !== undefined) updateData.category = data.category;
+    if (data.ageGroup !== undefined) updateData.ageGroup = data.ageGroup;
     if (data.shelfLocation !== undefined)
       updateData.shelfLocation = data.shelfLocation;
     if (data.totalStock !== undefined) updateData.totalStock = data.totalStock;

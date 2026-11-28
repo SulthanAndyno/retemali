@@ -177,13 +177,14 @@ model User {
 model Book {
   id             String       @id @default(cuid())
   bookCode       String       @unique
-  isbn           String?      @unique
+  isbn           String?
   title          String
   slug           String       @unique
   author         String
   publisher      String?
   publishYear    Int?
   category       BookCategory
+  ageGroup       String?
   synopsis       String?      @db.Text
   coverImage     String?
   shelfLocation  String
@@ -198,6 +199,9 @@ model Book {
   reservations BookReservation[]
   loans        BookLoan[]
   bookmarks    BookBookmark[]
+
+  @@index([isbn])
+  @@index([ageGroup])
 }
 
 model BookBookmark {

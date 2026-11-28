@@ -43,6 +43,7 @@ export class BookService {
       skip,
       take,
       category: query.category,
+      ageGroup: query.ageGroup,
       status: query.status,
       shelfLocation: query.shelfLocation,
       sortBy: query.sortBy,
