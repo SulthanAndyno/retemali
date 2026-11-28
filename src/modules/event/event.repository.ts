@@ -275,7 +275,7 @@ export class EventRepository {
         where,
         skip,
         take,
-        orderBy: [{ isFeatured: "desc" }, { eventDate: "asc" }],
+        orderBy: [{ eventDate: "desc" }, { createdAt: "desc" }],
       }),
       this.prisma.communityEvent.count({ where }),
     ]);

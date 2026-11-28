@@ -39,7 +39,11 @@ export class DashboardRepository {
       this.prisma.communityEvent.findMany({
         where: { status: "PUBLISHED" },
         take: 4,
-        orderBy: [{ isFeatured: "desc" }, { eventDate: "asc" }],
+        orderBy: [
+          { isFeatured: "desc" },
+          { eventDate: "desc" },
+          { createdAt: "desc" },
+        ],
       }),
       this.prisma.donationCampaign.findFirst({
         where: { isActive: true },
