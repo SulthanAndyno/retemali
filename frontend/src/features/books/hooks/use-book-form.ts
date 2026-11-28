@@ -10,6 +10,7 @@ const EMPTY_FORM: BookFormValues = {
   title: '',
   author: '',
   category: 'FIKSI_SASTRA',
+  ageGroup: '',
   shelfLocation: 'Rak B-04',
   totalStock: 3,
   publisher: '',
@@ -86,6 +87,7 @@ export function useBookForm({ canCreate, onSaved }: UseBookFormOptions): UseBook
       title: book.title ?? '',
       author: book.author ?? '',
       category: book.category ?? 'FIKSI_SASTRA',
+      ageGroup: book.ageGroup ?? '',
       shelfLocation: book.shelfLocation ?? 'Rak B-04',
       totalStock: book.totalStock || 1,
       publisher: book.publisher ?? '',
@@ -128,8 +130,8 @@ export function useBookForm({ canCreate, onSaved }: UseBookFormOptions): UseBook
         message: 'Hanya admin yang dapat menambahkan koleksi buku baru',
       };
     }
-    if (form.title.trim().length < 3) {
-      return { ok: false, message: 'Judul buku minimal 3 karakter' };
+    if (!form.title.trim()) {
+      return { ok: false, message: 'Judul buku wajib diisi' };
     }
     if (form.author.trim().length < 2) {
       return { ok: false, message: 'Nama penulis minimal 2 karakter' };

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/shared/lib/api';
 import { useAuth } from '@/features/auth';
 import { getBooks, getMyBookmarks, getMyBorrowedBooks } from '../api/books.api';
-import { nextCatalogSort } from '../lib/catalog-query';
+import type { BookAgeGroup } from '../types/book.types';
 import type { CatalogBook, CatalogSort, CatalogTab } from '../types/catalog.types';
 
 export interface UseCatalogBooksResult {
@@ -14,13 +14,15 @@ export interface UseCatalogBooksResult {
   error: string | null;
   searchQuery: string;
   activeTab: CatalogTab;
+  ageGroup: BookAgeGroup | 'ALL';
   sortBy: CatalogSort;
   page: number;
   totalBooks: number;
   totalPages: number;
   setSearchQuery: (value: string) => void;
   setActiveTab: (tab: CatalogTab) => void;
-  cycleSort: () => void;
+  setAgeGroup: (value: BookAgeGroup | 'ALL') => void;
+  setSort: (value: CatalogSort) => void;
   loadMore: () => void;
   refresh: () => Promise<void>;
   updateBookmark: (id: string, bookmarked: boolean) => void;
@@ -36,7 +38,8 @@ export function useCatalogBooks(
   initialSearch: string,
   initialTab: CatalogTab,
   initialSort: CatalogSort = 'newest',
-  initialPage = 1
+  initialPage = 1,
+  initialAgeGroup: BookAgeGroup | 'ALL' = 'ALL'
 ): UseCatalogBooksResult {
   const { user } = useAuth();
   const initialPageRef = useRef(initialPage);
@@ -48,6 +51,7 @@ export function useCatalogBooks(
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [activeTab, setActiveTabState] = useState<CatalogTab>(initialTab);
+  const [ageGroup, setAgeGroupState] = useState<BookAgeGroup | 'ALL'>(initialAgeGroup);
   const [sortBy, setSortBy] = useState<CatalogSort>(initialSort);
   const [page, setPage] = useState(initialPage);
   const [totalBooks, setTotalBooks] = useState(0);
@@ -68,7 +72,12 @@ export function useCatalogBooks(
         if (activeTab === 'BORROWED' && user) {
           const loans = await getMyBorrowedBooks();
           const borrowed = loans.data
-            .filter((loan) => loan.book && loan.status === 'BORROWED')
+            .filter(
+              (loan) =>
+                loan.book &&
+                loan.status === 'BORROWED' &&
+                (ageGroup === 'ALL' || loan.book.ageGroup === ageGroup)
+            )
             .map((loan) => ({
               ...loan.book,
               status: 'BORROWED' as const,
@@ -88,6 +97,7 @@ export function useCatalogBooks(
           page: targetPage,
           search: debouncedSearch,
           tab: activeTab,
+          ageGroup,
           sortBy,
         });
 
@@ -121,7 +131,7 @@ export function useCatalogBooks(
         setLoadingMore(false);
       }
     },
-    [activeTab, debouncedSearch, sortBy, user]
+    [activeTab, ageGroup, debouncedSearch, sortBy, user]
   );
 
   useEffect(() => {
@@ -135,8 +145,13 @@ export function useCatalogBooks(
     setPage(1);
   };
 
-  const cycleSort = () => {
-    setSortBy((current) => nextCatalogSort(current));
+  const setAgeGroup = (value: BookAgeGroup | 'ALL') => {
+    setAgeGroupState(value);
+    setPage(1);
+  };
+
+  const setSort = (value: CatalogSort) => {
+    setSortBy(value);
     setPage(1);
   };
 
@@ -160,13 +175,15 @@ export function useCatalogBooks(
     error,
     searchQuery,
     activeTab,
+    ageGroup,
     sortBy,
     page,
     totalBooks,
     totalPages,
     setSearchQuery,
     setActiveTab,
-    cycleSort,
+    setAgeGroup,
+    setSort,
     loadMore,
     refresh,
     updateBookmark,

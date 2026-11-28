@@ -3,18 +3,21 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BookOpen, CheckCircle2, SearchX } from 'lucide-react';
+import { BookOpen, SearchX } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, SectionTitle } from '@/shared/components/ui/card';
 import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category';
 import { usePublicCatalog } from '../hooks/use-public-catalog';
 import type { PublicBookSort } from '../api/books.api';
+import type { BookAgeGroup } from '../types/book.types';
 import { PublicBookCard } from '../components/public-book-card';
+import { BookFilterBar } from '../components/book-filter-bar';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 
 interface CatalogPageProps {
   initialSearch?: string;
   initialCategory?: string;
+  initialAgeGroup?: BookAgeGroup | 'ALL';
   initialAvailableOnly?: boolean;
   initialSort?: PublicBookSort;
   initialPage?: number;
@@ -28,18 +31,19 @@ const SORT_OPTIONS: { value: PublicBookSort; label: string }[] = [
   { value: 'rating', label: 'Rating tertinggi' },
 ];
 
-const fieldClasses =
-  'w-full rounded-field border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20';
-
-const chipBase =
-  'rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors';
-const chipIdle =
-  'border-surface-soft bg-white text-ink-soft hover:border-primary/50';
-const chipActive = 'border-primary bg-primary text-white';
+const CATEGORY_FILTER_GROUPS = [
+  {
+    options: [
+      { value: 'ALL', label: 'Semua Kategori' },
+      ...BOOK_CATEGORY_OPTIONS,
+    ],
+  },
+];
 
 export function CatalogPage({
   initialSearch = '',
   initialCategory = 'ALL',
+  initialAgeGroup = 'ALL',
   initialAvailableOnly = false,
   initialSort = 'title-asc',
   initialPage = 1,
@@ -50,6 +54,7 @@ export function CatalogPage({
   const [term, setTerm] = useState(initialSearch);
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory);
+  const [ageGroup, setAgeGroup] = useState<BookAgeGroup | 'ALL'>(initialAgeGroup);
   const [availableOnly, setAvailableOnly] = useState(initialAvailableOnly);
   const [sortBy, setSortBy] = useState<PublicBookSort>(initialSort);
   const [page, setPage] = useState(initialPage);
@@ -67,17 +72,19 @@ export function CatalogPage({
     const params = new URLSearchParams();
     if (search) params.set('cari', search);
     if (category !== 'ALL') params.set('kategori', category);
+    if (ageGroup !== 'ALL') params.set('usia', ageGroup);
     if (availableOnly) params.set('tersedia', '1');
     if (sortBy !== 'title-asc') params.set('urut', sortBy);
     if (page > 1) params.set('hal', String(page));
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }, [availableOnly, category, page, pathname, router, search, sortBy]);
+  }, [ageGroup, availableOnly, category, page, pathname, router, search, sortBy]);
 
   const catalog = usePublicCatalog({
     search,
     category,
+    ageGroup,
     availableOnly,
     sortBy,
     page,
@@ -87,6 +94,7 @@ export function CatalogPage({
     setTerm('');
     setSearch('');
     setCategory('ALL');
+    setAgeGroup('ALL');
     setAvailableOnly(false);
     setSortBy('title-asc');
     setPage(1);
@@ -99,117 +107,48 @@ export function CatalogPage({
         description="Jelajahi koleksi Taman Baca ReteMali — cari berdasarkan judul, penulis, atau kategori, lalu saring sesuai kebutuhan."
       />
 
-      <section
-        aria-label="Pencarian dan filter katalog"
-        className="rounded-card border border-surface-soft bg-white p-4 shadow-card"
-      >
-        <div className="relative">
-          <span
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft"
-            aria-hidden
-          >
-            <BookOpen className="h-4 w-4" />
-          </span>
-          <input
-            id="katalog-cari"
-            type="search"
-            aria-label="Cari judul buku, penulis, atau kategori"
-            placeholder="Cari judul buku, penulis, atau kategori…"
-            className={`${fieldClasses} pl-10`}
-            value={term}
-            onChange={(event) => {
-              setTerm(event.target.value);
-              setPage(1);
-            }}
-          />
-        </div>
-
-        <div
-          className="mt-3 flex flex-wrap items-center gap-2"
-          role="group"
-          aria-label="Filter kategori"
-        >
-          <button
-            type="button"
-            aria-pressed={category === 'ALL'}
-            onClick={() => {
-              setCategory('ALL');
-              setPage(1);
-            }}
-            className={`${chipBase} ${category === 'ALL' ? chipActive : chipIdle}`}
-          >
-            Semua
-          </button>
-          {BOOK_CATEGORY_OPTIONS.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              aria-pressed={category === item.value}
-              onClick={() => {
-                setCategory(item.value);
-                setPage(1);
-              }}
-              className={`${chipBase} ${
-                category === item.value ? chipActive : chipIdle
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-pressed={availableOnly}
-            onClick={() => {
-              setAvailableOnly((current) => !current);
-              setPage(1);
-            }}
-            className={`${chipBase} ${
-              availableOnly
-                ? 'border-success bg-green-50 text-success'
-                : chipIdle
-            }`}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-              Tersedia saja
-            </span>
-          </button>
-          <label
-            htmlFor="katalog-urut"
-            className="flex items-center gap-2 text-xs font-semibold text-ink-soft"
-          >
-            Urutkan
-            <select
-              id="katalog-urut"
-              value={sortBy}
-              onChange={(event) => {
-                setSortBy(event.target.value as PublicBookSort);
-                setPage(1);
-              }}
-              className="rounded-field border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <p
-          className="mt-3 border-t border-surface-soft pt-3 text-xs text-ink-soft"
-          role="status"
-          aria-live="polite"
-        >
-          {catalog.loading
+      <BookFilterBar
+        search={term}
+        onSearchChange={(value) => {
+          setTerm(value);
+          setPage(1);
+        }}
+        searchPlaceholder="Cari judul, penulis, ISBN, atau rak…"
+        filterTitle="Filter Buku"
+        category={category}
+        categoryGroups={CATEGORY_FILTER_GROUPS}
+        onCategoryChange={(value) => {
+          setCategory(value);
+          setPage(1);
+        }}
+        ageGroup={ageGroup}
+        onAgeGroupChange={(value) => {
+          setAgeGroup(value);
+          setPage(1);
+        }}
+        availableOnly={availableOnly}
+        onAvailableOnlyChange={(value) => {
+          setAvailableOnly(value);
+          setPage(1);
+        }}
+        sortBy={sortBy}
+        sortOptions={SORT_OPTIONS}
+        onSortChange={(value) => {
+          setSortBy(value as PublicBookSort);
+          setPage(1);
+        }}
+        onReset={resetFilters}
+        activeFilterCount={
+          (category !== 'ALL' ? 1 : 0) +
+          (ageGroup !== 'ALL' ? 1 : 0) +
+          (availableOnly ? 1 : 0)
+        }
+        statusText={
+          catalog.loading
             ? 'Memperbarui hasil…'
-            : `Menampilkan ${catalog.books.length} dari ${catalog.total} koleksi`}
-        </p>
-      </section>
+            : `Menampilkan ${catalog.books.length} dari ${catalog.total} koleksi`
+        }
+      />
 
       {catalog.error ? (
         <div className="flex items-center justify-between gap-3 rounded-card border border-red-200 bg-red-50 p-3">

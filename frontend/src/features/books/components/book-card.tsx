@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import { BookOpen, ChevronRight, Edit2, Heart, Star, Trash2 } from 'lucide-react';
+import { Badge } from '@/shared/components/ui/badge';
 import { getImageUrl } from '@/shared/lib/utils';
+import { getBookAgeGroupTone } from '../lib/book-category';
 import { formatBookRating } from '../lib/catalog-query';
 import type { CatalogBook } from '../types/catalog.types';
 
@@ -88,7 +90,14 @@ export function BookCard({
         <h3 className="text-xs font-bold text-slate-900 line-clamp-2 leading-tight mb-0.5">
           {book.title}
         </h3>
-        <p className="text-[11px] text-slate-500 line-clamp-1 mb-2.5">{book.author}</p>
+        <p className="text-[11px] text-slate-500 line-clamp-1 mb-1.5">{book.author}</p>
+        {book.ageGroup ? (
+          <div className="mb-2">
+            <Badge tone={getBookAgeGroupTone(book.ageGroup)}>
+              {book.ageGroup}
+            </Badge>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-1.5">

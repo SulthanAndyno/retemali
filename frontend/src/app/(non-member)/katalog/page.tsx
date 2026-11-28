@@ -1,4 +1,4 @@
-import { CatalogPage } from '@/features/books';
+import { CatalogPage, resolveBookAgeGroup } from '@/features/books';
 
 export const metadata = { title: 'Katalog Buku — Rete Mali' };
 
@@ -26,6 +26,7 @@ export default async function Page({ searchParams }: PageProps) {
     <CatalogPage
       initialSearch={single(params.cari) || single(params.search)}
       initialCategory={single(params.kategori) || single(params.category) || 'ALL'}
+      initialAgeGroup={resolveBookAgeGroup(single(params.usia))}
       initialAvailableOnly={single(params.tersedia) === '1'}
       initialSort={parseSort(single(params.urut))}
       initialPage={Number(single(params.hal)) || 1}

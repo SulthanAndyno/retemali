@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/shared/lib/api';
 import { getPublicBooks, type PublicBookSort } from '../api/books.api';
+import type { BookAgeGroup } from '../types/book.types';
 import type { CatalogBook } from '../types/catalog.types';
 
 interface UsePublicCatalogParams {
   search: string;
   category: string;
+  ageGroup: BookAgeGroup | 'ALL';
   availableOnly: boolean;
   sortBy: PublicBookSort;
   page: number;
@@ -41,6 +43,7 @@ function sortBooks(books: CatalogBook[], sortBy: PublicBookSort) {
 export function usePublicCatalog({
   search,
   category,
+  ageGroup,
   availableOnly,
   sortBy,
   page,
@@ -62,6 +65,7 @@ export function usePublicCatalog({
         page,
         search,
         category,
+        ageGroup,
         availableOnly,
         sortBy,
       });
@@ -79,7 +83,7 @@ export function usePublicCatalog({
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [availableOnly, category, page, search, sortBy]);
+  }, [ageGroup, availableOnly, category, page, search, sortBy]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

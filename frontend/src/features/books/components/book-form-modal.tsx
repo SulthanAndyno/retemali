@@ -1,6 +1,9 @@
 import type { FormEvent } from 'react';
 import { X } from 'lucide-react';
-import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category';
+import {
+  BOOK_AGE_GROUP_OPTIONS,
+  BOOK_CATEGORY_OPTIONS,
+} from '../lib/book-category';
 import type { BookFormValues, CatalogBook } from '../types/catalog.types';
 import { CoverUpload } from './cover-upload';
 
@@ -102,6 +105,29 @@ export function BookFormModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">
+              Penjenjangan Usia
+            </label>
+            <select
+              value={form.ageGroup}
+              onChange={(event) =>
+                onChange(
+                  'ageGroup',
+                  event.target.value as BookFormValues['ageGroup']
+                )
+              }
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Belum ditentukan</option>
+              {BOOK_AGE_GROUP_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

@@ -1,5 +1,11 @@
 export type BookStatus = 'AVAILABLE' | 'BORROWED' | 'MAINTENANCE';
 
+export type BookAgeGroup =
+  | '0 - 6 Tahun'
+  | '7 - 12 Tahun'
+  | '13 - 16 Tahun'
+  | '> 16 Tahun';
+
 export type BookCategory =
   | 'FIKSI_SASTRA'
   | 'SAINS_FAKTA'
@@ -19,6 +25,7 @@ export interface Book {
   publisher?: string | null;
   publishYear?: number | null;
   category: BookCategory;
+  ageGroup?: BookAgeGroup | null;
   synopsis?: string | null;
   coverImage?: string | null;
   shelfLocation: string;

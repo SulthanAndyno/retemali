@@ -1,4 +1,8 @@
-import { AdminBooksPage, type CatalogSort } from '@/features/books';
+import {
+  AdminBooksPage,
+  resolveBookAgeGroup,
+  type CatalogSort,
+} from '@/features/books';
 
 export const metadata = { title: 'Manajemen Buku — Rete Mali' };
 
@@ -24,6 +28,7 @@ export default async function Page({ searchParams }: PageProps) {
       initialCategory={single(params.kategori) || 'ALL'}
       initialSort={parseSort(single(params.urut))}
       initialPage={page}
+      initialAgeGroup={resolveBookAgeGroup(single(params.usia))}
     />
   );
 }

@@ -1,6 +1,6 @@
 import { del, get, patch, post } from '@/shared/lib/api';
 import type { ApiEnvelope, PaginatedMeta } from '@/shared/types/api';
-import type { Book } from '../types/book.types';
+import type { Book, BookAgeGroup } from '../types/book.types';
 import type {
   BookFormValues,
   BookmarkEntry,
@@ -22,6 +22,7 @@ export interface PublicBookListParams {
   page: number;
   search?: string;
   category?: string;
+  ageGroup?: BookAgeGroup | 'ALL';
   availableOnly?: boolean;
   sortBy?: PublicBookSort;
 }
@@ -30,6 +31,7 @@ export function getPublicBooks({
   page,
   search,
   category,
+  ageGroup,
   availableOnly,
   sortBy = 'newest',
 }: PublicBookListParams) {
@@ -41,6 +43,7 @@ export function getPublicBooks({
 
   if (search?.trim()) query.set('search', search.trim());
   if (category && category !== 'ALL') query.set('category', category);
+  if (ageGroup && ageGroup !== 'ALL') query.set('ageGroup', ageGroup);
   if (availableOnly) query.set('status', 'AVAILABLE');
 
   return get<ApiEnvelope<CatalogBook[]> & { meta?: PaginatedMeta }>(
@@ -56,10 +59,11 @@ export interface BookListParams {
   page: number;
   search: string;
   tab: CatalogTab;
+  ageGroup?: BookAgeGroup | 'ALL';
   sortBy: CatalogSort;
 }
 
-export function getBooks({ page, search, tab, sortBy }: BookListParams) {
+export function getBooks({ page, search, tab, ageGroup, sortBy }: BookListParams) {
   const query = new URLSearchParams({
     page: String(page),
     limit: String(PAGE_SIZE),
@@ -72,6 +76,8 @@ export function getBooks({ page, search, tab, sortBy }: BookListParams) {
   } else if (tab !== 'ALL') {
     query.set('category', tab);
   }
+
+  if (ageGroup && ageGroup !== 'ALL') query.set('ageGroup', ageGroup);
 
   return get<ApiEnvelope<CatalogBook[]> & { meta?: PaginatedMeta }>(
     `/books?${query.toString()}`
@@ -103,6 +109,7 @@ function buildBookFormData(values: BookFormValues, coverFile: File | null) {
   body.append('category', values.category);
   body.append('shelfLocation', values.shelfLocation.trim());
   body.append('totalStock', String(values.totalStock));
+  body.append('ageGroup', values.ageGroup);
   if (values.publisher.trim()) body.append('publisher', values.publisher.trim());
   if (values.isbn.trim()) body.append('isbn', values.isbn.trim());
   if (values.synopsis.trim()) body.append('synopsis', values.synopsis.trim());

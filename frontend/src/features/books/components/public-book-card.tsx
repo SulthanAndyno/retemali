@@ -2,7 +2,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/shared/components/ui/badge';
 import { getImageUrl } from '@/shared/lib/utils';
-import { getBookCategoryLabel } from '../lib/book-category';
+import {
+  getBookAgeGroupTone,
+  getBookCategoryLabel,
+} from '../lib/book-category';
 import type { Book } from '../types/book.types';
 
 export function PublicBookCard({ book, href }: { book: Book; href: string }) {
@@ -35,6 +38,11 @@ export function PublicBookCard({ book, href }: { book: Book; href: string }) {
         <p className="truncate text-sm text-ink-soft">{book.author}</p>
         <div className="flex flex-wrap gap-1.5 pt-1">
           <Badge tone="info">{getBookCategoryLabel(book.category)}</Badge>
+          {book.ageGroup ? (
+            <Badge tone={getBookAgeGroupTone(book.ageGroup)}>
+              {book.ageGroup}
+            </Badge>
+          ) : null}
           {available ? (
             <Badge tone="success">
               {book.availableStock === book.totalStock

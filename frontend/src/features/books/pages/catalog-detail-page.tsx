@@ -12,7 +12,10 @@ import { useToast } from '@/shared/components/ui/toast';
 import { useAuth } from '@/features/auth';
 import { getImageUrl } from '@/shared/lib/utils';
 import { formatBookRating } from '../lib/catalog-query';
-import { getBookCategoryLabel } from '../lib/book-category';
+import {
+  getBookAgeGroupTone,
+  getBookCategoryLabel,
+} from '../lib/book-category';
 import { useBookDetail } from '../hooks/use-book-detail';
 import { useBookMutations } from '../hooks/use-book-mutations';
 import { EmptyState } from '@/shared/components/ui/empty-state';
@@ -110,6 +113,11 @@ export function CatalogDetailPage({ bookId }: { bookId: string }) {
         <div className="min-w-60 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="info">{getBookCategoryLabel(book.category)}</Badge>
+            {book.ageGroup ? (
+              <Badge tone={getBookAgeGroupTone(book.ageGroup)}>
+                {book.ageGroup}
+              </Badge>
+            ) : null}
             <Badge tone={available ? 'success' : 'warning'}>
               {available
                 ? `Tersedia ${book.availableStock}/${book.totalStock}`

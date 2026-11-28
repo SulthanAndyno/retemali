@@ -1,4 +1,4 @@
-import type { Book, BookCategory } from './book.types';
+import type { Book, BookAgeGroup, BookCategory } from './book.types';
 
 export type CatalogTab = 'ALL' | 'AVAILABLE' | 'BORROWED' | BookCategory;
 export type CatalogSort = 'newest' | 'popular' | 'rating';
@@ -42,6 +42,7 @@ export interface BookFormValues {
   title: string;
   author: string;
   category: BookCategory;
+  ageGroup: BookAgeGroup | '';
   shelfLocation: string;
   totalStock: number;
   publisher: string;

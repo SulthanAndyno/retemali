@@ -42,6 +42,14 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }
 
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .nav-link {
   display: flex;
   flex-direction: column;
