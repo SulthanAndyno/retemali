@@ -130,7 +130,7 @@ export function EventFormModal({
                     ? `Kuota tidak boleh di bawah ${quotaFloor} (peserta terdaftar).`
                     : `${editingEvent.registeredCount} peserta sudah terdaftar. Sisa ${
                         form.quota - editingEvent.registeredCount
-                      } kursi.`}
+                      } kuota.`}
                 </p>
               )}
             </div>

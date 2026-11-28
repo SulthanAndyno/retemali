@@ -243,7 +243,7 @@ export function computeQuotaState(
     seatsLeft,
     isFull,
     percent,
-    label: isFull ? 'Kuota Penuh' : `Sisa ${seatsLeft} kursi`,
+    label: isFull ? 'Kuota Penuh' : `Sisa ${seatsLeft} kuota`,
     tone: isFull ? 'rose' : percent >= 80 ? 'amber' : 'emerald',
   };
 }

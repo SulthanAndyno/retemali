@@ -29,7 +29,7 @@ export function isWithinDays(iso: string, days: number, now = Date.now()): boole
 export function getEventSeatsLabel(event: FeaturedEvent): string {
   const seatsLeft = Math.max(0, event.quota - event.registeredCount);
   if (seatsLeft === 0) return 'Kuota Penuh';
-  return `Sisa ${seatsLeft} Kursi`;
+  return `Sisa ${seatsLeft} Kuota`;
 }
 
 export function getBookStatusLabel(status: string): string {

@@ -467,7 +467,7 @@ export class EventRepository {
 
     // 2. Guard: Pembatasan Kuota Peserta
     if (event.registeredCount >= event.quota) {
-      throw new AppError("Kuota kursi kegiatan ini sudah penuh", 400);
+      throw new AppError("Kuota kegiatan ini sudah penuh", 400);
     }
 
     const existing = await this.prisma.eventRegistration.findUnique({
