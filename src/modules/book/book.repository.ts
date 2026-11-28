@@ -15,7 +15,7 @@ interface FindAllBookOptions {
   ageGroup?: string;
   status?: BookStatus;
   shelfLocation?: string;
-  sortBy?: "newest" | "popular" | "rating";
+  sortBy?: "newest" | "popular" | "rating" | "title-asc" | "title-desc";
   search?: string;
 }
 
@@ -99,12 +99,14 @@ export class BookRepository {
       }),
     };
 
-    const orderBy =
-      sortBy === "popular"
-        ? { borrowCount: "desc" as const }
-        : sortBy === "rating"
-          ? { rating: "desc" as const }
-          : { createdAt: "desc" as const };
+    const orderByMap = {
+      popular: { borrowCount: "desc" as const },
+      rating: { rating: "desc" as const },
+      "title-asc": { title: "asc" as const },
+      "title-desc": { title: "desc" as const },
+      newest: { createdAt: "desc" as const },
+    };
+    const orderBy = orderByMap[sortBy ?? "newest"];
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.book.findMany({

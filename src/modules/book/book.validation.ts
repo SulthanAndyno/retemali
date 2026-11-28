@@ -133,7 +133,10 @@ export const bookQuerySchema = z.object({
 
   shelfLocation: z.string().trim().optional(),
 
-  sortBy: z.enum(["newest", "popular", "rating"]).optional().default("newest"),
+  sortBy: z
+    .enum(["newest", "popular", "rating", "title-asc", "title-desc"])
+    .optional()
+    .default("newest"),
 
   search: z
     .string()
